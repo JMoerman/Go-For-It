@@ -23,14 +23,6 @@ pkg_check_modules(DEPS REQUIRED
 
 set (GLOBAL_VALAC_OPTIONS)
 
-# checking if have a recent version of Gtk+-3.0
-pkg_check_modules( GTK3 gtk+-3.0 )
-if (${GTK3_VERSION} VERSION_GREATER 3.9)
-    set (VALAC_OPTIONS ${VALAC_OPTIONS} -D HAS_GTK310)
-else ()
-    message ("-- No recent Gtk+-3.0 found... Using pre 3.10 features.")
-endif ()
-
 # checking if we have a recent version of GLib
 pkg_check_modules( GLIB2 glib-2.0 )
 if (${GLIB2_VERSION} VERSION_GREATER 2.40 )
