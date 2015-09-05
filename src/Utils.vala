@@ -29,10 +29,6 @@ namespace GOFI {
     const string PROJECT_WEBSITE = "http://manuel-kehl.de/projects/go-for-it/";
     const string PROJECT_REPO = "https://github.com/mank319/Go-For-It";
     const string PROJECT_DONATIONS = "http://manuel-kehl.de/donations/";
-    const string[] TEST_DIRS = {
-        "Todo", "todo", ".todo", 
-        "Dropbox/Todo", "Dropbox/todo"
-    };
     
     /** 
      * A collection of static utility functions.
