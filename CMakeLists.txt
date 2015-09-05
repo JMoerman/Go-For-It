@@ -15,7 +15,7 @@ set (VERSION_INFO "initial release")
 # find pkgconfig to make sure dependencies are installed
 find_package(PkgConfig)
 # check for the required dependencies
-pkg_check_modules(DEPS REQUIRED 
+pkg_check_modules(DEPS REQUIRED
     gtk+-3.0
     glib-2.0
     libnotify
@@ -30,7 +30,7 @@ if (${GLIB2_VERSION} VERSION_GREATER 2.40 )
 else ()
     message ("-- No recent glib-2.0 found")
 endif ()
-    
+
 add_definitions(${DEPS_CFLAGS})
 link_libraries(${DEPS_LIBRARIES})
 link_directories(${DEPS_LIBRARY_DIRS})
@@ -50,9 +50,10 @@ include(ValaPrecompile)
 vala_precompile(VALA_C ${EXEC_NAME}
     src/Utils.vala
     src/SettingsManager.vala
+    src/TodoTask.vala
     src/TaskStore.vala
     src/TaskManager.vala
-    src/view/TaskList.vala
+    src/view/TaskView.vala
     src/TaskTimer.vala
     src/view/TimerView.vala
     src/view/SettingsDialog.vala
@@ -60,12 +61,12 @@ vala_precompile(VALA_C ${EXEC_NAME}
     src/view/ContributeDialog.vala
     src/view/MainWindow.vala
     src/Main.vala
-    
+
 # tell what libraries to use when compiling
 PACKAGES
     gtk+-3.0
     libnotify
-    
+
 OPTIONS
     ${VALAC_OPTIONS}
 )
@@ -77,11 +78,7 @@ install (TARGETS ${EXEC_NAME} RUNTIME DESTINATION bin)
 # install .desktop file so the Applications menu will display it
 install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/data/go-for-it.desktop DESTINATION ${DATADIR}/applications/)
 # install the application's stylesheet
-if (${GTK3_VERSION} VERSION_GREATER 3.7)
-    install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/style/go-for-it.css DESTINATION ${PKGDATADIR}/style/)
-else ()
-    install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/style/legacy-compat/go-for-it.css DESTINATION ${PKGDATADIR}/style/)
-endif ()
+install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/style/go-for-it.css DESTINATION ${PKGDATADIR}/style/)
 # install the application's icons
 set(SYSTEM_DEFAULT_THEME ${CMAKE_INSTALL_PREFIX}/share/icons/hicolor)
 install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/data/icons/hicolor/16x16/apps/go-for-it.svg DESTINATION ${SYSTEM_DEFAULT_THEME}/16x16/apps)

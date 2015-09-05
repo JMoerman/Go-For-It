@@ -63,25 +63,22 @@ public class TimerView : Gtk.Grid {
         timer.update ();
     }
 
-    private void timer_active_task_changed (Gtk.TreeRowReference reference,
+    private void timer_active_task_changed (TodoTask task,
                                             bool break_active) {
 
-        if (reference.valid ()) {
-            task_description_lbl.label = GOFI.Utils.
-            tree_row_ref_to_task (reference);
-            var style = task_description_lbl.get_style_context ();
+        task_description_lbl.label = task.title;
+        var style = task_description_lbl.get_style_context ();
 
-            // Append correct class according to break status
-            if (break_active) {
-                task_status_lbl.label = _("Take a Break") + "!";
-                style.remove_class ("task_active");
-                style.add_class ("task_break");
-            } else {
-                task_status_lbl.label = _("Active Task") + ":";
-                style.remove_class ("task_break");
-                style.add_class ("task_active");
-                done_btn.visible = true;
-            }
+        // Append correct class according to break status
+        if (break_active) {
+            task_status_lbl.label = _("Take a Break") + "!";
+            style.remove_class ("task_active");
+            style.add_class ("task_break");
+        } else {
+            task_status_lbl.label = _("Active Task") + ":";
+            style.remove_class ("task_break");
+            style.add_class ("task_active");
+            done_btn.visible = true;
         }
     }
     public void set_time (DateTime time) {
