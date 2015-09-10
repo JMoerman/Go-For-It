@@ -22,9 +22,6 @@ public class SettingsDialog : Gtk.Dialog {
     private SettingsManager settings;
     /* GTK Widgets */
     private Gtk.Grid main_layout;
-    private Gtk.Label directory_lbl;
-    private Gtk.Label directory_explanation_lbl;
-    private Gtk.FileChooserButton directory_btn;
     private Gtk.Label task_lbl;
     private Gtk.SpinButton task_spin;
     private Gtk.Label break_lbl;
@@ -68,35 +65,13 @@ public class SettingsDialog : Gtk.Dialog {
     
     private void setup_settings_widgets (bool advanced) {
         /* Instantiation */
-        directory_btn = new Gtk.FileChooserButton ("Todo.txt " + _("directory"),
-            Gtk.FileChooserAction.SELECT_FOLDER);
-            
-        directory_lbl = new Gtk.Label (
-            "<a href=\"http://todotxt.com\">Todo.txt</a> "
-            + _("directory") + ":"
-        );
-            
-        directory_explanation_lbl = new Gtk.Label (
-            _("If no appropriate folder was found, Go For It! defaults to creating a Todo folder in your home directory.")
-        );
+        // code comes here...
         
         /* Configuration */
-        directory_lbl.set_line_wrap (false);
-        directory_lbl.set_use_markup (true);
-        directory_explanation_lbl.set_line_wrap (true);
-        directory_btn.create_folders = true;
-        directory_btn.set_current_folder (settings.todo_txt_location);
-        
-        /* Signal Handling */
-        directory_btn.file_set.connect ((e) => {
-            var todo_dir = directory_btn.get_file ().get_path ();
-            settings.todo_txt_location = todo_dir;
-        });
+        // code comes here...
         
         /* Add widgets */
-        main_layout.add (directory_lbl);
-        main_layout.add (directory_explanation_lbl);
-        main_layout.add (directory_btn);
+        // code comes here...
         
         if (advanced) {
             setup_advanced_settings_widgets ();

@@ -27,7 +27,6 @@ public class SettingsManager {
      * A list of constants that define settings group names
      */
     
-    private const string GROUP_TODO_TXT = "Todo.txt";
     private const string GROUP_TIMER = "Timer";
     private const string GROUP_UI = "Interface";
     
@@ -39,14 +38,6 @@ public class SettingsManager {
      * The "heart" of the SettingsManager class.
      */
     
-    /*---GROUP:Todo.txt------------------------------------------------------*/
-    public string todo_txt_location {
-        owned get { return get_value (GROUP_TODO_TXT, "location"); }
-        set {
-            set_value (GROUP_TODO_TXT, "location", value); 
-            todo_txt_location_changed ();
-        }
-    }
     /*---GROUP:Timer---------------------------------------------------------*/
     public int task_duration {
         owned get {
@@ -121,7 +112,6 @@ public class SettingsManager {
     }
     
     /* Signals */
-    public signal void todo_txt_location_changed ();
     public signal void timer_duration_changed ();
     
     /**
