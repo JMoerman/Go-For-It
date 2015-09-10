@@ -7,10 +7,23 @@ list (APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 set (DATADIR "${CMAKE_INSTALL_PREFIX}/share")
 
 set (PKGDATADIR "${DATADIR}/go-for-it")
+set (PLUGINDIR "${CMAKE_INSTALL_FULL_LIBDIR}/${CMAKE_PROJECT_NAME}/plugins")
+set (FILE_CONF "go-for-it.conf")
+
+set (APP_NAME "Go For It!")
+set (APP_ID "de.manuel-kehl.go-for-it")
 set (EXEC_NAME "go-for-it")
 set (RELEASE_NAME "A stylish to-do list with built-in productivity timer.")
+set (LIBNAME "GOFI")
+
 set (VERSION "1.4.3")
-set (VERSION_INFO "initial release")
+set (VERSION_INFO "wip git branch")
+
+set (PROJECT_WEBSITE "http://manuel-kehl.de/projects/go-for-it/")
+set (PROJECT_REPO "https://github.com/mank319/Go-For-It")
+set (PROJECT_DONATIONS "http://manuel-kehl.de/donations/")
+
+configure_file (${CMAKE_SOURCE_DIR}/src/Constants.vala.cmake ${CMAKE_SOURCE_DIR}/src/Constants.vala)
 
 # find pkgconfig to make sure dependencies are installed
 find_package(PkgConfig)
@@ -49,6 +62,7 @@ ensure_vala_version("0.16" MINIMUM)
 include(ValaPrecompile)
 vala_precompile(VALA_C ${EXEC_NAME}
     src/Utils.vala
+    src/Constants.vala
     src/SettingsManager.vala
     src/TodoTask.vala
     src/view/TaskView.vala
@@ -67,6 +81,10 @@ PACKAGES
 
 OPTIONS
     ${VALAC_OPTIONS}
+GENERATE_VAPI
+    ${LIBNAME}
+GENERATE_HEADER
+    ${LIBNAME}
 )
 
 # tell cmake what to call the executable we just made

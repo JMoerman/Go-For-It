@@ -17,19 +17,9 @@
 
 /**
  * The GOFI namespace is a central collection of static constants that are 
- * realted to "Go For It!".
+ * related to "Go For It!".
  */
 namespace GOFI {
-    /* Strings */
-    const string APP_NAME = "Go For It!";
-    const string APP_SYSTEM_NAME = "go-for-it";
-    const string APP_ID = "de.manuel-kehl.go-for-it";
-    const string APP_VERSION = "1.4.3";
-    const string FILE_CONF = "go-for-it.conf";
-    const string PROJECT_WEBSITE = "http://manuel-kehl.de/projects/go-for-it/";
-    const string PROJECT_REPO = "https://github.com/mank319/Go-For-It";
-    const string PROJECT_DONATIONS = "http://manuel-kehl.de/donations/";
-    
     /** 
      * A collection of static utility functions.
      */
