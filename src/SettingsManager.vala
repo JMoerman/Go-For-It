@@ -27,7 +27,6 @@ public class SettingsManager {
      * A list of constants that define settings group names
      */
     
-    private const string GROUP_TODO_TXT = "Todo.txt";
     private const string GROUP_TIMER = "Timer";
     private const string GROUP_UI = "Interface";
     
@@ -39,14 +38,6 @@ public class SettingsManager {
      * The "heart" of the SettingsManager class.
      */
     
-    /*---GROUP:Todo.txt------------------------------------------------------*/
-    public string todo_txt_location {
-        owned get { return get_value (GROUP_TODO_TXT, "location"); }
-        set {
-            set_value (GROUP_TODO_TXT, "location", value); 
-            todo_txt_location_changed ();
-        }
-    }
     /*---GROUP:Timer---------------------------------------------------------*/
     public int task_duration {
         owned get {
@@ -121,7 +112,6 @@ public class SettingsManager {
     }
     
     /* Signals */
-    public signal void todo_txt_location_changed ();
     public signal void timer_duration_changed ();
     
     /**
@@ -134,7 +124,6 @@ public class SettingsManager {
         
         if (!FileUtils.test (GOFI.Utils.config_file, FileTest.EXISTS)) {
             // Fill with default values, if it does not exist yet
-            generate_configuration ();
             first_start = true;
         } else {
             // If it does exist, read existing values
@@ -207,30 +196,5 @@ public class SettingsManager {
             written += stream_out.write (data[written:data.length]);
         }
 #endif
-    }
-    
-    /**
-     * Generates the default configuration.
-     * It also tries to automatically determine the location of the user's 
-     * Todo.txt directory by checking a set of common potential 
-     * "standard locations", which are defined in GOFI.TEST_DIRS in Utils.vala.
-     */
-    private void generate_configuration () {
-        string user_dir = Environment.get_home_dir ();
-        
-        /* Determine the Todo.txt Directory */
-        // Start by setting the default fallback directory
-        var todo_dir = Path.build_filename (user_dir, GOFI.TEST_DIRS[0]);
-        
-        // Try a set of possible "standard locations"
-        foreach (var test_sub_dir in GOFI.TEST_DIRS) {
-            var test_dir = Path.build_filename (user_dir, test_sub_dir);
-            if (FileUtils.test (test_dir, FileTest.EXISTS)) {
-                todo_dir = test_dir;
-                break;
-            }
-        }
-        
-        this.todo_txt_location = todo_dir;
     }
 }

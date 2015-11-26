@@ -17,23 +17,9 @@
 
 /**
  * The GOFI namespace is a central collection of static constants that are 
- * realted to "Go For It!".
+ * related to "Go For It!".
  */
 namespace GOFI {
-    /* Strings */
-    const string APP_NAME = "Go For It!";
-    const string APP_SYSTEM_NAME = "go-for-it";
-    const string APP_ID = "de.manuel-kehl.go-for-it";
-    const string APP_VERSION = "1.4.3";
-    const string FILE_CONF = "go-for-it.conf";
-    const string PROJECT_WEBSITE = "http://manuel-kehl.de/projects/go-for-it/";
-    const string PROJECT_REPO = "https://github.com/mank319/Go-For-It";
-    const string PROJECT_DONATIONS = "http://manuel-kehl.de/donations/";
-    const string[] TEST_DIRS = {
-        "Todo", "todo", ".todo", 
-        "Dropbox/Todo", "Dropbox/todo"
-    };
-    
     /** 
      * A collection of static utility functions.
      */
@@ -45,19 +31,6 @@ namespace GOFI {
                 return Path.build_filename (config_dir, FILE_CONF);
             }
             private set {}
-        }
-        
-        public static string tree_row_ref_to_task (
-                Gtk.TreeRowReference reference) {
-            // Get Gtk.TreeIterator from reference
-            var path = reference.get_path ();
-            var model = reference.get_model ();
-            Gtk.TreeIter iter;
-            model.get_iter (out iter, path);
-            
-            string description;
-            model.get (iter, 1, out description, -1);
-            return description;
         }
         
         /**

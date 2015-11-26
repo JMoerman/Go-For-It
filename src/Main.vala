@@ -23,7 +23,7 @@ public class Main : Gtk.Application {
     const string GETTEXT_PACKAGE = "go-for-it";
 
     private SettingsManager settings;
-    private TaskManager task_manager;
+//    private TaskManager task_manager;
     private TaskTimer task_timer;
     private MainWindow win;
 
@@ -79,10 +79,10 @@ public class Main : Gtk.Application {
         }
         
         settings = new SettingsManager.load_from_key_file ();
-        task_manager = new TaskManager(settings);
+//        task_manager = new TaskManager(settings);
         task_timer = new TaskTimer (settings);
-        task_timer.active_task_done.connect (task_manager.mark_task_done);
-        win = new MainWindow (this, task_manager, task_timer, settings,
+//        task_timer.active_task_done.connect (task_manager.mark_task_done);
+        win = new MainWindow (this, task_timer, settings,
             use_header_bar);
         win.show_all ();
     }
@@ -92,7 +92,7 @@ public class Main : Gtk.Application {
             stdout.printf ("An instance of Go For It! needs to be running in order for this to work!\n");
             return;
         }
-        task_manager.refresh ();
+//        task_manager.refresh ();
     }
     
     public void show_about (Gtk.Window? parent = null) {

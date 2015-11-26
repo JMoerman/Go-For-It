@@ -7,29 +7,34 @@ list (APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 set (DATADIR "${CMAKE_INSTALL_PREFIX}/share")
 
 set (PKGDATADIR "${DATADIR}/go-for-it")
+set (PLUGINDIR "${CMAKE_INSTALL_FULL_LIBDIR}/${CMAKE_PROJECT_NAME}/plugins")
+set (FILE_CONF "go-for-it.conf")
+
+set (APP_NAME "Go For It!")
+set (APP_ID "de.manuel-kehl.go-for-it")
 set (EXEC_NAME "go-for-it")
 set (RELEASE_NAME "A stylish to-do list with built-in productivity timer.")
+set (LIBNAME "GOFI")
+
 set (VERSION "1.4.3")
-set (VERSION_INFO "initial release")
+set (VERSION_INFO "wip git branch")
+
+set (PROJECT_WEBSITE "http://manuel-kehl.de/projects/go-for-it/")
+set (PROJECT_REPO "https://github.com/mank319/Go-For-It")
+set (PROJECT_DONATIONS "http://manuel-kehl.de/donations/")
+
+configure_file (${CMAKE_SOURCE_DIR}/src/Constants.vala.cmake ${CMAKE_SOURCE_DIR}/src/Constants.vala)
 
 # find pkgconfig to make sure dependencies are installed
 find_package(PkgConfig)
 # check for the required dependencies
-pkg_check_modules(DEPS REQUIRED 
+pkg_check_modules(DEPS REQUIRED
     gtk+-3.0
     glib-2.0
     libnotify
 )
 
 set (GLOBAL_VALAC_OPTIONS)
-
-# checking if have a recent version of Gtk+-3.0
-pkg_check_modules( GTK3 gtk+-3.0 )
-if (${GTK3_VERSION} VERSION_GREATER 3.9)
-    set (VALAC_OPTIONS ${VALAC_OPTIONS} -D HAS_GTK310)
-else ()
-    message ("-- No recent Gtk+-3.0 found... Using pre 3.10 features.")
-endif ()
 
 # checking if we have a recent version of GLib
 pkg_check_modules( GLIB2 glib-2.0 )
@@ -38,7 +43,7 @@ if (${GLIB2_VERSION} VERSION_GREATER 2.40 )
 else ()
     message ("-- No recent glib-2.0 found")
 endif ()
-    
+
 add_definitions(${DEPS_CFLAGS})
 link_libraries(${DEPS_LIBRARIES})
 link_directories(${DEPS_LIBRARY_DIRS})
@@ -57,10 +62,10 @@ ensure_vala_version("0.16" MINIMUM)
 include(ValaPrecompile)
 vala_precompile(VALA_C ${EXEC_NAME}
     src/Utils.vala
+    src/Constants.vala
     src/SettingsManager.vala
-    src/TaskStore.vala
-    src/TaskManager.vala
-    src/view/TaskList.vala
+    src/TodoTask.vala
+    src/view/TaskView.vala
     src/TaskTimer.vala
     src/view/TimerView.vala
     src/view/SettingsDialog.vala
@@ -68,14 +73,18 @@ vala_precompile(VALA_C ${EXEC_NAME}
     src/view/ContributeDialog.vala
     src/view/MainWindow.vala
     src/Main.vala
-    
+
 # tell what libraries to use when compiling
 PACKAGES
     gtk+-3.0
     libnotify
-    
+
 OPTIONS
     ${VALAC_OPTIONS}
+GENERATE_VAPI
+    ${LIBNAME}
+GENERATE_HEADER
+    ${LIBNAME}
 )
 
 # tell cmake what to call the executable we just made
@@ -85,11 +94,7 @@ install (TARGETS ${EXEC_NAME} RUNTIME DESTINATION bin)
 # install .desktop file so the Applications menu will display it
 install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/data/go-for-it.desktop DESTINATION ${DATADIR}/applications/)
 # install the application's stylesheet
-if (${GTK3_VERSION} VERSION_GREATER 3.7)
-    install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/style/go-for-it.css DESTINATION ${PKGDATADIR}/style/)
-else ()
-    install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/style/legacy-compat/go-for-it.css DESTINATION ${PKGDATADIR}/style/)
-endif ()
+install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/style/go-for-it.css DESTINATION ${PKGDATADIR}/style/)
 # install the application's icons
 set(SYSTEM_DEFAULT_THEME ${CMAKE_INSTALL_PREFIX}/share/icons/hicolor)
 install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/data/icons/hicolor/16x16/apps/go-for-it.svg DESTINATION ${SYSTEM_DEFAULT_THEME}/16x16/apps)

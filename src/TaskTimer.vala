@@ -47,8 +47,8 @@ public class TaskTimer {
     }
     public DateTime start_time;
     private int64 previous_runtime { get; set; default = 0; }
-    private Gtk.TreeRowReference _active_task;
-    public Gtk.TreeRowReference active_task {
+    private TodoTask _active_task;
+    public TodoTask active_task {
         get { return _active_task; }
         set {
             // Don't change task, while timer is running
@@ -67,8 +67,8 @@ public class TaskTimer {
     public signal void timer_running_changed (bool running);
     public signal void timer_almost_over (DateTime remaining_duration);
     public signal void timer_finished (bool break_active);
-    public signal void active_task_done (Gtk.TreeRowReference task);
-    public signal void active_task_changed (Gtk.TreeRowReference task, 
+    public signal void active_task_done (TodoTask task);
+    public signal void active_task_changed (TodoTask task, 
         bool break_active);
     
     public TaskTimer (SettingsManager settings) {
@@ -168,7 +168,7 @@ public class TaskTimer {
     public void set_active_task_done () {
         stop ();
         active_task_done (_active_task);
-        // Resume break, only keep stopped when a task is active
+        // Resume break, only keep stopped when a TodoTask is active
         if (break_active) {
             start ();
         }
@@ -204,7 +204,7 @@ public class TaskTimer {
     }
     
     /** 
-     * Ends the current iteration of the timer (either active task or break)
+     * Ends the current iteration of the timer (either active TodoTask or break)
      * Is to be executed when the timer finishes, or skip has been initiated.
      * Handles switchting between breaks and active tasks as well as
      * emitting all corresponding signals.
