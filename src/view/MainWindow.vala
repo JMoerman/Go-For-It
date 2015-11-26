@@ -53,7 +53,6 @@ class MainWindow : Gtk.ApplicationWindow {
         // Pass the applicaiton context via GObject-based construction, because
         // constructor chaining is not possible for Gtk.ApplicationWindow
         Object (application: app_context);
-//        this.task_manager = task_manager;
         this.task_timer = task_timer;
         this.settings = settings;
         this.use_header_bar = use_header_bar;
@@ -107,22 +106,6 @@ class MainWindow : Gtk.ApplicationWindow {
         setup_task_view ();
         setup_top_bar ();
         
-//        /* Action and Signal Handling */
-//        todo_list.add_new_task.connect (task_manager.add_new_task);
-//        var todo_selection = todo_list.task_view.get_selection ();
-//        todo_selection.select_path (task_timer.active_task.get_path ());
-//        /* 
-//         * If either the selection or the data itself changes, it is 
-//         * necessary to check if a different task is to be displayed
-//         * in the timer widget and thus todo_selection_changed is to be called
-//         */
-//        todo_selection.changed.
-//            connect (todo_selection_changed);
-//        task_manager.done_store.task_data_changed.
-//            connect (todo_selection_changed);
-//        
-//        // Call once to refresh view on startup
-//        todo_selection_changed ();
         
         if (use_header_bar)
             main_layout.add (activity_switcher);
@@ -172,35 +155,6 @@ class MainWindow : Gtk.ApplicationWindow {
         }
     }
     
-//    public override void show_all () {
-//        base.show_all ();
-//        // Hide done button initially, whenever the window has been shown
-//        timer_view.done_btn.visible = false;
-//        // Ensure, that the done button is shown again, if there is a task
-//        todo_selection_changed ();
-//    }
-    
-//    public void todo_selection_changed () {
-//        Gtk.TreeModel model;
-//        Gtk.TreePath path;
-//        var todo_selection = todo_list.task_view.get_selection ();
-//        
-//        // If no row has been selected, select the first in the list
-//        if (todo_selection.count_selected_rows () == 0) {
-//            todo_selection.select_path (new Gtk.TreePath.first ());
-//        }
-//        
-//        // Check if TodoStore is empty or not
-//        if (task_manager.todo_store.is_empty ()) {
-//            timer_view.show_no_task ();
-//            return;
-//        }
-//        
-//        // Take the first selected row
-//        path = todo_selection.get_selected_rows (out model).nth_data (0);
-//        var reference = new Gtk.TreeRowReference (model, path);
-//        task_timer.active_task = reference;
-//    }
     
     private void menu_btn_toggled (Gtk.ToggleToolButton source) {
         if (source.active) {
@@ -249,12 +203,6 @@ class MainWindow : Gtk.ApplicationWindow {
             var dialog = new SettingsDialog (this, settings);
             dialog.show ();
         });
-//        clear_done_item.activate.connect ((e) => {
-//            task_manager.clear_done_store ();
-//        });
-//        refresh_item.activate.connect ((e) => {
-//            task_manager.refresh ();
-//        });
         contribute_item.activate.connect ((e) => {
             var dialog = new ContributeDialog (this);
             dialog.show ();
