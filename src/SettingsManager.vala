@@ -39,6 +39,35 @@ namespace GOFI {
          * A list of settings values with their corresponding access methods.
          * The "heart" of the SettingsManager class.
          */
+        /*---GROUP:Plugins---------------------------------------------------------*/
+        public string[] enabled_plugins {
+            owned get {
+                var plugins = get_value (GROUP_PLUGINS, "enabled_plugins", "");
+                return plugins.split(":");
+            }
+            set {
+                string plugins = "";
+                print ("%i\n", value.length);
+                for (int i = 0; value[i] != null; i++) {
+                    print ("Pl %s\n", value[i]);
+                    plugins = plugins.concat (value[i], ":");
+                }
+                print ("%s\n", plugins);
+                if (plugins.length > 2) {
+                    set_value (GROUP_PLUGINS, "enabled_plugins", plugins.slice(0, plugins.length-1));
+                } else {
+                    set_value (GROUP_PLUGINS, "enabled_plugins", "");
+                }
+            }
+        }
+        public string last_plugin {
+            owned get {
+                return get_value (GROUP_PLUGINS, "last_plugin", "");
+            }
+            set {
+                set_value (GROUP_PLUGINS, "last_plugin", value);
+            }
+        }
         /*---GROUP:Timer---------------------------------------------------------*/
         public int task_duration {
             owned get {
