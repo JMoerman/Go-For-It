@@ -15,8 +15,7 @@
 * with Go For It!. If not, see http://www.gnu.org/licenses/.
 */
 
-namespace GOFI {
-
+namespace GOFI.Todo {
     /**
      * The central class for handling and coordinating timer functionality
      */
@@ -49,13 +48,18 @@ namespace GOFI {
         }
         public DateTime start_time;
         private int64 previous_runtime { get; set; default = 0; }
-        private TodoTask _active_task;
-        public TodoTask active_task {
+        private TodoTask? _active_task;
+        public TodoTask? active_task {
             get { return _active_task; }
             set {
                 // Don't change task, while timer is running
                 if (!running) {
+                    if (_active_task != null) {
+                        _active_task.changed.disconnect (on_task_change);
+                    }
+                    
                     _active_task = value;
+                    _active_task.changed.connect (on_task_change);
                     // Emit the corresponding notifier signal
                     update_active_task ();
                 }
@@ -72,18 +76,20 @@ namespace GOFI {
         public signal void active_task_done (TodoTask task);
         public signal void active_task_changed (TodoTask task, 
             bool break_active);
+            
+        public signal void active_task_updated (TodoTask task); // change the name in use
         
         public TaskTimer (SettingsManager settings) {
             this.settings = settings;
             /* Signal Handling*/
             settings.timer_duration_changed.connect ((e) => {
                 if (!running) {
-                    reset ();
+                    reset_time ();
                 }
             });
             
             /*
-             * The TaskTimer's update loop. Actual time tracking is implemnted
+             * The TaskTimer's update loop. Actual time tracking is implemented
              * by comparing timestamps, so the update interval has no influence 
              * on that.
              */
@@ -97,7 +103,7 @@ namespace GOFI {
                 // TODO: Check if it may make sense to check for program exit state
                 return true;
             });
-            reset ();
+            reset_time ();
         }
          
         public void start () {
@@ -117,7 +123,41 @@ namespace GOFI {
             }
         }
         
+        private void update_task () {
+            if (_active_task == null) {
+                return;
+            }
+            if (!break_active) {
+                _active_task.time_spend += previous_runtime;
+            }
+        }
+        
+        private void on_task_change () {
+            active_task_updated (_active_task);
+        }
+        
+        /**
+         * 
+         */
+        public TodoTask remove_task () {
+            stop ();
+            update_task ();
+            var task = _active_task;
+            reset ();
+            return task;
+        }
+        
+        /**
+         * 
+         */
         public void reset () {
+            running = false;
+            break_active = false;
+            _active_task = null;
+            reset_time ();
+        }
+        
+        public void reset_time () {
             int64 default_duration;
             if (break_active) {
                 default_duration = settings.break_duration;
@@ -170,7 +210,7 @@ namespace GOFI {
         public void set_active_task_done () {
             stop ();
             active_task_done (_active_task);
-            // Resume break, only keep stopped when a TodoTask is active
+            // Resume break, only keep stopped when a Task is active
             if (break_active) {
                 start ();
             }
@@ -198,7 +238,7 @@ namespace GOFI {
          */
         public void toggle_break () {
             break_active = !break_active;
-            reset ();
+            reset_time ();
             if (break_active) {
                 start ();
             }
@@ -206,7 +246,7 @@ namespace GOFI {
         }
         
         /** 
-         * Ends the current iteration of the timer (either active TodoTask or break)
+         * Ends the current iteration of the timer (either active task or break)
          * Is to be executed when the timer finishes, or skip has been initiated.
          * Handles switchting between breaks and active tasks as well as
          * emitting all corresponding signals.
@@ -215,7 +255,9 @@ namespace GOFI {
             // Emit the "timer_finished" signal
             timer_finished (break_active);
             stop ();
+            update_task ();
             toggle_break ();
+            stdout.printf ("%" + int64.FORMAT + "\n", _active_task.time_spend);
         }
     }
 }

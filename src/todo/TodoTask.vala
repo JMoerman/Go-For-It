@@ -1,4 +1,4 @@
-/* Copyright 2015 Jonathan Moerman, Manuel Kehl (mank319)
+/* Copyright 2015 Manuel Kehl (mank319)
 *
 * This file is part of Go For It!.
 *
@@ -15,13 +15,22 @@
 * with Go For It!. If not, see http://www.gnu.org/licenses/.
 */
 
-/**
- * A class for passing common task information.
- */
-public abstract class TodoTask : Object {
-    
-    public string title;
-    public bool done;
-    
-    public signal void changed ();
+namespace GOFI.Todo {
+    /**
+     * A class for passing common task information.
+     */
+    public abstract class TodoTask : Object {
+        
+        public string title;
+        public bool done;
+        public int64 time_spend;
+        
+        public signal void changed ();
+        
+        public TodoTask (string title, bool done, int64 time_spend = 0) {
+            this.title = title;
+            this.done = done;
+            this.time_spend = time_spend;
+        }
+    }
 }
