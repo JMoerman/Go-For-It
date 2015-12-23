@@ -179,7 +179,16 @@ namespace GOFI {
         private string header_bar_default () {
             string desktop = Environment.get_variable ("DESKTOP_SESSION");
             
-            return (desktop != "ubuntu" && desktop != "kde") ? "true" : "false";
+            switch (desktop) {
+                case "ubuntu":
+                    return "false";
+                case "kde":
+                    return "false";
+                case "plasma":
+                    return "false";
+                default:
+                    return "true";
+            }
         }
         
         /**
