@@ -15,6 +15,8 @@
 * with Go For It!. If not, see http://www.gnu.org/licenses/.
 */
 
+using GOFI.Todo;
+
 namespace GOFI {
 
     /**
@@ -30,8 +32,6 @@ namespace GOFI {
 
         private static bool print_version = false;
         private static bool show_about_dialog = false;
-        private static bool refresh_tasks = false;
-        private static bool use_header_bar = true;
         /**
          * Constructor of the Application class.
          */
@@ -65,10 +65,6 @@ namespace GOFI {
                 // Disable overlay scrollbars on unity, to avoid a strange Gtk bug
                 Environment.set_variable ("LIBOVERLAY_SCROLLBAR", "0", true);
             }
-            
-            if (desktop == "ubuntu" || desktop == "kde") {
-                use_header_bar = false;
-            }
         }
         
         public void new_window () {
@@ -81,16 +77,8 @@ namespace GOFI {
             
             settings = new SettingsManager.load_from_key_file ();
             task_timer = new TaskTimer (settings);
-            win = new MainWindow (this, task_timer, settings,
-                use_header_bar);
+            win = new MainWindow (this, task_timer, settings);
             win.show_all ();
-        }
-        
-        public void refresh () {
-            if (win == null) {
-                stdout.printf ("An instance of Go For It! needs to be running in order for this to work!\n");
-                return;
-            }
         }
         
         public void show_about (Gtk.Window? parent = null) {
@@ -122,10 +110,7 @@ namespace GOFI {
 
             if (print_version) {
                 stdout.printf ("%s %s\n", Constants.APP_NAME, Constants.APP_VERSION);
-                stdout.printf ("Copyright 2011-2014 'Go For it!' Developers.\n");
-
-            } else if (refresh_tasks) {
-                refresh ();
+                stdout.printf ("Copyright 2011-2015 'Go For it!' Developers.\n");
             } else if (show_about_dialog) {
                 show_about ();
             } else {
@@ -137,7 +122,6 @@ namespace GOFI {
 
         static const OptionEntry[] entries = {
             { "version", 'v', 0, OptionArg.NONE, out print_version, N_("Print version info and exit"), null },
-            { "refresh", 'r', 0, OptionArg.NONE, out refresh_tasks, N_("Refresh the current window"), null },
             { "about", 'a', 0, OptionArg.NONE, out show_about_dialog, N_("Show about dialog"), null },
             { null }
         };
