@@ -15,48 +15,64 @@
 * with Go For It!. If not, see http://www.gnu.org/licenses/.
 */
 
-namespace GOFI {
+using GOFI.API;
+using GOFI.Todo;
 
 namespace GOFI {
     /**
      * The main window of Go For It!.
      */
-    class MainWindow : Gtk.ApplicationWindow {
+    public class MainWindow : Gtk.ApplicationWindow {
         /* Various Variables */
-        private TaskTimer task_timer;
         private SettingsManager settings;
+        private PluginManager plugin_manager;
+        private TaskTimer task_timer;
+        private GOFI.API.TodoPluginProvider plugin_provider = null;
         private bool use_header_bar;
         
         /* Various GTK Widgets */
-        private Gtk.Grid main_layout;
-        private TaskView task_view;
-        private Gtk.StackSwitcher activity_switcher;
+        private Gtk.Grid layout;
+        private Gtk.Stack stack;
+        private MainLayout main_layout;
+        private PluginSelector selector;
+        
+        private Gtk.ToggleToolButton menu_btn;
+        private Gtk.ToolButton switch_btn;
+        private Gtk.Image switch_img;
+        
         private Gtk.HeaderBar header_bar;
         private Gtk.Box hb_replacement;
-        private Gtk.ToggleToolButton menu_btn;
+        
         // Application Menu
         private Gtk.Menu app_menu;
         private Gtk.MenuItem config_item;
-        private Gtk.MenuItem clear_done_item;
         private Gtk.MenuItem contribute_item;
         private Gtk.MenuItem about_item;
+        
+        private List<Gtk.MenuItem> plugin_items;
+
         /**
          * Used to determine if a notification should be sent.
          */
         private bool break_previously_active { get; set; default = false; }
         
         /**
+         * ...
+         */
+        private bool main_layout_shown { get; set; default = false; }
+        
+        /**
          * The constructor of the MainWindow class.
          */
-        public MainWindow (Gtk.Application app_context,
-                TaskTimer task_timer, SettingsManager settings, 
-                bool use_header_bar) {
+        public MainWindow (Gtk.Application app_context, TaskTimer task_timer,
+                SettingsManager settings) {
             // Pass the applicaiton context via GObject-based construction, because
             // constructor chaining is not possible for Gtk.ApplicationWindow
             Object (application: app_context);
             this.task_timer = task_timer;
             this.settings = settings;
-            this.use_header_bar = use_header_bar;
+            this.plugin_manager = new PluginManager (this, settings);
+            this.use_header_bar = settings.use_header_bar;
 
             setup_window ();
             setup_menu ();
@@ -65,6 +81,7 @@ namespace GOFI {
             setup_notifications ();
             // Enable Notifications for the App
             Notify.init (Constants.APP_NAME);
+            plugin_manager.load_plugins();
         }
         
         public override bool delete_event (Gdk.EventAny event) {
@@ -84,6 +101,35 @@ namespace GOFI {
             return dont_exit;
         }
         
+        public void add_plugin_provider (
+            GOFI.API.TodoPluginProvider plugin_provider
+        ) {
+            selector.add_plugin (plugin_provider);
+        }
+        
+        private void set_plugin_provider (GOFI.API.TodoPluginProvider plugin_provider) {
+            if (this.plugin_provider != plugin_provider) {
+                if (this.plugin_provider != null) {
+                    main_layout.remove_todo_plugin ();
+                }
+                this.plugin_provider = plugin_provider;
+                print("Loading: %s\n", plugin_provider.get_name ());
+                main_layout.set_todo_plugin (plugin_provider.get_plugin (task_timer));
+                break_previously_active = false;
+            }
+            if (main_layout.ready) {
+                main_layout.show_all ();
+                plugin_items = main_layout.get_menu_items ();
+                foreach (Gtk.MenuItem item in plugin_items) {
+                    app_menu.add (item);
+                }
+                switch_stack ();
+            }
+            else {
+                warning ("Plugin %s Couldn't be loaded!", plugin_provider.get_name ());
+            }
+        }
+        
         /**
          * Configures the window's properties.
          */
@@ -97,33 +143,36 @@ namespace GOFI {
          * Initializes GUI elements and configures their look and behavior.
          */
         private void setup_widgets () {
-            /* Instantiation of the Widgets */
-            main_layout = new Gtk.Grid ();
+            layout = new Gtk.Grid ();
+            selector = new PluginSelector ();
+            main_layout = new MainLayout (settings, task_timer, use_header_bar);
             
-            /* Widget Settings */
-            // Main Layout
-            main_layout.orientation = Gtk.Orientation.VERTICAL;
+            layout.orientation = Gtk.Orientation.VERTICAL;
             
-            setup_task_view ();
+            selector.plugin_selected.connect ((plugin_provider) => {
+               set_plugin_provider (plugin_provider); 
+            });
+            
+            setup_stack ();
             setup_top_bar ();
             
-            
-            if (use_header_bar)
-                main_layout.add (activity_switcher);
-            else
-                main_layout.add (hb_replacement);
-            main_layout.add (task_view);
-            
-            // Add main_layout to the window
-            this.add (main_layout);
+            if (!use_header_bar) {
+                layout.add(hb_replacement);
+            }
+            layout.add (stack);
+            this.add (layout);
         }
         
-        private void setup_task_view () {
-            activity_switcher = new Gtk.StackSwitcher ();
-            activity_switcher.halign = Gtk.Align.CENTER;
-            task_view = new TaskView (task_timer, settings);
-            task_view.add_to_switcher (activity_switcher);
-            task_view.margin = 5;
+        private void setup_stack () {
+            stack = new Gtk.Stack ();
+
+            stack.set_transition_type(
+                Gtk.StackTransitionType.SLIDE_LEFT_RIGHT);
+            // Add widgets to the stack
+            stack.add (selector);
+            stack.add (main_layout);
+            
+            stack.set_visible_child (selector);
         }
         
         private void setup_top_bar () {
@@ -136,6 +185,11 @@ namespace GOFI {
             menu_btn.icon_widget = menu_img;
             menu_btn.label_widget = new Gtk.Label (_("Menu"));
             menu_btn.toggled.connect (menu_btn_toggled);
+            
+            switch_img = new Gtk.Image.from_icon_name("go-previous", Gtk.IconSize.LARGE_TOOLBAR);
+            switch_btn = new Gtk.ToolButton (switch_img, _("_Back"));
+            //switch_btn.set_icon_name("go-previous");
+            switch_btn.clicked.connect (switch_stack);
 
             if (use_header_bar) {
                 header_bar = new Gtk.HeaderBar ();
@@ -146,16 +200,38 @@ namespace GOFI {
                 this.set_titlebar (header_bar);
             
                 // Add headerbar Buttons here
+                header_bar.pack_start (switch_btn);
                 header_bar.pack_end (menu_btn);
             }
             else {
-                use_header_bar = false;
                 hb_replacement = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
-                hb_replacement.pack_start (activity_switcher, true, true); 
+                hb_replacement.pack_start (switch_btn, false, false); 
+                hb_replacement.pack_start (main_layout.get_switcher(), true, true); 
                 hb_replacement.pack_end (menu_btn, false, false);
             }
         }
         
+        private void switch_stack () {
+            if (main_layout_shown) {
+                stack.set_visible_child (selector);
+                main_layout.get_switcher().visible = false;
+                main_layout_shown = false;
+                switch_img.set_from_icon_name ("go-next", Gtk.IconSize.LARGE_TOOLBAR);
+                
+                foreach (Gtk.MenuItem item in plugin_items) {
+                    item.hide ();
+                }
+            } else if (main_layout.ready) {
+                stack.set_visible_child (main_layout);
+                main_layout_shown = true;
+                main_layout.get_switcher().visible = true;
+                switch_img.set_from_icon_name ("go-previous", Gtk.IconSize.LARGE_TOOLBAR);
+                
+                foreach (Gtk.MenuItem item in plugin_items) {
+                    item.show ();
+                }
+            }
+        }
         
         private void menu_btn_toggled (Gtk.ToggleToolButton source) {
             if (source.active) {
@@ -189,9 +265,9 @@ namespace GOFI {
             /* Initialization */
             app_menu = new Gtk.Menu ();
             config_item = new Gtk.MenuItem.with_label (_("Settings"));
-            clear_done_item = new Gtk.MenuItem.with_label (_("Clear Done List"));
             contribute_item = new Gtk.MenuItem.with_label (_("Contribute / Donate"));
             about_item = new Gtk.MenuItem.with_label (_("About"));
+            plugin_items = new List<Gtk.MenuItem> ();
             
             /* Signal and Action Handling */
             // Untoggle menu button, when menu is hidden
@@ -200,8 +276,9 @@ namespace GOFI {
             });
             
             config_item.activate.connect ((e) => {
-                var dialog = new SettingsDialog (this, settings);
+                var dialog = new SettingsDialog (this, settings, plugin_manager);
                 dialog.show ();
+                dialog.destroy.connect (plugin_manager.save_loaded);
             });
             contribute_item.activate.connect ((e) => {
                 var dialog = new ContributeDialog (this);
@@ -214,7 +291,6 @@ namespace GOFI {
             
             /* Add Items to Menu */
             app_menu.add (config_item);
-            app_menu.add (refresh_item);
             app_menu.add (contribute_item);
             app_menu.add (about_item);
             
@@ -223,7 +299,7 @@ namespace GOFI {
                 child.visible = true;
             }
         }
-        
+    
         /**
          * Configures the emission of notifications when tasks/breaks are over
          */
@@ -236,6 +312,7 @@ namespace GOFI {
                                            bool break_active) {
             
             if (break_previously_active != break_active) {
+                var task_name = task.title;
                 Notify.Notification notification;
                 if (break_active) {
                     notification = new Notify.Notification (
@@ -246,7 +323,7 @@ namespace GOFI {
                 } else {
                     notification = new Notify.Notification (
                         _("The Break is Over"), 
-                        _("Your next task is") + ": " + task.title, 
+                        _("Your next task is") + ": " + task_name, 
                         Constants.APP_SYSTEM_NAME);
                 }
                 

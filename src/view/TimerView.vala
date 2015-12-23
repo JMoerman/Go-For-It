@@ -14,6 +14,9 @@
 * You should have received a copy of the GNU General Public License along
 * with Go For It!. If not, see http://www.gnu.org/licenses/.
 */
+
+using GOFI.Todo;
+
 namespace GOFI {
     
     /**
@@ -234,7 +237,7 @@ namespace GOFI {
                 timer.set_active_task_done();
             });
             run_btn.clicked.connect (on_run_btn_clicked);
-            
+
             /* Add Widgets */
             action_timer_grid.add (skip_btn);
             action_timer_grid.add (run_btn);
@@ -249,6 +252,11 @@ namespace GOFI {
             progress.hexpand = true;
             this.add (progress);
         }
+        
+        public override void show_all () {
+            base.show_all ();
+            done_btn.visible = (timer.active_task != null);
+        }
 
         /**
          * This funciton is to be called, when the to-do list is empty
@@ -256,6 +264,12 @@ namespace GOFI {
         public void show_no_task () {
             task_status_lbl.label = _("Relax") + "." ;
             task_description_lbl.label = _("You have nothing to do.");
+            done_btn.visible = false;
+        }
+        
+        public void reset () {
+            task_status_lbl.label = (_("Inactive"));
+            task_description_lbl.label = (_("No task has been selected"));
             done_btn.visible = false;
         }
     }
