@@ -60,7 +60,7 @@ The user interface is inspired by the design philosophy of [elementary OS](http:
 
     mkdir build
     cd build
-    cmake ..
+    cmake -DCMAKE_INSTALL_PREFIX=/usr ..
     make
     sudo make install
 
