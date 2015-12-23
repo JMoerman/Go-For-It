@@ -16,14 +16,14 @@
 */
 
 /**
- * The GOFI namespace is a central collection of static constants that are 
+ * The Constants namespace is a central collection of static constants that are 
  * related to "Go For It!".
  */
-namespace GOFI {
+namespace Constants {
     /** 
      * A collection of static utility functions.
      */
-    class Utils {
+    public class Utils {
         // A convenient way to get the path of GOFI's configuration file
         public static string config_file {
             owned get {
