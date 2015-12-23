@@ -18,6 +18,10 @@
 using GOFI.API;
 
 namespace GOFI {
+    
+    /**
+     * A list of available plugins the user can choose from.
+     */
     public class PluginSelector : Gtk.ScrolledWindow {
         
         private Gtk.ListBox layout;
@@ -80,6 +84,10 @@ namespace GOFI {
         }
     }
     
+    /**
+     * A row in PluginSelector, used to select a TodoPlugin to load, also stores
+     * a TodoPluginProvider for the timebeing.
+     */
     class PluginSelectorRow : Gtk.ListBoxRow {
         private Gtk.Box layout;
         
@@ -97,7 +105,7 @@ namespace GOFI {
         }
         
         /**
-         * Initializes
+         * Initializes GUI elements.
          */
         private void setup_layout () {
             layout = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);

@@ -18,6 +18,10 @@
 using GOFI.API;
 
 namespace GOFI {
+    
+    /**
+     * PluginManager loads and controls all plugins.
+     */
     public class PluginManager : GLib.Object {
     
         private Peas.Engine engine;
@@ -29,6 +33,9 @@ namespace GOFI {
         
         public weak MainWindow window;
         
+        /**
+         * Constructor of PluginManager
+         */
         public PluginManager (MainWindow window, SettingsManager settings) {
             this.window = window;
             this.settings = settings;
@@ -47,6 +54,9 @@ namespace GOFI {
             exts = new Peas.ExtensionSet (engine, typeof (Peas.Activatable), "object", plugin_iface, null);
         }
         
+        /**
+         * Activates the found plugins.
+         */
         public void load_plugins () {
             exts.foreach (on_extension_foreach);
             exts.extension_added.connect (on_extension_added);

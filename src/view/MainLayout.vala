@@ -17,8 +17,9 @@
 using GOFI.Todo;
 
 namespace GOFI {
+    
     /**
-     * A widget containing all ......
+     * A widget containing a TodoPlugin and its widgets and the TimerView.
      */
     public class MainLayout : Gtk.Grid {
         /* Various Variables */
@@ -53,7 +54,7 @@ namespace GOFI {
         }
         
         /**
-         * 
+         * Initializes everything that doesn't depend on a TodoTask.
          */
         private void initial_setup () {
             /* Instantiation of available widgets */
@@ -79,7 +80,7 @@ namespace GOFI {
         }
         
         /**
-         * 
+         * Adds the widgets from todo_plugin as well as timer_view to the stack.
          */
         private void add_widgets () {
             string first_page_name;
@@ -109,20 +110,24 @@ namespace GOFI {
         }
         
         /**
-         * 
+         * Updates this to display the new TodoPlugin.
          */
         public void set_todo_plugin (GOFI.API.TodoPlugin todo_plugin) {
-            this.todo_plugin = todo_plugin;
-            todo_plugin.cleared.connect ( () => {
-               timer_view.show_no_task (); 
-            });
-            add_widgets ();
-            
-            menu_items = todo_plugin.get_menu_items ();
+            if (todo_plugin == null) {
+                this.todo_plugin = todo_plugin;
+                todo_plugin.cleared.connect ( () => {
+                   timer_view.show_no_task (); 
+                });
+                add_widgets ();
+                
+                menu_items = todo_plugin.get_menu_items ();
+            } else {
+                warning ("Previous plugin was not removed!")
+            }
         }
         
         /**
-         * 
+         * Restores this to its state from before set_todo_plugin was called.
          */
         public void remove_todo_plugin () {
             todo_plugin.stop ();
@@ -136,8 +141,12 @@ namespace GOFI {
             foreach (Gtk.MenuItem item in menu_items) {
                 item.destroy ();
             }
+            todo_plugin = null;
         }
         
+        /**
+         * Returns a switcher widget to control activity_stack.
+         */
         public Gtk.Widget get_switcher () {
             return activity_switcher;
         }
@@ -147,7 +156,7 @@ namespace GOFI {
         }
         
         /**
-         * Returns true if this widget has been properly initialized
+         * Returns true if this widget has been properly initialized.
          */
         public bool ready {
             get {
