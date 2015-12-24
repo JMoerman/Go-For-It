@@ -1,0 +1,6 @@
+[Plugin]
+Module=classic
+Loader=C
+Name=Classic
+Description=testing plugin loader
+Authors=JMoerman
