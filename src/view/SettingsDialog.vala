@@ -39,7 +39,7 @@ namespace GOFI {
         private Gtk.SpinButton reminder_spin;
         
         // plugin settings
-        private Gtk.Box plugin_layout;
+        private Gtk.Grid plugin_layout;
         private Gtk.Widget plugin_settings_widget;
         
         public SettingsDialog (Gtk.Window? parent, SettingsManager settings, 
@@ -77,7 +77,7 @@ namespace GOFI {
             main_layout = new Gtk.Grid ();
             stack = new Gtk.Stack ();
             switcher = new Gtk.StackSwitcher ();
-            plugin_layout = new Gtk.Box (Gtk.Orientation.VERTICAL, 15);
+            plugin_layout = new Gtk.Grid ();
             timer_layout = new Gtk.Grid ();
             
             main_layout.orientation = Gtk.Orientation.VERTICAL;
@@ -111,10 +111,9 @@ namespace GOFI {
         }
         
         private void setup_plugin_settings_widgets () {
-            
             plugin_settings_widget = plugin_manager.get_settings_widget ();
             plugin_settings_widget.expand = true;
-            plugin_layout.pack_start (plugin_settings_widget, true, true, 15);
+            plugin_layout.add (plugin_settings_widget);
         }
         
         private void setup_timer_settings_widgets () {
@@ -151,6 +150,11 @@ namespace GOFI {
             timer_layout.add (break_spin);
             timer_layout.add (reminder_lbl);
             timer_layout.add (reminder_spin);
+        }
+        
+        public override void show_all () {
+            base.show_all ();
+            plugin_settings_widget.set_halign (Gtk.Align.BASELINE);
         }
     }
 }

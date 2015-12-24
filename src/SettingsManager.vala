@@ -47,12 +47,9 @@ namespace GOFI {
             }
             set {
                 string plugins = "";
-                print ("%i\n", value.length);
                 for (int i = 0; value[i] != null; i++) {
-                    print ("Pl %s\n", value[i]);
                     plugins = plugins.concat (value[i], ":");
                 }
-                print ("%s\n", plugins);
                 if (plugins.length > 2) {
                     set_value (GROUP_PLUGINS, "enabled_plugins", plugins.slice(0, plugins.length-1));
                 } else {

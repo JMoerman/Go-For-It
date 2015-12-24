@@ -113,7 +113,7 @@ namespace GOFI {
          * Updates this to display the new TodoPlugin.
          */
         public void set_todo_plugin (GOFI.API.TodoPlugin todo_plugin) {
-            if (todo_plugin == null) {
+            if (this.todo_plugin == null) {
                 this.todo_plugin = todo_plugin;
                 todo_plugin.cleared.connect ( () => {
                    timer_view.show_no_task (); 
@@ -122,7 +122,7 @@ namespace GOFI {
                 
                 menu_items = todo_plugin.get_menu_items ();
             } else {
-                warning ("Previous plugin was not removed!")
+                warning ("Previous plugin was not removed!");
             }
         }
         

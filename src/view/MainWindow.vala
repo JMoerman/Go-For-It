@@ -19,6 +19,7 @@ using GOFI.API;
 using GOFI.Todo;
 
 namespace GOFI {
+    
     /**
      * The main window of Go For It!.
      */
@@ -57,7 +58,7 @@ namespace GOFI {
         private bool break_previously_active { get; set; default = false; }
         
         /**
-         * ...
+         * Used to keep track of which page is shown.
          */
         private bool main_layout_shown { get; set; default = false; }
         
