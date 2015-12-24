@@ -204,8 +204,9 @@ namespace GOFI {
                     return default;
                 }
             } catch (Error e) {
-                    error ("An error occured while reading the setting"
+                    warning ("An error occured while reading the setting"
                         +" %s.%s: %s", group, key, e.message);
+                    return default;
             }
         }
         
@@ -220,7 +221,7 @@ namespace GOFI {
                     key_file.set_value (group, key, value);
                     write_key_file ();
                 } catch (Error e) {
-                    error ("An error occured while setting the setting"
+                    warning ("An error occured while setting the setting"
                         +" %s.%s to %s: %s", group, key, value, e.message);
                 }
             }
@@ -230,6 +231,10 @@ namespace GOFI {
          * Function made for compability with older versions of GLib.
          */
         private void write_key_file () throws Error {
+            if (!FileUtils.test (Constants.Utils.config_dir, FileTest.EXISTS)) {
+                var dir = File.new_for_path (Constants.Utils.config_dir);
+                dir.make_directory_with_parents ();
+            }
             key_file.save_to_file (Constants.Utils.config_file);
         }
     }

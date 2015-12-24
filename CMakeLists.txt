@@ -9,6 +9,7 @@ set (DATADIR "${CMAKE_INSTALL_PREFIX}/share")
 
 set (PKGDATADIR "${DATADIR}/go-for-it")
 set (PLUGINDIR "${CMAKE_INSTALL_FULL_LIBDIR}/${CMAKE_PROJECT_NAME}/plugins")
+set (CONF_DIR_NAME "go-for-it")
 set (FILE_CONF "go-for-it.conf")
 
 set (APP_NAME "Go For It!")

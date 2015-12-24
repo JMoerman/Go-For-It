@@ -152,7 +152,11 @@ namespace GOFI {
         }
         
         public List<Gtk.MenuItem> get_menu_items () {
-            return menu_items.copy ();
+            if (ready) {
+                return menu_items.copy ();
+            } else {
+                return new List<Gtk.MenuItem> ();
+            }
         }
         
         /**

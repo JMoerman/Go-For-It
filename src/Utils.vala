@@ -20,14 +20,24 @@
  * related to "Go For It!".
  */
 namespace Constants {
+    
     /** 
      * A collection of static utility functions.
      */
     public class Utils {
+        
+        // A convenient way to get the path of GOFI's configuration directory
+        public static string config_dir {
+            owned get {
+                string user_config_dir = Environment.get_user_config_dir ();
+                return Path.build_filename (user_config_dir, CONF_DIR_NAME);
+            }
+            private set {}
+        }
+        
         // A convenient way to get the path of GOFI's configuration file
         public static string config_file {
             owned get {
-                string config_dir = Environment.get_user_config_dir ();
                 return Path.build_filename (config_dir, FILE_CONF);
             }
             private set {}

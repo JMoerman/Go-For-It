@@ -117,13 +117,14 @@ namespace GOFI {
                 print("Loading: %s\n", plugin_provider.get_name ());
                 main_layout.set_todo_plugin (plugin_provider.get_plugin (task_timer));
                 break_previously_active = false;
-            }
-            if (main_layout.ready) {
-                main_layout.show_all ();
+                
                 plugin_items = main_layout.get_menu_items ();
                 foreach (Gtk.MenuItem item in plugin_items) {
                     app_menu.add (item);
                 }
+            }
+            if (main_layout.ready) {
+                main_layout.show_all ();
                 switch_stack ();
             }
             else {
