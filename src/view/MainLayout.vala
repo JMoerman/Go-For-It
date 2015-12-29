@@ -37,7 +37,7 @@ namespace GOFI {
         private TimerView timer_view;
         private Gtk.Widget last_page;
         
-        private List<Gtk.MenuItem> menu_items;
+        private Gee.List<Gtk.MenuItem> menu_items;
         
         /**
          * The constructor of the MainWindow class.
@@ -74,7 +74,7 @@ namespace GOFI {
                 this.add (activity_switcher);
             }
             
-            menu_items = new List<Gtk.MenuItem> ();
+            menu_items = new Gee.LinkedList<Gtk.MenuItem> ();
             
             this.add (activity_stack);
         }
@@ -130,17 +130,16 @@ namespace GOFI {
          * Restores this to its state from before set_todo_plugin was called.
          */
         public void remove_todo_plugin () {
-            todo_plugin.stop ();
-            activity_stack.remove (last_page);
-            activity_stack.remove (timer_view);
-            activity_stack.remove (first_page);
+            if (todo_plugin != null) {
+                todo_plugin.stop ();
+            }
+            foreach (Gtk.Widget widget in activity_stack.get_children()) {
+                activity_stack.remove (widget);
+            }
             
             task_timer.reset ();
             timer_view.reset ();
             
-            foreach (Gtk.MenuItem item in menu_items) {
-                item.destroy ();
-            }
             todo_plugin = null;
         }
         
@@ -151,11 +150,11 @@ namespace GOFI {
             return activity_switcher;
         }
         
-        public List<Gtk.MenuItem> get_menu_items () {
+        public Gee.List<Gtk.MenuItem> get_menu_items () {
             if (ready) {
-                return menu_items.copy ();
+                return menu_items;
             } else {
-                return new List<Gtk.MenuItem> ();
+                return new Gee.LinkedList<Gtk.MenuItem> ();
             }
         }
         

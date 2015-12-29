@@ -26,11 +26,15 @@ namespace GOFI {
         
         private Gtk.ListBox layout;
         private Gtk.Label place_holder;
+        private PluginManager plugin_manager;
         
-        public signal void plugin_selected (TodoPluginProvider plugin_provider);
-        
-        public PluginSelector () {
+        public PluginSelector (PluginManager plugin_manager) {
+            this.plugin_manager = plugin_manager;
             setup_layout ();
+            update ();
+            plugin_manager.todo_plugin_added.connect ( (provider) => {
+                add_plugin (provider);
+            });
         }
         
         private void setup_layout () {
@@ -47,23 +51,24 @@ namespace GOFI {
             this.add (layout);
         }
         
+        public void update () {
+            reset ();
+            var plugins = plugin_manager.get_plugins ();
+            foreach (TodoPluginProvider plugin_provider in plugins) {
+                add_plugin (plugin_provider);
+            }
+        }
+        
         public void add_plugin (TodoPluginProvider plugin_provider) {
-            var new_row = new PluginSelectorRow (plugin_provider);
+            var new_row = new PluginSelectorRow (plugin_provider.plugin_info);
             layout.add(new_row);
             
             new_row.clicked.connect ( () => {
-                plugin_selected (new_row.plugin_provider);
+                plugin_manager.load_todo_plugin (new_row.plugin_info.get_module_name ());
             });
-        }
-        
-        public void remove_plugin (TodoPluginProvider plugin_provider) {
-            var plugins = layout.get_children();
-            foreach (Gtk.Widget plugin in plugins) {
-                if (((PluginSelectorRow)plugin).plugin_provider == plugin_provider) {
-                    plugin.destroy ();
-                    break;
-                }
-            }
+            plugin_provider.removed.connect ( () => {
+                new_row.destroy ();
+            });
         }
         
         /**
@@ -74,11 +79,10 @@ namespace GOFI {
             foreach (Gtk.Widget plugin in plugins) {
                 plugin.destroy ();
             }
-            plugins = new GLib.List<PluginSelectorRow> ();
         }
         
         private int sort_func (Gtk.ListBoxRow row1, Gtk.ListBoxRow row2) {
-            if (((PluginSelectorRow) row1).plugin_provider.get_name () > ((PluginSelectorRow) row2).plugin_provider.get_name ())
+            if (((PluginSelectorRow) row1).plugin_info.get_name () > ((PluginSelectorRow) row2).plugin_info.get_name ())
                 return 1;
             return -1;
         }
@@ -92,12 +96,12 @@ namespace GOFI {
         private Gtk.Box layout;
         
         private Gtk.Button button;
-        private GOFI.API.TodoPluginProvider _plugin_provider;
+        public Peas.PluginInfo plugin_info;
         
         public signal void clicked ();
 
-        public PluginSelectorRow (GOFI.API.TodoPluginProvider plugin_provider) {
-            _plugin_provider = plugin_provider;
+        public PluginSelectorRow (Peas.PluginInfo plugin_info) {
+            this.plugin_info = plugin_info;
             setup_layout ();
             connect_signals ();
             
@@ -110,7 +114,7 @@ namespace GOFI {
         private void setup_layout () {
             layout = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
             
-            button = new Gtk.Button.with_label(plugin_provider.get_name ());
+            button = new Gtk.Button.with_label(plugin_info.get_name ());
             
             layout.pack_start (button);
             
@@ -121,13 +125,6 @@ namespace GOFI {
             button.clicked.connect ( () => {
                 clicked ();
             });
-            _plugin_provider.removed.connect ( () => {
-                destroy ();
-            });
-        }
-        
-        public GOFI.API.TodoPluginProvider plugin_provider {
-            get { return _plugin_provider; }
         }
     }
 }

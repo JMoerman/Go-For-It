@@ -50,7 +50,7 @@ namespace GOFI {
         private Gtk.MenuItem contribute_item;
         private Gtk.MenuItem about_item;
         
-        private List<Gtk.MenuItem> plugin_items;
+        private Gee.List<Gtk.MenuItem> plugin_items;
 
         /**
          * Used to determine if a notification should be sent.
@@ -72,9 +72,9 @@ namespace GOFI {
             Object (application: app_context);
             this.task_timer = task_timer;
             this.settings = settings;
-            this.plugin_manager = new PluginManager (this, settings);
             this.use_header_bar = settings.use_header_bar;
-
+            
+            setup_plugin_manager ();
             setup_window ();
             setup_menu ();
             setup_widgets ();
@@ -82,7 +82,7 @@ namespace GOFI {
             setup_notifications ();
             // Enable Notifications for the App
             Notify.init (Constants.APP_NAME);
-            plugin_manager.load_plugins();
+            plugin_manager.load_last_todo_plugin();
         }
         
         public override bool delete_event (Gdk.EventAny event) {
@@ -97,15 +97,12 @@ namespace GOFI {
                 dont_exit = true;
             }
             
-            if (dont_exit == false) Notify.uninit ();
+            if (dont_exit == false) {
+                main_layout.remove_todo_plugin ();
+                Notify.uninit ();
+            }
                 
             return dont_exit;
-        }
-        
-        public void add_plugin_provider (
-            GOFI.API.TodoPluginProvider plugin_provider
-        ) {
-            selector.add_plugin (plugin_provider);
         }
         
         private void set_plugin_provider (GOFI.API.TodoPluginProvider plugin_provider) {
@@ -114,7 +111,7 @@ namespace GOFI {
                     main_layout.remove_todo_plugin ();
                 }
                 this.plugin_provider = plugin_provider;
-                print("Loading: %s\n", plugin_provider.get_name ());
+                print("Loading: %s\n", plugin_provider.plugin_info.get_name ());
                 main_layout.set_todo_plugin (plugin_provider.get_plugin (task_timer));
                 break_previously_active = false;
                 
@@ -128,8 +125,24 @@ namespace GOFI {
                 switch_stack ();
             }
             else {
-                warning ("Plugin %s Couldn't be loaded!", plugin_provider.get_name ());
+                warning (
+                    "Plugin %s Couldn't be loaded!",
+                    plugin_provider.plugin_info.get_name ()
+                );
             }
+        }
+        
+        private void setup_plugin_manager () {
+            this.plugin_manager = new PluginManager (settings);
+            plugin_manager.todo_plugin_load.connect (set_plugin_provider);
+            plugin_manager.todo_plugin_removed.connect ( (plugin_provider) => {
+                if (this.plugin_provider == plugin_provider) {
+                    if (main_layout_shown) {
+                        switch_stack ();
+                    }
+                    main_layout.remove_todo_plugin ();
+                }
+            });
         }
         
         /**
@@ -146,14 +159,10 @@ namespace GOFI {
          */
         private void setup_widgets () {
             layout = new Gtk.Grid ();
-            selector = new PluginSelector ();
+            selector = new PluginSelector (plugin_manager);
             main_layout = new MainLayout (settings, task_timer, use_header_bar);
             
             layout.orientation = Gtk.Orientation.VERTICAL;
-            
-            selector.plugin_selected.connect ((plugin_provider) => {
-               set_plugin_provider (plugin_provider); 
-            });
             
             setup_stack ();
             setup_top_bar ();
@@ -269,7 +278,7 @@ namespace GOFI {
             config_item = new Gtk.MenuItem.with_label (_("Settings"));
             contribute_item = new Gtk.MenuItem.with_label (_("Contribute / Donate"));
             about_item = new Gtk.MenuItem.with_label (_("About"));
-            plugin_items = new List<Gtk.MenuItem> ();
+            plugin_items = new Gee.LinkedList<Gtk.MenuItem> ();
             
             /* Signal and Action Handling */
             // Untoggle menu button, when menu is hidden

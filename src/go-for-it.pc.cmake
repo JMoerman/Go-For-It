@@ -7,5 +7,5 @@ Name: Go For It!
 Description: Go For It! headers
 Version: @VERSION@
 Cflags: -I@DOLLAR@{includedir}/go-for-it
-Requires: gtk+-3.0 libpeas-1.0
+Requires: gtk+-3.0 libpeas-1.0 gee-0.8
 

@@ -2,47 +2,31 @@ using GOFI.API;
 using GOFI.Todo;
 
 namespace GOFI.Plugins.Classic {
-    public class ClassicPluginProvider : Peas.ExtensionBase,  Peas.Activatable, 
-            GOFI.API.TodoPluginProvider, PeasGtk.Configurable {
-        
-        GOFI.API.Interface plugins;
-        public Object object { owned get; construct; }
+    public class ClassicPluginProvider : GOFI.API.TodoPluginProvider,
+             PeasGtk.Configurable {
         
         const string GETTEXT_PACKAGE = "go-for-it-classic";
         
         private SettingsManager settings;
 
-        public void activate ()
-        {
-            plugins = (GOFI.API.Interface) object;
-            
+        public override void on_activate () {
             Intl.setlocale(LocaleCategory.MESSAGES, "");
             Intl.textdomain(GETTEXT_PACKAGE); 
             Intl.bind_textdomain_codeset(GETTEXT_PACKAGE, "utf-8"); 
             Intl.bindtextdomain(GETTEXT_PACKAGE, "./locale");
             
             settings = new SettingsManager.load_from_key_file ();
-            
-            plugins.register_launcher (this);
-        }
-
-        public void deactivate () {
-            this.removed ();
         }
         
-        public void update_state () {
-
+        public override void on_deactivate () {
+            
         }
         
         public Gtk.Widget create_configure_widget () {
             return new SettingsWidget (settings);
         }
         
-        public string get_name () {
-            return "Classic";
-        }
-        
-        public TodoPlugin get_plugin (TaskTimer timer) {
+        public override TodoPlugin get_plugin (TaskTimer timer) {
             return new ClassicPlugin (timer, settings);
         }
     }
@@ -96,8 +80,8 @@ namespace GOFI.Plugins.Classic {
             refresh_item = new Gtk.MenuItem.with_label (_("Refresh"));
             
             /* Add Items to Menu */
-            menu_items.append (clear_done_item);
-            menu_items.append (refresh_item);
+            menu_items.add (clear_done_item);
+            menu_items.add (refresh_item);
         }
         
         public static string tree_row_ref_to_task (Gtk.TreeRowReference reference) {

@@ -22,7 +22,26 @@ namespace GOFI.API {
     /**
      * A TodoPluginProvider provides a TodoPlugin when it is needed.
      */
-    public interface TodoPluginProvider : GLib.Object {
+    public abstract class TodoPluginProvider : Peas.ExtensionBase,  
+            Peas.Activatable {
+        
+        protected Interface plugin_iface;
+        public Object object { owned get; construct; }
+        
+        public void activate () {
+            plugin_iface = (Interface) object;
+            on_activate ();
+            plugin_iface.register_launcher (this);
+        }
+            
+        public void deactivate () {
+            on_deactivate ();
+            this.removed ();
+        }
+        
+        public void update_state () {
+
+        }
         
         /**
          * Signal that is emited when this gets unloaded.
@@ -30,14 +49,13 @@ namespace GOFI.API {
         public signal void removed (); 
         
         /**
-         * Returns the name of this plugin.
-         */
-        public abstract string get_name ();
-        
-        /**
          * Returns a new TodoPlugin.
          */
         public abstract TodoPlugin get_plugin (TaskTimer timer);
+        
+        public abstract void on_deactivate ();
+        
+        public abstract void on_activate ();
     }
     
     /**
@@ -54,7 +72,7 @@ namespace GOFI.API {
         /**
          * List of menu items to be added to the application menu.
          */
-        protected List<Gtk.MenuItem> menu_items;
+        protected Gee.List<Gtk.MenuItem> menu_items;
         
         /**
          * Signal that is emited when there are no tasks left.
@@ -66,14 +84,14 @@ namespace GOFI.API {
          */
         public TodoPlugin (TaskTimer timer) {
             this.task_timer = timer;
-            this.menu_items = new List<Gtk.MenuItem> ();
+            this.menu_items = new Gee.LinkedList<Gtk.MenuItem> ();
         }
         
         /**
-         * Returns a copy of menu_items.
+         * Returns a list of menu_items.
          */
-        public List<Gtk.MenuItem> get_menu_items () {
-            return menu_items.copy ();
+        public Gee.List<Gtk.MenuItem> get_menu_items () {
+            return menu_items;
         }
         
         /**

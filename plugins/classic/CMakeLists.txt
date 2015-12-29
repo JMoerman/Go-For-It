@@ -14,6 +14,7 @@ find_package(PkgConfig)
 pkg_check_modules(DEPS REQUIRED
     gtk+-3.0
     glib-2.0
+    gee-0.8
     libpeas-1.0
     libpeas-gtk-1.0
     go-for-it
@@ -49,6 +50,7 @@ vala_precompile(VALA_C ${PLUGIN_NAME}
 # tell what libraries to use when compiling
 PACKAGES
     gtk+-3.0
+    gee-0.8
     libpeas-1.0
     libpeas-gtk-1.0
     go-for-it
