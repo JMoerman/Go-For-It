@@ -2,20 +2,31 @@ using GOFI.API;
 using GOFI.Todo;
 
 namespace GOFI.Plugins.Classic {
+    
+    protected SettingsManager _settings;
+    
     public class ClassicPluginProvider : GOFI.API.TodoPluginProvider,
              PeasGtk.Configurable {
         
         const string GETTEXT_PACKAGE = "go-for-it-classic";
         
-        private SettingsManager settings;
+        private SettingsManager settings {
+            get {
+                if (_settings == null) {
+                    _settings = new SettingsManager.load_from_key_file ();
+                }
+                return _settings;
+            }
+            set {
+                _settings = value;
+            }
+        }
 
         public override void on_activate () {
             Intl.setlocale(LocaleCategory.MESSAGES, "");
             Intl.textdomain(GETTEXT_PACKAGE); 
             Intl.bind_textdomain_codeset(GETTEXT_PACKAGE, "utf-8"); 
             Intl.bindtextdomain(GETTEXT_PACKAGE, "./locale");
-            
-            settings = new SettingsManager.load_from_key_file ();
         }
         
         public override void on_deactivate () {
@@ -152,6 +163,6 @@ public void peas_register_types (GLib.TypeModule module)
     var objmodule = module as Peas.ObjectModule;
     objmodule.register_extension_type (typeof (Peas.Activatable),
                                        typeof (GOFI.Plugins.Classic.ClassicPluginProvider));
-//    objmodule.register_extension_type (typeof (PeasGtk.Configurable),
-//                                       typeof (GOFI.Plugins.Classic.ClassicPluginProvider));
+    objmodule.register_extension_type (typeof (PeasGtk.Configurable),
+                                       typeof (GOFI.Plugins.Classic.ClassicPluginProvider));
 }

@@ -16,7 +16,10 @@ set (APP_NAME "Go For It!")
 set (APP_ID "de.manuel-kehl.go-for-it")
 set (EXEC_NAME "go-for-it")
 set (RELEASE_NAME "A stylish to-do list with built-in productivity timer.")
-set (LIBNAME "go-for-it")
+set (LIBNAME "gofi")
+set (LIBVERSION "0")
+set (SOVERSION 0)
+set (PACKAGE_NAME "go-for-it")
 
 set (VERSION "1.4.3")
 set (VERSION_INFO "wip git branch")
@@ -27,9 +30,6 @@ set (PROJECT_DONATIONS "http://manuel-kehl.de/donations/")
 
 set (PREFIX ${CMAKE_INSTALL_PREFIX})
 set (DOLLAR "$")
-
-configure_file (${CMAKE_SOURCE_DIR}/src/Constants.vala.cmake ${CMAKE_SOURCE_DIR}/src/Constants.vala)
-configure_file (${CMAKE_SOURCE_DIR}/src/${LIBNAME}.pc.cmake ${CMAKE_BINARY_DIR}/src/${LIBNAME}.pc)
 
 # find pkgconfig to make sure dependencies are installed
 find_package(PkgConfig)
@@ -68,45 +68,9 @@ include(ValaVersion)
 # make sure it's the desired version of vala
 ensure_vala_version("0.16" MINIMUM)
 # files we want to compile
-include(ValaPrecompile)
-vala_precompile(VALA_C ${EXEC_NAME}
-    src/Constants.vala
-    src/Utils.vala
-    src/SettingsManager.vala
-    src/PluginManager.vala
-    src/Main.vala
-    src/todo/TaskTimer.vala
-    src/todo/TodoTask.vala
-    src/api/Interface.vala
-    src/api/TodoPlugin.vala
-    src/view/AboutDialog.vala
-    src/view/ContributeDialog.vala
-    src/view/SettingsDialog.vala
-    src/view/TimerView.vala
-    src/view/MainLayout.vala
-    src/view/PluginSelector.vala
-    src/view/MainWindow.vala
 
-# tell what libraries to use when compiling
-PACKAGES
-    gtk+-3.0
-    gee-0.8
-    libnotify
-    libpeas-1.0
-    libpeas-gtk-1.0
+add_subdirectory (src)
 
-OPTIONS
-    ${VALAC_OPTIONS}
-GENERATE_VAPI
-    ${LIBNAME}
-GENERATE_HEADER
-    ${LIBNAME}
-)
-
-# tell cmake what to call the executable we just made
-add_executable(${EXEC_NAME} ${VALA_C})
-# install the binaries we just made
-install (TARGETS ${EXEC_NAME} RUNTIME DESTINATION bin)
 # install .desktop file so the Applications menu will display it
 install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/data/go-for-it.desktop DESTINATION ${DATADIR}/applications/)
 # install the application's stylesheet
@@ -129,7 +93,3 @@ install(
     CODE
     "message (STATUS \"Updated icon cache in ${SYSTEM_DEFAULT_THEME}\")"
     )
-
-install (FILES ${CMAKE_BINARY_DIR}/src/${LIBNAME}.pc DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR}/pkgconfig/)
-install (FILES ${CMAKE_CURRENT_BINARY_DIR}/${LIBNAME}.h DESTINATION ${CMAKE_INSTALL_FULL_INCLUDEDIR}/go-for-it/)
-install (FILES ${CMAKE_CURRENT_BINARY_DIR}/${LIBNAME}.vapi DESTINATION ${CMAKE_INSTALL_FULL_DATAROOTDIR}/vala/vapi/)
