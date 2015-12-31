@@ -75,9 +75,8 @@ namespace GOFI.Todo {
         public signal void timer_finished (bool break_active);
         public signal void active_task_done (TodoTask task);
         public signal void active_task_changed (TodoTask task, 
-            bool break_active);
-            
-        public signal void active_task_updated (TodoTask task); // change the name in use
+            bool break_active);   
+        public signal void active_task_data_changed (TodoTask task);
         
         public TaskTimer (SettingsManager settings) {
             this.settings = settings;
@@ -133,7 +132,7 @@ namespace GOFI.Todo {
         }
         
         private void on_task_change () {
-            active_task_updated (_active_task);
+            active_task_data_changed (_active_task);
         }
         
         /**
@@ -257,7 +256,6 @@ namespace GOFI.Todo {
             stop ();
             update_task ();
             toggle_break ();
-            stdout.printf ("%" + int64.FORMAT + "\n", _active_task.time_spend);
         }
     }
 }
