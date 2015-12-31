@@ -133,7 +133,7 @@ namespace GOFI {
         }
         
         private void setup_plugin_manager () {
-            this.plugin_manager = new PluginManager (settings);
+            this.plugin_manager = new PluginManager (settings, task_timer);
             plugin_manager.todo_plugin_load.connect (set_plugin_provider);
             plugin_manager.todo_plugin_removed.connect ( (plugin_provider) => {
                 if (this.plugin_provider == plugin_provider) {

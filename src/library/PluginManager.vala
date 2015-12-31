@@ -33,6 +33,8 @@ namespace GOFI {
         
         public Interface plugin_iface { private set; public get; }
         
+        public weak TaskTimer timer;
+        
         public signal void todo_plugin_load (TodoPluginProvider provider);
         public signal void todo_plugin_added (TodoPluginProvider provider);
         public signal void todo_plugin_removed (TodoPluginProvider provider);
@@ -40,8 +42,9 @@ namespace GOFI {
         /**
          * Constructor of PluginManager
          */
-        public PluginManager (SettingsManager settings) {
+        public PluginManager (SettingsManager settings, TaskTimer timer) {
             this.settings = settings;
+            this.timer = timer;
             providers = new Gee.HashMap<string, TodoPluginProvider> ();
 
             plugin_iface = new Interface (this);
@@ -55,8 +58,10 @@ namespace GOFI {
             Parameter param = Parameter ();
             param.value = plugin_iface;
             param.name = "object";
-            exts = new Peas.ExtensionSet (engine, typeof (Peas.Activatable), "object", plugin_iface, null);
+            exts = new Peas.ExtensionSet (engine, typeof (Peas.Activatable), 
+                "object", plugin_iface, null);
             load_plugins ();
+            connect_signals ();
         }
         
         /**
@@ -66,6 +71,24 @@ namespace GOFI {
             exts.foreach (on_extension_foreach);
             exts.extension_added.connect (on_extension_added);
             exts.extension_removed.connect (on_extension_removed);
+        }
+        
+        private void connect_signals () {
+            timer.timer_updated.connect ( (remaining_duration) => {
+                plugin_iface.timer_updated (remaining_duration);
+            });
+            timer.timer_updated_relative.connect ( (progress) => {
+                plugin_iface.timer_updated_relative (progress);
+            });
+            timer.timer_running_changed.connect ( (running) => {
+                plugin_iface.timer_running_changed (running);
+            });
+            timer.timer_almost_over.connect ( (remaining_duration) => {
+                plugin_iface.timer_almost_over (remaining_duration);
+            });
+            timer.timer_finished.connect ( (break_active) => {
+                plugin_iface.timer_finished (break_active);
+            });
         }
         
         public Gtk.Widget get_settings_widget () {

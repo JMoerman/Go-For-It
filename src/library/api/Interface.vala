@@ -21,6 +21,12 @@ namespace GOFI.API {
         
         private PluginManager plugin_manager;
         
+        public signal void timer_updated (DateTime remaining_duration);
+        public signal void timer_updated_relative (double progress);
+        public signal void timer_running_changed (bool running);
+        public signal void timer_almost_over (DateTime remaining_duration);
+        public signal void timer_finished (bool break_active);
+        
         public Interface (PluginManager plugin_manager) {
             this.plugin_manager = plugin_manager;
         }
