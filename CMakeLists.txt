@@ -45,14 +45,6 @@ pkg_check_modules(DEPS REQUIRED
 
 set (GLOBAL_VALAC_OPTIONS)
 
-# checking if we have a recent version of GLib
-pkg_check_modules( GLIB2 glib-2.0 )
-if (${GLIB2_VERSION} VERSION_GREATER 2.40 )
-    set (VALAC_OPTIONS ${VALAC_OPTIONS} -D HAS_GLIB241)
-else ()
-    message ("-- No recent glib-2.0 found")
-endif ()
-
 add_definitions(${DEPS_CFLAGS})
 link_libraries(${DEPS_LIBRARIES})
 link_directories(${DEPS_LIBRARY_DIRS})
@@ -66,7 +58,7 @@ find_package(Vala REQUIRED)
 # make sure we use vala
 include(ValaVersion)
 # make sure it's the desired version of vala
-ensure_vala_version("0.16" MINIMUM)
+ensure_vala_version("0.24" MINIMUM)
 # files we want to compile
 
 add_subdirectory (src)

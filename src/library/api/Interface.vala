@@ -19,7 +19,7 @@ namespace GOFI.API {
     
     public class Interface : GLib.Object {
         
-        private PluginManager plugin_manager;
+        private weak PluginManager plugin_manager;
         
         public signal void timer_updated (DateTime remaining_duration);
         public signal void timer_updated_relative (double progress);

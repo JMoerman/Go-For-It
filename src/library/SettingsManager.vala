@@ -228,7 +228,7 @@ namespace GOFI {
         }
         
         /**
-         * Function made for compability with older versions of GLib.
+         * Saves to contents of key_file to a file.
          */
         private void write_key_file () throws Error {
             if (!FileUtils.test (Constants.Utils.config_dir, FileTest.EXISTS)) {
