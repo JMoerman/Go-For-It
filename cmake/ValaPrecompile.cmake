@@ -1,6 +1,6 @@
 ##
 # Copyright 2009-2010 Jakob Westhoff. All rights reserved.
-# Copyright 2012 elementary.
+# Copyright 2012-2016 elementary LLC.
 # 
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -156,12 +156,14 @@ macro(vala_precompile output target_name)
 
     set(custom_vapi_arguments "")
     if(ARGS_CUSTOM_VAPIS)
+        # Check for relative and absolute paths
         foreach(vapi ${ARGS_CUSTOM_VAPIS})
-            if(${vapi} MATCHES ${CMAKE_SOURCE_DIR} OR ${vapi} MATCHES ${CMAKE_BINARY_DIR})
+            string(REGEX MATCH "^/" IS_MATCHED ${vapi})
+            if(${IS_MATCHED} MATCHES "/")
                 list(APPEND custom_vapi_arguments ${vapi})
-            else (${vapi} MATCHES ${CMAKE_SOURCE_DIR} OR ${vapi} MATCHES ${CMAKE_BINARY_DIR})
+            else()
                 list(APPEND custom_vapi_arguments ${CMAKE_CURRENT_SOURCE_DIR}/${vapi})
-            endif(${vapi} MATCHES ${CMAKE_SOURCE_DIR} OR ${vapi} MATCHES ${CMAKE_BINARY_DIR})
+            endif()
         endforeach(vapi ${ARGS_CUSTOM_VAPIS})
     endif(ARGS_CUSTOM_VAPIS)
 
@@ -229,7 +231,6 @@ macro(vala_precompile output target_name)
         ${vala_pkg_opts} 
         ${ARGS_OPTIONS} 
         "-g"
-        "--save-temps"
         ${in_files} 
         ${custom_vapi_arguments}
     COMMAND
