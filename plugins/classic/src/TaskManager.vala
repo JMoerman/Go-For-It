@@ -32,6 +32,7 @@ namespace GOFI.Plugins.Classic {
         public TaskStore todo_store;
         public TaskStore done_store;
         private bool read_only;
+        private TXTTask timer_task;
             
         string[] default_todos = {
             "Choose Todo.txt folder via \"Settings\"",
@@ -40,6 +41,8 @@ namespace GOFI.Plugins.Classic {
             "Consider contributing to the project"
         };
         
+        public signal void timer_task_completed ();
+        
         public TaskManager (SettingsManager settings) {
             this.settings = settings;
             
@@ -47,6 +50,7 @@ namespace GOFI.Plugins.Classic {
             todo_store = new TaskStore (false);
             done_store = new TaskStore (true);
             
+            connect_store_signals ();
             load_task_stores ();
             
             /* Signal processing */
@@ -55,6 +59,10 @@ namespace GOFI.Plugins.Classic {
             
             // Move done tasks off the todo list on startup
             auto_transfer_tasks();
+        }
+        
+        public void set_timer_task (TXTTask? timer_task) {
+            this.timer_task = timer_task;
         }
         
         /**
@@ -121,12 +129,35 @@ namespace GOFI.Plugins.Classic {
             auto_transfer_tasks ();
         }
         
-        private void load_task_stores () {
-            stdout.printf("load_task_stores\n");
-            todo_txt_dir = File.new_for_path(settings.todo_txt_location);
-            todo_txt = todo_txt_dir.get_child ("todo.txt");
-            done_txt = todo_txt_dir.get_child ("done.txt");
-            
+        private bool compare_tasks (Gtk.TreeIter iter) {
+            if (timer_task == null) {
+                return false;
+            }
+            Gtk.TreePath? iter_path = todo_store.get_path (iter);
+            Gtk.TreePath? curr_path = timer_task.reference.get_path();
+            if (iter_path == null || curr_path == null) {
+                return false;
+            }
+            string iter_path_str = iter_path.to_string ();
+            string curr_path_str = curr_path.to_string ();
+            return (iter_path_str == curr_path_str);
+        }
+        
+        private void check_timer_task (Gtk.TreeIter iter) {
+            if (compare_tasks (iter)) {
+                string description;
+                todo_store.get (iter, 1, out description, -1);
+                timer_task.title = description;
+            }
+        }
+        
+        private void check_timer_task_completed (Gtk.TreeIter iter) {
+            if (compare_tasks (iter)) {
+                timer_task_completed ();
+            }
+        }
+        
+        private void connect_store_signals () {
             // Save data, as soon as something has changed
             todo_store.task_data_changed.connect (save_tasks);
             done_store.task_data_changed.connect (save_tasks);
@@ -135,11 +166,22 @@ namespace GOFI.Plugins.Classic {
             todo_store.task_done_changed.connect (task_done_handler);
             done_store.task_done_changed.connect (task_done_handler);
             
+            // update timer_task to reflect the changes
+            todo_store.task_name_changed.connect (check_timer_task);
+        }
+        
+        private void load_task_stores () {
+            stdout.printf("load_task_stores\n");
+            todo_txt_dir = File.new_for_path(settings.todo_txt_location);
+            todo_txt = todo_txt_dir.get_child ("todo.txt");
+            done_txt = todo_txt_dir.get_child ("done.txt");
+            
             load_tasks ();
         }
 
         private void task_done_handler (TaskStore source, Gtk.TreeIter iter) {
             if (source == todo_store) {
+                check_timer_task_completed (iter);
                 transfer_task (iter, todo_store, done_store);
             } else if (source == done_store) {
                 transfer_task (iter, done_store, todo_store);

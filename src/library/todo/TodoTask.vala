@@ -19,18 +19,46 @@ namespace GOFI.Todo {
     /**
      * A class for passing common task information.
      */
-    public abstract class TodoTask : Object {
+    public class TodoTask : Object {
         
-        public string title;
-        public bool done;
-        public int64 time_spend;
+        private string _title;
+        private bool _done;
+        private int64 _time_spent;
+        
+        public string title {
+            public set {
+                _title = value;
+                changed ();
+            }
+            public get {
+                return _title;
+            }
+        }
+        public bool done {
+            public set {
+                _done = value;
+                changed ();
+            }
+            public get {
+                return _done;
+            }
+        }
+        public int64 time_spent {
+            public set {
+                _time_spent = value;
+                changed ();
+            }
+            public get {
+                return _time_spent;
+            }
+        }
         
         public signal void changed ();
         
-        public TodoTask (string title, bool done, int64 time_spend = 0) {
+        public TodoTask (string title, bool done, int64 time_spent = 0) {
             this.title = title;
             this.done = done;
-            this.time_spend = time_spend;
+            this.time_spent = time_spent;
         }
     }
 }

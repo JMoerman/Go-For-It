@@ -59,6 +59,9 @@ namespace GOFI {
             timer.timer_updated.connect (set_time);
             timer.timer_running_changed.connect (set_running);
             timer.active_task_changed.connect (timer_active_task_changed);
+            timer.active_task_data_changed.connect (
+                timer_active_task_data_changed
+            );
             timer.timer_updated_relative.connect ((s, p) => {
                 progress.set_fraction (p);
             });
@@ -66,10 +69,15 @@ namespace GOFI {
             // Update timer, to refresh the view
             timer.update ();
         }
-
-        private void timer_active_task_changed (TodoTask task,
+        
+        private void timer_active_task_changed (TodoTask? task,
                                                 bool break_active) {
-
+            
+            if (task == null) {
+                reset ();
+                return;
+            }
+            
             task_description_lbl.label = task.title;
             var style = task_description_lbl.get_style_context ();
 
@@ -84,6 +92,10 @@ namespace GOFI {
                 style.add_class ("task_active");
                 done_btn.visible = true;
             }
+        }
+        
+        private void timer_active_task_data_changed (TodoTask task) {
+            task_description_lbl.label = task.title;
         }
         
         public void set_time (DateTime time) {

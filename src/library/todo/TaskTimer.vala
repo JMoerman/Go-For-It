@@ -74,7 +74,7 @@ namespace GOFI.Todo {
         public signal void timer_almost_over (DateTime remaining_duration);
         public signal void timer_finished (bool break_active);
         public signal void active_task_done (TodoTask task);
-        public signal void active_task_changed (TodoTask task, 
+        public signal void active_task_changed (TodoTask? task, 
             bool break_active);   
         public signal void active_task_data_changed (TodoTask task);
         
@@ -106,6 +106,9 @@ namespace GOFI.Todo {
         }
          
         public void start () {
+            if (_active_task == null) {
+                return;
+            }
             if (!running) {
                 start_time = new DateTime.now_utc ();
                 running = true;
@@ -127,7 +130,7 @@ namespace GOFI.Todo {
                 return;
             }
             if (!break_active) {
-                _active_task.time_spend += previous_runtime;
+                _active_task.time_spent += previous_runtime;
             }
         }
         
@@ -136,7 +139,8 @@ namespace GOFI.Todo {
         }
         
         /**
-         * 
+         * Saves the time spent working on this task and removes the task from
+         * this.
          */
         public TodoTask remove_task () {
             stop ();
@@ -147,7 +151,7 @@ namespace GOFI.Todo {
         }
         
         /**
-         * 
+         * Reverts the state of this to its initial condition.
          */
         public void reset () {
             running = false;

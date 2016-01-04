@@ -35,6 +35,7 @@ namespace GOFI.Plugins.Classic {
         
         /* Signals */
         public signal void task_data_changed ();
+        public signal void task_name_changed (Gtk.TreeIter iter);
         public signal void task_done_changed (Gtk.TreeIter iter);
         
         /**
@@ -100,6 +101,7 @@ namespace GOFI.Plugins.Classic {
             if (text._strip () != "") {
                 this.set (iter, 1, text);
                 task_data_changed ();
+                task_name_changed (iter);
             } else {
                 remove_task (iter);
             }

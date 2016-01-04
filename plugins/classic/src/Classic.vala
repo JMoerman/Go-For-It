@@ -126,7 +126,11 @@ namespace GOFI.Plugins.Classic {
             // Take the first selected row
             path = todo_selection.get_selected_rows (out model).nth_data (0);
             var reference = new Gtk.TreeRowReference (model, path);
-            this.task_timer.active_task = new TXTTask(tree_row_ref_to_task(reference), false, reference);
+            
+            var task = new TXTTask(tree_row_ref_to_task(reference), false, reference);
+            
+            this.task_timer.active_task = task;
+            this.task_manager.set_timer_task ((TXTTask) task_timer.active_task);
         }
         
         private void connect_signals () {
@@ -138,6 +142,9 @@ namespace GOFI.Plugins.Classic {
             });
             refresh_item.activate.connect ((e) => {
                 task_manager.refresh ();
+            });
+            this.task_manager.timer_task_completed.connect ( () => {
+                this.task_timer.remove_task ();
             });
         }
         

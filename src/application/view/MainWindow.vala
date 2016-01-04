@@ -319,8 +319,13 @@ namespace GOFI {
             task_timer.timer_almost_over.connect (display_almost_over_notification);
         }
         
-        private void task_timer_activated (TodoTask task,
+        private void task_timer_activated (TodoTask? task,
                                            bool break_active) {
+            
+            if (task == null) {
+                warning ("Timer running without task!");
+                return;
+            }
             
             if (break_previously_active != break_active) {
                 var task_name = task.title;
