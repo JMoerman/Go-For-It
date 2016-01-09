@@ -35,6 +35,7 @@ namespace GOFI {
             plugin_manager.todo_plugin_added.connect ( (provider) => {
                 add_plugin (provider);
             });
+            layout.row_activated.connect (on_row_activated);
         }
         
         private void setup_layout () {
@@ -63,9 +64,6 @@ namespace GOFI {
             var new_row = new PluginSelectorRow (plugin_provider.plugin_info);
             layout.add(new_row);
             
-            new_row.clicked.connect ( () => {
-                plugin_manager.load_todo_plugin (new_row.plugin_info.get_module_name ());
-            });
             plugin_provider.removed.connect ( () => {
                 new_row.destroy ();
             });
@@ -81,8 +79,16 @@ namespace GOFI {
             }
         }
         
+        private void on_row_activated (Gtk.ListBoxRow row) {
+            string module_name = ((PluginSelectorRow) row).plugin_info.get_module_name ();
+            plugin_manager.load_todo_plugin (module_name);
+        }
+        
         private int sort_func (Gtk.ListBoxRow row1, Gtk.ListBoxRow row2) {
-            if (((PluginSelectorRow) row1).plugin_info.get_name () > ((PluginSelectorRow) row2).plugin_info.get_name ())
+            string row1_name = ((PluginSelectorRow) row1).plugin_info.get_name ();
+            string row2_name = ((PluginSelectorRow) row2).plugin_info.get_name ();
+            
+            if (row1_name > row2_name)
                 return 1;
             return -1;
         }
@@ -94,17 +100,14 @@ namespace GOFI {
      */
     class PluginSelectorRow : Gtk.ListBoxRow {
         private Gtk.Box layout;
-        
-        private Gtk.Button button;
+        private Gtk.Label label;
         public Peas.PluginInfo plugin_info;
-        
-        public signal void clicked ();
 
         public PluginSelectorRow (Peas.PluginInfo plugin_info) {
             this.plugin_info = plugin_info;
             setup_layout ();
-            connect_signals ();
             
+            this.activatable = true;
             this.show_all ();
         }
         
@@ -113,18 +116,9 @@ namespace GOFI {
          */
         private void setup_layout () {
             layout = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
-            
-            button = new Gtk.Button.with_label(plugin_info.get_name ());
-            
-            layout.pack_start (button);
-            
+            label = new Gtk.Label(plugin_info.get_name ());
+            layout.pack_start (label);
             this.add (layout);
-        }
-        
-        private void connect_signals () {
-            button.clicked.connect ( () => {
-                clicked ();
-            });
         }
     }
 }

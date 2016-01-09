@@ -33,7 +33,7 @@ namespace GOFI {
         
         public Interface plugin_iface { private set; public get; }
         
-        public weak TaskTimer timer;
+        public TaskTimer timer;
         
         public signal void todo_plugin_load (TodoPluginProvider provider);
         public signal void todo_plugin_added (TodoPluginProvider provider);
