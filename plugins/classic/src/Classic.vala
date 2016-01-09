@@ -3,12 +3,10 @@ using GOFI.Todo;
 
 namespace GOFI.Plugins.Classic {
     
-    protected SettingsManager _settings;
+    private SettingsManager _settings;
     
     public class ClassicPluginProvider : GOFI.API.TodoPluginProvider,
              PeasGtk.Configurable {
-        
-        const string GETTEXT_PACKAGE = "go-for-it-classic";
         
         private SettingsManager settings {
             get {
@@ -23,10 +21,6 @@ namespace GOFI.Plugins.Classic {
         }
 
         public override void on_activate () {
-            Intl.setlocale(LocaleCategory.MESSAGES, "");
-            Intl.textdomain(GETTEXT_PACKAGE); 
-            Intl.bind_textdomain_codeset(GETTEXT_PACKAGE, "utf-8"); 
-            Intl.bindtextdomain(GETTEXT_PACKAGE, "./locale");
         }
         
         public override void on_deactivate () {

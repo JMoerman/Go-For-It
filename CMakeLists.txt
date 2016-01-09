@@ -28,6 +28,8 @@ set (PROJECT_WEBSITE "http://manuel-kehl.de/projects/go-for-it/")
 set (PROJECT_REPO "https://github.com/mank319/Go-For-It")
 set (PROJECT_DONATIONS "http://manuel-kehl.de/donations/")
 
+set (DEFAULT_PLUGINS "classic")
+
 set (PREFIX ${CMAKE_INSTALL_PREFIX})
 set (DOLLAR "$")
 
@@ -62,6 +64,7 @@ ensure_vala_version("0.24" MINIMUM)
 # files we want to compile
 
 add_subdirectory (src)
+add_subdirectory (plugins)
 
 # install .desktop file so the Applications menu will display it
 install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/data/go-for-it.desktop DESTINATION ${DATADIR}/applications/)

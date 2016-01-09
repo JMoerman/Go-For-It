@@ -42,7 +42,7 @@ namespace GOFI {
         /*---GROUP:Plugins---------------------------------------------------------*/
         public string[] enabled_plugins {
             owned get {
-                var plugins = get_value (GROUP_PLUGINS, "enabled_plugins", "");
+                var plugins = get_value (GROUP_PLUGINS, "enabled_plugins", Constants.DEFAULT_PLUGINS);
                 return plugins.split(":");
             }
             set {

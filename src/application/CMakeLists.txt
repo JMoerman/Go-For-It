@@ -1,4 +1,4 @@
-add_definitions(-I${CMAKE_BINARY_DIR}/src/library/)
+include_directories(${CMAKE_BINARY_DIR} ${CMAKE_BINARY_DIR}/src/library/)
 
 include(ValaPrecompile)
 vala_precompile(VALA_C ${EXEC_NAME}
@@ -13,7 +13,6 @@ vala_precompile(VALA_C ${EXEC_NAME}
 
 # tell what libraries to use when compiling
 PACKAGES
-    #${LIBNAME}
     gtk+-3.0
     gee-0.8
     libnotify
