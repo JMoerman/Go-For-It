@@ -32,7 +32,13 @@ namespace GOFI.Plugins.Classic {
         public TaskStore todo_store;
         public TaskStore done_store;
         private bool read_only;
+        private FileMonitor monitor;
         private TXTTask timer_task;
+        
+        public bool refreshing {
+            public get;
+            private set;
+        }
             
         string[] default_todos = {
             "Choose Todo.txt folder via \"Settings\"",
@@ -42,6 +48,7 @@ namespace GOFI.Plugins.Classic {
         };
         
         public signal void timer_task_completed ();
+        public signal void refreshed ();
         
         public TaskManager (SettingsManager settings) {
             this.settings = settings;
@@ -53,12 +60,15 @@ namespace GOFI.Plugins.Classic {
             connect_store_signals ();
             load_task_stores ();
             
+            setup_monitor ();
+            
             /* Signal processing */
             settings.todo_txt_location_changed.connect (load_task_stores);
             
-            
             // Move done tasks off the todo list on startup
             auto_transfer_tasks();
+            
+            refreshing = false;
         }
         
         public void set_timer_task (TXTTask? timer_task) {
@@ -124,9 +134,41 @@ namespace GOFI.Plugins.Classic {
          * Reloads all tasks.
          */
         public void refresh () {
+            // Prevent unnecessary saves and updates
+            refreshing = true;
+            todo_store.task_data_changed.disconnect (save_tasks);
+            done_store.task_data_changed.disconnect (save_tasks);
+            
             load_tasks ();
             // Some tasks may have been marked as done by other applications.
             auto_transfer_tasks ();
+            refreshed ();
+            
+            refreshing = false;
+            todo_store.task_data_changed.connect (save_tasks);
+            done_store.task_data_changed.connect (save_tasks);
+        }
+        
+        /**
+         * Attempts to assign a new TreeRowReference to the task used by the 
+         * TaskTimer.
+         */
+        public bool fix_task () {
+            Gtk.TreeIter iter;
+            if (!todo_store.get_iter_first (out iter)) {
+                return false;
+            }
+            string description;
+            do {
+                todo_store.get (iter, 1, out description, -1);
+                if (description == timer_task.title) {
+                    var path = todo_store.get_path (iter);
+                    var reference = new Gtk.TreeRowReference(todo_store, path);
+                    timer_task.reference = reference;
+                    return true;
+                }
+            } while (todo_store.iter_next (ref iter));
+            return false;
         }
         
         private bool compare_tasks (Gtk.TreeIter iter) {
@@ -209,9 +251,25 @@ namespace GOFI.Plugins.Classic {
         }
         
         private void save_tasks () {
+            // Prevent monitor updates while saving
+            monitor.cancel ();
             if (!read_only) {
                 write_task_file (this.todo_store, this.todo_txt);
                 write_task_file (this.done_store, this.done_txt);
+            }
+            // setting up a new FileMonitor to resume monitoring the file
+            setup_monitor ();
+        }
+        
+        private void setup_monitor () {
+            try {
+                monitor = todo_txt_dir.monitor_directory (FileMonitorFlags.NONE, null);
+            
+                monitor.changed.connect ((src, dest, event) => {
+                    refresh();
+                });
+            } catch (GLib.IOError error) {
+                error ("%s", error.message);
             }
         }
         

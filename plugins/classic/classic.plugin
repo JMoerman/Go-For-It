@@ -2,5 +2,5 @@
 Module=classic
 Loader=C
 Name=Classic
-Description=testing plugin loader
-Authors=JMoerman
+Description=Plugin implementing the behavior of Go For It! v1.x
+Authors=mank319, JMoerman

@@ -112,7 +112,9 @@ namespace GOFI.Plugins.Classic {
             
             // Check if TodoStore is empty or not
             if (task_manager.todo_store.is_empty ()) {
-                cleared ();
+                if (!task_manager.refreshing) {
+                    cleared ();
+                }
                 return;
             }
             
@@ -136,13 +138,26 @@ namespace GOFI.Plugins.Classic {
             refresh_item.activate.connect ((e) => {
                 task_manager.refresh ();
             });
-            this.task_manager.timer_task_completed.connect ( () => {
+            task_manager.timer_task_completed.connect ( () => {
                 this.task_timer.remove_task ();
             });
+            task_manager.refreshed.connect (on_refresh);
+        }
+        
+        private void on_refresh () {
+            if (this.task_timer.running) {
+                if (task_manager.fix_task ()) {
+                    return;
+                } else {
+                    stdout.printf ("Unable to restore running task!\n");
+                    this.task_timer.remove_task ();
+                }
+            }
+            todo_selection_changed ();
         }
         
         public override void stop () {
-            //task_manager.save_tasks ();
+            
         }
         
         public override Gtk.Widget get_primary_widget (out string page_name) {
