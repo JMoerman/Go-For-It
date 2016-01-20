@@ -44,7 +44,6 @@ namespace GOFI.Plugins.Classic {
         
         // Menu items for this plugin
         private Gtk.MenuItem clear_done_item;
-        private Gtk.MenuItem refresh_item;
         
         private Gtk.TreeSelection todo_selection;
         
@@ -81,11 +80,9 @@ namespace GOFI.Plugins.Classic {
         private void setup_menu () {
             /* Initialization */
             clear_done_item = new Gtk.MenuItem.with_label (_("Clear Done List"));
-            refresh_item = new Gtk.MenuItem.with_label (_("Refresh"));
             
             /* Add Items to Menu */
             menu_items.add (clear_done_item);
-            menu_items.add (refresh_item);
         }
         
         public static string tree_row_ref_to_task (Gtk.TreeRowReference reference) {
@@ -135,15 +132,15 @@ namespace GOFI.Plugins.Classic {
             clear_done_item.activate.connect ((e) => {
                 task_manager.clear_done_store ();
             });
-            refresh_item.activate.connect ((e) => {
-                task_manager.refresh ();
-            });
             task_manager.timer_task_completed.connect ( () => {
                 this.task_timer.remove_task ();
             });
             task_manager.refreshed.connect (on_refresh);
         }
         
+        /**
+         * Fix the TXTTask used by task_timer if necessary
+         */
         private void on_refresh () {
             if (this.task_timer.running) {
                 if (task_manager.fix_task ()) {

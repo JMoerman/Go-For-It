@@ -268,8 +268,8 @@ namespace GOFI.Plugins.Classic {
                 monitor.changed.connect ((src, dest, event) => {
                     refresh();
                 });
-            } catch (GLib.IOError error) {
-                error ("%s", error.message);
+            } catch (Error e) {
+                error ("%s", e.message);
             }
         }
         
