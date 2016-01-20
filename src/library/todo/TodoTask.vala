@@ -25,6 +25,9 @@ namespace GOFI.Todo {
         private bool _done;
         private int64 _time_spent;
         
+        /**
+         * The title of this task.
+         */
         public string title {
             public set {
                 _title = value;
@@ -34,15 +37,24 @@ namespace GOFI.Todo {
                 return _title;
             }
         }
+        
+        /**
+         * Whether or not this task still needs to be completed.
+         */
         public bool done {
             public set {
                 _done = value;
                 changed ();
+                status_changed (value);
             }
             public get {
                 return _done;
             }
         }
+        
+        /**
+         * The amount of time spent working on this task.
+         */
         public int64 time_spent {
             public set {
                 _time_spent = value;
@@ -53,7 +65,17 @@ namespace GOFI.Todo {
             }
         }
         
+        /**
+         * The changed signal is emitted when the state of the TodoTask is 
+         * changed.
+         */
         public signal void changed ();
+        
+        /**
+         * The status_changed signal is emitted when the value of done is 
+         * changed.
+         */
+        public signal void status_changed (bool done);
         
         public TodoTask (string title, bool done, int64 time_spent = 0) {
             this.title = title;

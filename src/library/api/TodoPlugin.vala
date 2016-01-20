@@ -25,20 +25,39 @@ namespace GOFI.API {
     public abstract class TodoPluginProvider : Peas.ExtensionBase,  
             Peas.Activatable {
         
-        protected Interface plugin_iface;
+        /**
+         * The plugin interface, an allias of object.
+         */
+        public Interface plugin_iface;
+        
+        /**
+         * The plugin interface.
+         */
         public Object object { owned get; construct; }
         
+        /**
+         * Implementation of Peas.Activatable.activate, this function should 
+         * only be called by the main application.
+         */
         public void activate () {
             plugin_iface = (Interface) object;
             on_activate ();
             plugin_iface.register_launcher (this);
         }
-            
+        
+        /**
+         * Implementation of Peas.Activatable.deactivate, this function should 
+         * only be called by the main application.
+         */
         public void deactivate () {
             on_deactivate ();
             this.removed ();
         }
         
+        /**
+         * Implementation of Peas.Activatable.update_state, this function should 
+         * only be called by the main application.
+         */
         public void update_state () {
 
         }
@@ -53,8 +72,14 @@ namespace GOFI.API {
          */
         public abstract TodoPlugin get_plugin (TaskTimer timer);
         
+        /**
+         * Function called when a TodoPluginProvider gets deactivated.
+         */
         public abstract void on_deactivate ();
         
+        /**
+         * Function called when a TodoPluginProvider gets activated.
+         */
         public abstract void on_activate ();
     }
     

@@ -17,21 +17,48 @@
 
 namespace GOFI.API {
     
+    /**
+     * Interface to be used by plugins.
+     */
     public class Interface : GLib.Object {
         
         private weak PluginManager plugin_manager;
         
+        /**
+         * The timer_updated signal is emitted when ...
+         */
         public signal void timer_updated (DateTime remaining_duration);
+        
+        /**
+         * The timer_updated_relative signal is emitted when the ...
+         */
         public signal void timer_updated_relative (double progress);
+        
+        /**
+         * The timer_running_changed signal is emitted when the timer is either
+         * stopped or started.
+         */
         public signal void timer_running_changed (bool running);
+        
+        /**
+         * The timer_almost_over signal is emitted when ...
+         */
         public signal void timer_almost_over (DateTime remaining_duration);
+        
+        /**
+         * The timer_finished signal is emitted when ...
+         */
         public signal void timer_finished (bool break_active);
         
         public Interface (PluginManager plugin_manager) {
             this.plugin_manager = plugin_manager;
         }
         
-        public void register_launcher(TodoPluginProvider plugin_provider) {
+        /**
+         * Adds a TodoPluginProvider to the list of known the list of available 
+         * TodoPluginProvider instances.
+         */
+        public void register_launcher (TodoPluginProvider plugin_provider) {
             plugin_manager.add_plugin_provider(plugin_provider);
         }
         

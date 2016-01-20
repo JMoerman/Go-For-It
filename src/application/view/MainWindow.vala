@@ -199,7 +199,6 @@ namespace GOFI {
             
             switch_img = new Gtk.Image.from_icon_name("go-previous", Gtk.IconSize.LARGE_TOOLBAR);
             switch_btn = new Gtk.ToolButton (switch_img, _("_Back"));
-            //switch_btn.set_icon_name("go-previous");
             switch_btn.clicked.connect (switch_stack);
 
             if (use_header_bar) {
