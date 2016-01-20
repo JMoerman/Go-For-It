@@ -15,7 +15,10 @@
 * with Go For It!. If not, see http://www.gnu.org/licenses/.
 */
 
-namespace GOFI.Todo {
+using GOFI.Application;
+
+namespace GOFI {
+    
     /**
      * The central class for handling and coordinating timer functionality
      */

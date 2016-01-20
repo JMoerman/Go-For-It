@@ -15,9 +15,7 @@
 * with Go For It!. If not, see http://www.gnu.org/licenses/.
 */
 
-using GOFI.Todo;
-
-namespace GOFI.API {
+namespace GOFI {
     
     /**
      * A TodoPluginProvider provides a TodoPlugin when it is needed.

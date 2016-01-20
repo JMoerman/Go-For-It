@@ -15,10 +15,9 @@
 * with Go For It!. If not, see http://www.gnu.org/licenses/.
 */
 
-using GOFI.API;
-using GOFI.Todo;
+using GOFI;
 
-namespace GOFI {
+namespace GOFI.Application {
     
     /**
      * The main window of Go For It!.
@@ -28,7 +27,7 @@ namespace GOFI {
         private SettingsManager settings;
         private PluginManager plugin_manager;
         private TaskTimer task_timer;
-        private GOFI.API.TodoPluginProvider plugin_provider = null;
+        private TodoPluginProvider plugin_provider = null;
         private bool use_header_bar;
         
         /* Various GTK Widgets */
@@ -105,7 +104,7 @@ namespace GOFI {
             return dont_exit;
         }
         
-        private void set_plugin_provider (GOFI.API.TodoPluginProvider plugin_provider) {
+        private void set_plugin_provider (TodoPluginProvider plugin_provider) {
             if (this.plugin_provider != plugin_provider) {
                 if (this.plugin_provider != null) {
                     main_layout.remove_todo_plugin ();

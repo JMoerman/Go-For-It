@@ -15,7 +15,7 @@
 * with Go For It!. If not, see http://www.gnu.org/licenses/.
 */
 
-namespace GOFI.Todo {
+namespace GOFI {
     /**
      * A class for passing common task information.
      */

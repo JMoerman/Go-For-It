@@ -1,5 +1,5 @@
 namespace GOFI.Plugins.Classic {
-    public class TXTTask : GOFI.Todo.TodoTask {
+    public class TXTTask : GOFI.TodoTask {
         
         public Gtk.TreeRowReference reference {
             private set;

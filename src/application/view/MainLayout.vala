@@ -14,9 +14,9 @@
 * You should have received a copy of the GNU General Public License along
 * with Go For It!. If not, see http://www.gnu.org/licenses/.
 */
-using GOFI.Todo;
+using GOFI;
 
-namespace GOFI {
+namespace GOFI.Application {
     
     /**
      * A widget containing a TodoPlugin and its widgets and the TimerView.
@@ -26,7 +26,7 @@ namespace GOFI {
         private SettingsManager settings;
         private bool use_header_bar;
         
-        private GOFI.API.TodoPlugin todo_plugin = null;
+        private TodoPlugin todo_plugin = null;
         private TaskTimer task_timer;
         
         /* Various GTK Widgets */
@@ -112,7 +112,7 @@ namespace GOFI {
         /**
          * Updates this to display the new TodoPlugin.
          */
-        public void set_todo_plugin (GOFI.API.TodoPlugin todo_plugin) {
+        public void set_todo_plugin (TodoPlugin todo_plugin) {
             if (this.todo_plugin == null) {
                 this.todo_plugin = todo_plugin;
                 todo_plugin.cleared.connect ( () => {

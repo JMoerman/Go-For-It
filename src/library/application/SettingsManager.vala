@@ -15,7 +15,7 @@
 * with Go For It!. If not, see http://www.gnu.org/licenses/.
 */
 
-namespace GOFI {
+namespace GOFI.Application {
     /**
      * A class that handles access to settings in a transparent manner.
      * Its main motivation is the option of easily replacing Glib.KeyFile with 

@@ -15,9 +15,9 @@
 * with Go For It!. If not, see http://www.gnu.org/licenses/.
 */
 
-using GOFI.API;
+using GOFI;
 
-namespace GOFI {
+namespace GOFI.Application {
     
     /**
      * A list of available plugins the user can choose from.

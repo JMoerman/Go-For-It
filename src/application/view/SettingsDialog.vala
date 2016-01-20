@@ -15,7 +15,7 @@
 * with Go For It!. If not, see http://www.gnu.org/licenses/.
 */
 
-namespace GOFI {
+namespace GOFI.Application {
 
     /**
      * A dialog for changing the application's settings.

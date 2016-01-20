@@ -1,11 +1,10 @@
-using GOFI.API;
-using GOFI.Todo;
+using GOFI;
 
 namespace GOFI.Plugins.Classic {
     
     private SettingsManager _settings;
     
-    public class ClassicPluginProvider : GOFI.API.TodoPluginProvider,
+    public class ClassicPluginProvider : GOFI.TodoPluginProvider,
              PeasGtk.Configurable {
         
         private SettingsManager settings {

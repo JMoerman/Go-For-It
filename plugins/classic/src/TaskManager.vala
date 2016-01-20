@@ -72,7 +72,7 @@ namespace GOFI.Plugins.Classic {
             todo_store.add_task (task);
         }
         
-        public void mark_task_done (GOFI.Todo.TodoTask task) {
+        public void mark_task_done (GOFI.TodoTask task) {
             Gtk.TreeRowReference reference = ((TXTTask)task).reference;
             if (reference.valid ()) {
                 // Get Gtk.TreeIterator from reference

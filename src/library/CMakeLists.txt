@@ -5,12 +5,12 @@ include(ValaPrecompile)
 vala_precompile(VALA_C ${EXEC_NAME}
     Constants.vala
     Utils.vala
-    SettingsManager.vala
-    PluginManager.vala
-    todo/TaskTimer.vala
-    todo/TodoTask.vala
-    api/Interface.vala
-    api/TodoPlugin.vala
+    application/SettingsManager.vala
+    application/PluginManager.vala
+    TaskTimer.vala
+    TodoTask.vala
+    Interface.vala
+    TodoPlugin.vala
 
 # tell what libraries to use when compiling
 PACKAGES

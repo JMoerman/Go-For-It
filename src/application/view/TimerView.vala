@@ -15,9 +15,9 @@
 * with Go For It!. If not, see http://www.gnu.org/licenses/.
 */
 
-using GOFI.Todo;
+using GOFI;
 
-namespace GOFI {
+namespace GOFI.Application {
     
     /**
      * The widget for selecting, displaying and controlling the active task.

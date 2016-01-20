@@ -15,10 +15,9 @@
 * with Go For It!. If not, see http://www.gnu.org/licenses/.
 */
 
-using GOFI.API;
-using GOFI.Todo;
+using GOFI;
 
-namespace GOFI {
+namespace GOFI.Application {
     
     /**
      * PluginManager loads and controls all plugins.
