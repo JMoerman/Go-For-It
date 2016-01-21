@@ -31,10 +31,9 @@ namespace GOFI.Plugins.Classic {
         /*
          * A list of constants that define settings group names
          */
-        
         private const string GROUP_TODO_TXT = "Todo.txt";
         
-        // Whether or not Go For It! has been started for the first time
+        // Whether or not this plugin has been started for the first time
         public bool first_start = false;
         
         /*
@@ -62,7 +61,7 @@ namespace GOFI.Plugins.Classic {
             key_file = new KeyFile ();
             
             config_file = Path.build_filename (
-                GOFI.Interface.config_dir, "classic.conf" 
+                GOFI.Interface.get_config_dir ("classic"), "classic.conf" 
             );
             
             if (!FileUtils.test (config_file, FileTest.EXISTS)) {
@@ -124,7 +123,7 @@ namespace GOFI.Plugins.Classic {
          * Function made for compability with older versions of GLib.
          */
         private void write_key_file () throws Error {
-            string dir_path = GOFI.Interface.config_dir;
+            string dir_path = GOFI.Interface.get_config_dir ("classic");
             
             if (!FileUtils.test (dir_path, FileTest.EXISTS)) {
                 var dir = File.new_for_path (dir_path);

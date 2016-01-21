@@ -66,12 +66,11 @@ namespace GOFI {
         
         /**
          * Returns a location to store plugin related configuration files in.
+         * @param module_name module name as set in the *.plugin file.
          */
-        public static string config_dir{
-            owned get {
-                string config_dir = Constants.Utils.config_dir;
-                return Path.build_filename (config_dir, "plugins");
-            }
+        public static string get_config_dir (string module_name) {
+            string config_dir = Constants.Utils.config_dir;
+            return Path.build_filename (config_dir, "plugins", module_name);
         }
     }
 }
