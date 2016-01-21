@@ -31,7 +31,6 @@ namespace GOFI.Plugins.Classic {
         private File done_txt;
         public TaskStore todo_store;
         public TaskStore done_store;
-        private bool read_only;
         private FileMonitor monitor;
         private TXTTask timer_task;
         
@@ -133,10 +132,8 @@ namespace GOFI.Plugins.Classic {
          * Reloads all tasks.
          */
         public void refresh () {
-            // Prevent unnecessary saves and updates
+            // Prevent unnecessary updates
             refreshing = true;
-            todo_store.task_data_changed.disconnect (save_tasks);
-            done_store.task_data_changed.disconnect (save_tasks);
             
             load_tasks ();
             // Some tasks may have been marked as done by other applications.
@@ -144,8 +141,6 @@ namespace GOFI.Plugins.Classic {
             refreshed ();
             
             refreshing = false;
-            todo_store.task_data_changed.connect (save_tasks);
-            done_store.task_data_changed.connect (save_tasks);
         }
         
         /**
@@ -230,11 +225,12 @@ namespace GOFI.Plugins.Classic {
         }
         
         private void load_tasks () {
-            // read_only flag, so that "clear()" does not delete the files' content
-            read_only = true;
+            // prevent writing to the file while clearing or loading
+            todo_store.task_data_changed.disconnect (save_tasks);
+            done_store.task_data_changed.disconnect (save_tasks);
+            
             todo_store.clear ();
             done_store.clear ();
-            read_only = false;
             read_task_file (this.todo_store, this.todo_txt);
             read_task_file (this.done_store, this.done_txt);
             
@@ -246,16 +242,20 @@ namespace GOFI.Plugins.Classic {
                 {
                     todo_store.add_task(default_todos[i], 0);
                 }
+                settings.first_start = false;
             }
+            
+            todo_store.task_data_changed.connect (save_tasks);
+            done_store.task_data_changed.connect (save_tasks);
         }
         
         private void save_tasks () {
             // Prevent monitor updates while saving
             monitor.cancel ();
-            if (!read_only) {
-                write_task_file (this.todo_store, this.todo_txt);
-                write_task_file (this.done_store, this.done_txt);
-            }
+            
+            write_task_file (this.todo_store, this.todo_txt);
+            write_task_file (this.done_store, this.done_txt);
+            
             // setting up a new FileMonitor to resume monitoring the file
             setup_monitor ();
         }
