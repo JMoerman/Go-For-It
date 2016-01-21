@@ -52,6 +52,7 @@ namespace GOFI.Plugins.Classic {
         
         public TaskManager (SettingsManager settings) {
             this.settings = settings;
+            refreshing = false;
             
             // Initialize TaskStores
             todo_store = new TaskStore (false);
@@ -67,8 +68,6 @@ namespace GOFI.Plugins.Classic {
             
             // Move done tasks off the todo list on startup
             auto_transfer_tasks();
-            
-            refreshing = false;
         }
         
         public void set_timer_task (TXTTask? timer_task) {
@@ -266,7 +265,9 @@ namespace GOFI.Plugins.Classic {
                 monitor = todo_txt_dir.monitor_directory (FileMonitorFlags.NONE, null);
             
                 monitor.changed.connect ((src, dest, event) => {
-                    refresh();
+                    if (event == FileMonitorEvent.CHANGES_DONE_HINT) {
+                        refresh();
+                    }
                 });
             } catch (Error e) {
                 error ("%s", e.message);
