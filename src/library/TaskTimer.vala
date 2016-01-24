@@ -215,6 +215,7 @@ namespace GOFI {
          */
         public void set_active_task_done () {
             stop ();
+            _active_task.done = true;
             active_task_done (_active_task);
             // Resume break, only keep stopped when a Task is active
             if (break_active) {

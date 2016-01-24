@@ -24,6 +24,7 @@ namespace GOFI {
         private string _title;
         private bool _done;
         private int64 _time_spent;
+        private int _importance;
         
         /**
          * The title of this task.
@@ -66,6 +67,19 @@ namespace GOFI {
         }
         
         /**
+         * The importance of this task, a low value means low importance.
+         */
+        public int importance {
+            public set {
+                changed ();
+                _importance = value;
+            }
+            public get {
+                return _importance;
+            }
+        }
+        
+        /**
          * The changed signal is emitted when the state of the TodoTask is 
          * changed.
          */
@@ -77,10 +91,12 @@ namespace GOFI {
          */
         public signal void status_changed (bool done);
         
-        public TodoTask (string title, bool done, int64 time_spent = 0) {
-            this.title = title;
-            this.done = done;
-            this.time_spent = time_spent;
+        public TodoTask (string title = "unknown", bool done = false, 
+                int64 time_spent = 0) {
+            _title = title;
+            _done = done;
+            _time_spent = time_spent;
+            _importance = 0;
         }
     }
 }
