@@ -148,6 +148,8 @@ namespace GOFI.Application {
             task_description_lbl.margin_top = 30;
             task_description_lbl.lines = 3;
             task_description_lbl.wrap = true;
+            task_description_lbl.wrap_mode = Pango.WrapMode.WORD_CHAR;
+            task_description_lbl.width_request = 100;
 
             /* Add Widgets */
             this.add (task_status_lbl);
