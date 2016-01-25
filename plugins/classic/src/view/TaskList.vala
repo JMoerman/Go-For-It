@@ -74,8 +74,11 @@ namespace GOFI.Plugins.Classic {
             // Set up task entry cell
             var text_cell = new Gtk.CellRendererText ();
             text_cell.editable = true;
-            var text_column = new Gtk.TreeViewColumn.with_attributes ("Task", text_cell,
-                                                                      "text", Columns.TEXT);
+            text_cell.width = 200;
+            text_cell.wrap_width = 200;  
+            text_cell.wrap_mode = Pango.WrapMode.WORD_CHAR;
+            text_column = new Gtk.TreeViewColumn.with_attributes ("Task", text_cell,
+                                                                  "text", Columns.TEXT);
             text_column.expand = true;
             task_view.insert_column (text_column, -1);
 
