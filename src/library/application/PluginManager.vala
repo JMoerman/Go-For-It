@@ -49,8 +49,6 @@ namespace GOFI.Application {
             plugin_iface = new Interface (this);
 
             engine = Peas.Engine.get_default ();
-            engine.enable_loader ("python");
-            engine.enable_loader ("gjs");
             engine.add_search_path (Constants.PLUGINDIR, null);
             engine.set_loaded_plugins (settings.enabled_plugins);
             
