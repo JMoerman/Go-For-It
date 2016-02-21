@@ -78,7 +78,7 @@ namespace GOFI.Plugins.Classic {
             text_cell.wrap_width = 200;  
             text_cell.wrap_mode = Pango.WrapMode.WORD_CHAR;
             var text_column = new Gtk.TreeViewColumn.with_attributes ("Task", text_cell,
-                                                                  "text", Columns.TEXT);
+                                                                      "text", Columns.TEXT);
             text_column.expand = true;
             task_view.insert_column (text_column, -1);
 

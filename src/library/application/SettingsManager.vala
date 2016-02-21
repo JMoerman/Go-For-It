@@ -39,10 +39,12 @@ namespace GOFI.Application {
          * A list of settings values with their corresponding access methods.
          * The "heart" of the SettingsManager class.
          */
-        /*---GROUP:Plugins---------------------------------------------------------*/
+        /*---GROUP:Plugins----------------------------------------------------*/
         public string[] enabled_plugins {
             owned get {
-                var plugins = get_value (GROUP_PLUGINS, "enabled_plugins", Constants.DEFAULT_PLUGINS);
+                var plugins = get_value (
+                    GROUP_PLUGINS, "enabled_plugins", Constants.DEFAULT_PLUGINS
+                );
                 return plugins.split(":");
             }
             set {
@@ -51,7 +53,10 @@ namespace GOFI.Application {
                     plugins = plugins.concat (value[i], ":");
                 }
                 if (plugins.length > 2) {
-                    set_value (GROUP_PLUGINS, "enabled_plugins", plugins.slice(0, plugins.length-1));
+                    set_value (
+                        GROUP_PLUGINS, "enabled_plugins", 
+                        plugins.slice(0, plugins.length-1)
+                    );
                 } else {
                     set_value (GROUP_PLUGINS, "enabled_plugins", "");
                 }
@@ -65,7 +70,7 @@ namespace GOFI.Application {
                 set_value (GROUP_PLUGINS, "last_plugin", value);
             }
         }
-        /*---GROUP:Timer---------------------------------------------------------*/
+        /*---GROUP:Timer------------------------------------------------------*/
         public int task_duration {
             owned get {
                 var duration = get_value (GROUP_TIMER, "task_duration", "1500");
@@ -100,7 +105,7 @@ namespace GOFI.Application {
                 return (reminder_time > 0);
             }
         }
-        /*---GROUP:UI-------------------------------------------------------------*/
+        /*---GROUP:UI---------------------------------------------------------*/
         public int win_x {
             owned get {
                 var x = get_value (GROUP_UI, "win_x", "-1");
@@ -139,7 +144,9 @@ namespace GOFI.Application {
         }
         public bool use_header_bar {
             owned get {
-                var use_header_bar = get_value (GROUP_UI, "use_header_bar", header_bar_default());
+                var use_header_bar = get_value (
+                    GROUP_UI, "use_header_bar", header_bar_default()
+                );
                 return bool.parse (use_header_bar);
             }
             set {
@@ -164,10 +171,15 @@ namespace GOFI.Application {
             } else {
                 // If it does exist, read existing values
                 try {
-                    key_file.load_from_file (Constants.Utils.config_file,
-                       KeyFileFlags.KEEP_COMMENTS | KeyFileFlags.KEEP_TRANSLATIONS);
+                    key_file.load_from_file (
+                        Constants.Utils.config_file,
+                        KeyFileFlags.KEEP_COMMENTS | 
+                        KeyFileFlags.KEEP_TRANSLATIONS
+                    );
                 } catch (Error e) {
-                    stderr.printf("Reading %s failed", Constants.Utils.config_file);
+                    stderr.printf (
+                        "Reading %s failed", Constants.Utils.config_file
+                    );
                     error ("%s", e.message);
                 }
             }
@@ -190,8 +202,8 @@ namespace GOFI.Application {
         
         /**
          * Provides read access to a setting, given a certain group and key.
-         * Public access is granted via the SettingsManager's attributes, so this
-         * function has been declared private
+         * Public access is granted via the SettingsManager's attributes, so 
+         * this function has been declared private
          */
         private string get_value (string group, string key, string default = "") {
             try {
@@ -211,9 +223,10 @@ namespace GOFI.Application {
         }
         
         /**
-         * Provides write access to a setting, given a certain group key and value.
-         * Public access is granted via the SettingsManager's attributes, so this
-         * function has been declared private
+         * Provides write access to a setting, given a certain group key and 
+         * value.
+         * Public access is granted via the SettingsManager's attributes, so 
+         * this function has been declared private
          */
         private void set_value (string group, string key, string value) {
             if (key_file != null) {

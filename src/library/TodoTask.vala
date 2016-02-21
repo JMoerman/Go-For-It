@@ -92,7 +92,8 @@ namespace GOFI {
         public signal void status_changed (bool done);
         
         public TodoTask (string title = "unknown", bool done = false, 
-                int64 time_spent = 0) {
+                         int64 time_spent = 0) 
+        {
             _title = title;
             _done = done;
             _time_spent = time_spent;
