@@ -29,8 +29,14 @@ namespace GOFI.Application {
         private Gtk.Stack stack;
         private Gtk.StackSwitcher switcher;
         
-        // timer settings
-        private Gtk.Grid timer_layout;
+        // Plugin page
+        private Gtk.Grid plugin_layout;
+        private Gtk.Widget plugin_settings_widget;
+        
+        // Behavior page
+        private Gtk.Grid behavior_layout;
+        // timer
+        private Gtk.Label timer_sect_lbl;
         private Gtk.Label task_lbl;
         private Gtk.SpinButton task_spin;
         private Gtk.Label break_lbl;
@@ -38,12 +44,18 @@ namespace GOFI.Application {
         private Gtk.Label reminder_lbl;
         private Gtk.SpinButton reminder_spin;
         
-        // plugin settings
-        private Gtk.Grid plugin_layout;
-        private Gtk.Widget plugin_settings_widget;
+        // Appearance page
+        private Gtk.Grid appearance_layout;
+        // headerbar
+        private Gtk.Label headerbar_sect_lbl;
+        private Gtk.Label headerbar_lbl;
+        private Gtk.Switch headerbar_switch;
         
-        public SettingsDialog (Gtk.Window? parent, SettingsManager settings, 
-                PluginManager plugin_manager) {
+        private Gtk.Align label_alignment = Gtk.Align.START;
+        
+        public SettingsDialog (Gtk.Window? parent, SettingsManager settings,
+                               PluginManager plugin_manager)
+        {
             this.set_transient_for (parent);
             this.settings = settings;
             this.plugin_manager = plugin_manager;
@@ -51,17 +63,14 @@ namespace GOFI.Application {
             /* General Settigns */
             // Default to minimum possible size
             this.set_default_size (1, 1);
-            this.get_content_area ().margin = 10;
-            this.get_content_area ().margin_top = 0;
             this.set_modal (true);
             
             this.title = _("Settings");
             setup_layouts ();
-            setup_plugin_settings_widgets ();
-            setup_timer_settings_widgets ();
+            setup_plugin_page ();
+            setup_behavior_page ();
+            setup_appearance_page ();
             this.add_button (_("Close"), Gtk.ResponseType.CLOSE);
-            
-            apply_global_settings ();
             
             /* Action Handling */
             this.response.connect ((s, response) => {
@@ -78,46 +87,51 @@ namespace GOFI.Application {
             stack = new Gtk.Stack ();
             switcher = new Gtk.StackSwitcher ();
             plugin_layout = new Gtk.Grid ();
-            timer_layout = new Gtk.Grid ();
+            behavior_layout = new Gtk.Grid ();
+            appearance_layout = new Gtk.Grid ();
             
             main_layout.orientation = Gtk.Orientation.VERTICAL;
             
             // Stack + Switcher
             switcher.set_stack (stack);
             switcher.halign = Gtk.Align.CENTER;
-            switcher.margin = 5;
             switcher.vexpand = false;
-            stack.set_transition_type(Gtk.StackTransitionType.SLIDE_LEFT_RIGHT);
+            stack.set_transition_type (Gtk.StackTransitionType.SLIDE_LEFT_RIGHT);
             
-            timer_layout.orientation = Gtk.Orientation.VERTICAL;
-            timer_layout.row_spacing = 15;
+            apply_layout_settings (plugin_layout);
+            apply_layout_settings (behavior_layout);
+            apply_layout_settings (appearance_layout);
             
-            stack.add_titled(plugin_layout, "plugins", _("Plugins"));
-            stack.add_titled(timer_layout, "timer", _("Time"));
+            stack.add_titled (plugin_layout, "plugins", _("Plugins"));
+            stack.add_titled (behavior_layout, "behavior", _("Behavior"));
+            stack.add_titled (appearance_layout, "appearance", _("Appearance"));
             
             main_layout.add (switcher);
             main_layout.add (stack);
             this.get_content_area ().pack_start (main_layout);
         }
         
-        private void apply_global_settings () {
-            /* Settings that apply for all widgets in the dialog */
-            foreach (var child in plugin_layout.get_children ()) {
-                child.halign = Gtk.Align.START;
-            }
-            foreach (var child in timer_layout.get_children ()) {
-                child.halign = Gtk.Align.START;
-            }
+        private void apply_layout_settings (Gtk.Grid grid) {
+            grid.orientation = Gtk.Orientation.VERTICAL;
+            grid.row_spacing = 5;
+            grid.column_spacing = 5;
+            grid.margin = 12;
         }
         
-        private void setup_plugin_settings_widgets () {
+        private void setup_plugin_page () {
+            /* Instantiation */
             plugin_settings_widget = plugin_manager.get_settings_widget ();
+            
+            /* Configuration */
             plugin_settings_widget.expand = true;
+            
+            /* Add widgets */
             plugin_layout.add (plugin_settings_widget);
         }
         
-        private void setup_timer_settings_widgets () {
+        private void setup_behavior_page () {
             /* Instantiation */
+            timer_sect_lbl = new Gtk.Label (_("Timer"));
             task_lbl = new Gtk.Label (_("Task duration (minutes)") + ":");
             break_lbl = new Gtk.Label (_("Break duration (minutes)") + ":");
             reminder_lbl = new Gtk.Label (_("Reminder before task ends (seconds)") +":");
@@ -144,12 +158,57 @@ namespace GOFI.Application {
             });
             
             /* Add widgets */
-            timer_layout.add (task_lbl);
-            timer_layout.add (task_spin);
-            timer_layout.add (break_lbl);
-            timer_layout.add (break_spin);
-            timer_layout.add (reminder_lbl);
-            timer_layout.add (reminder_spin);
+            int row = 0;
+            add_section (behavior_layout, timer_sect_lbl, ref row);
+            add_option (behavior_layout, task_lbl, task_spin, ref row);
+            add_option (behavior_layout, break_lbl, break_spin, ref row);
+            add_option (behavior_layout, reminder_lbl, reminder_spin, ref row);
+        }
+        
+        private void add_section (Gtk.Grid grid, Gtk.Label name, ref int row) {
+            name.use_markup = true;
+            name.set_markup ("<b>%s</b>".printf (name.get_text ()));
+            name.halign = Gtk.Align.START;
+            grid.attach (name, 0, row, 1, 1);
+            row++;
+        }
+        
+        private void add_option (Gtk.Grid grid, Gtk.Widget label, 
+                                 Gtk.Widget switcher, ref int row)
+        {
+            label.hexpand = true;
+            switcher.hexpand = true;
+            label.margin_left = 20; // indentation
+            label.halign = label_alignment;
+            switcher.halign = Gtk.Align.FILL;
+            
+            if (switcher is Gtk.Switch || switcher is Gtk.Entry) {
+                switcher.halign = Gtk.Align.START;
+            }
+            
+            grid.attach (label, 0, row);
+            grid.attach (switcher, 1, row);
+            row++;
+        }
+        
+        private void setup_appearance_page () {
+            /* Instantiation */
+            headerbar_sect_lbl = new Gtk.Label (_("Client side decorations"));
+            headerbar_lbl = new Gtk.Label (_("Use a header bar") + (":"));
+            headerbar_switch = new Gtk.Switch ();
+            
+            /* Configuration */
+            headerbar_switch.active = settings.use_header_bar;
+            
+            /* Signal Handling */
+            headerbar_switch.notify["active"].connect ( () => {
+                settings.use_header_bar = headerbar_switch.active;
+            });
+            
+            /* Add widgets */
+            int row = 0;
+            add_section (appearance_layout, headerbar_sect_lbl, ref row);
+            add_option (appearance_layout, headerbar_lbl, headerbar_switch, ref row);
         }
         
         public override void show_all () {

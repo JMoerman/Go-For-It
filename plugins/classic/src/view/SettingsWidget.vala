@@ -34,6 +34,7 @@ namespace GOFI.Plugins.Classic {
             this.visible = true;
             this.orientation = Gtk.Orientation.VERTICAL;
             this.row_spacing = 15;
+            this.margin = 12;
             
             setup_settings_widgets (true);
             
