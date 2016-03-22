@@ -584,11 +584,9 @@ namespace GOFI {
                 this.register_window (drag_window);
                 drag_window.set_background_rgba (background); 
             }
-            child.ref ();
             child.unparent ();
             child.set_parent_window (drag_window);
             child.set_parent (this);
-            child.unref ();
             
             drag_window.show ();
             
@@ -606,10 +604,8 @@ namespace GOFI {
         private void hide_drag_window () {
             if (drag_row.get_window () != this.get_window ())
             {
-                drag_row.ref ();
                 drag_row.unparent ();
                 drag_row.set_parent (this);
-                drag_row.unref ();
              }
 
             if (drag_window != null && drag_window.is_visible ()) {
