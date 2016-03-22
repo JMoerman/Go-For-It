@@ -1,4 +1,4 @@
-/* Copyright 2015 Manuel Kehl (mank319)
+/* Copyright 2016 Go For It! developers
 *
 * This file is part of Go For It!.
 *

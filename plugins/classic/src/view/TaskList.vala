@@ -1,4 +1,4 @@
-/* Copyright 2014 Manuel Kehl (mank319)
+/* Copyright 2016 Go For It! developers
 *
 * This file is part of Go For It!.
 *
@@ -14,6 +14,7 @@
 * You should have received a copy of the GNU General Public License along
 * with Go For It!. If not, see http://www.gnu.org/licenses/.
 */
+
 namespace GOFI.Plugins.Classic {
     /**
      * A widget for displaying and manipulating task lists.
