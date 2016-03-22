@@ -118,6 +118,32 @@ namespace GOFI.Application {
             grid.margin = 12;
         }
         
+        private void add_section (Gtk.Grid grid, Gtk.Label name, ref int row) {
+            name.use_markup = true;
+            name.set_markup ("<b>%s</b>".printf (name.get_text ()));
+            name.halign = Gtk.Align.START;
+            grid.attach (name, 0, row, 1, 1);
+            row++;
+        }
+        
+        private void add_option (Gtk.Grid grid, Gtk.Widget label, 
+                                 Gtk.Widget switcher, ref int row)
+        {
+            label.hexpand = true;
+            switcher.hexpand = true;
+            label.margin_left = 20; // indentation
+            label.halign = label_alignment;
+            switcher.halign = Gtk.Align.FILL;
+            
+            if (switcher is Gtk.Switch || switcher is Gtk.Entry) {
+                switcher.halign = Gtk.Align.START;
+            }
+            
+            grid.attach (label, 0, row);
+            grid.attach (switcher, 1, row);
+            row++;
+        }
+        
         private void setup_plugin_page () {
             /* Instantiation */
             plugin_settings_widget = plugin_manager.get_settings_widget ();
@@ -163,32 +189,6 @@ namespace GOFI.Application {
             add_option (behavior_layout, task_lbl, task_spin, ref row);
             add_option (behavior_layout, break_lbl, break_spin, ref row);
             add_option (behavior_layout, reminder_lbl, reminder_spin, ref row);
-        }
-        
-        private void add_section (Gtk.Grid grid, Gtk.Label name, ref int row) {
-            name.use_markup = true;
-            name.set_markup ("<b>%s</b>".printf (name.get_text ()));
-            name.halign = Gtk.Align.START;
-            grid.attach (name, 0, row, 1, 1);
-            row++;
-        }
-        
-        private void add_option (Gtk.Grid grid, Gtk.Widget label, 
-                                 Gtk.Widget switcher, ref int row)
-        {
-            label.hexpand = true;
-            switcher.hexpand = true;
-            label.margin_left = 20; // indentation
-            label.halign = label_alignment;
-            switcher.halign = Gtk.Align.FILL;
-            
-            if (switcher is Gtk.Switch || switcher is Gtk.Entry) {
-                switcher.halign = Gtk.Align.START;
-            }
-            
-            grid.attach (label, 0, row);
-            grid.attach (switcher, 1, row);
-            row++;
         }
         
         private void setup_appearance_page () {
