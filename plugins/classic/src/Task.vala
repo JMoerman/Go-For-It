@@ -4,8 +4,18 @@ namespace GOFI.Plugins.Classic {
         public Gtk.TreeRowReference reference;
         
         public TXTTask (string title, bool done, Gtk.TreeRowReference reference) {
-            base (title, done);
+            base ();
+            this.title = title;
+            this.done = done;
             this.reference = reference;
         }
+        
+        public override bool is_valid () {
+            if (base.is_valid ()) {
+                return reference.valid ();
+            }
+            return false;
+        }
+        
     }
 }

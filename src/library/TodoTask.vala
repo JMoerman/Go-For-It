@@ -16,6 +16,7 @@
 */
 
 namespace GOFI {
+    
     /**
      * A class for passing common task information.
      */
@@ -26,13 +27,16 @@ namespace GOFI {
         private int64 _time_spent;
         private int _importance;
         
+        private bool title_set;
+        
         /**
          * The title of this task.
          */
         public string title {
             public set {
                 _title = value;
-                changed ();
+                title_set = true;
+                title_changed (_title);
             }
             public get {
                 return _title;
@@ -45,7 +49,6 @@ namespace GOFI {
         public bool done {
             public set {
                 _done = value;
-                changed ();
                 status_changed (value);
             }
             public get {
@@ -80,24 +83,46 @@ namespace GOFI {
         }
         
         /**
-         * The changed signal is emitted when the state of the TodoTask is 
-         * changed.
+         * The changed signal is emitted when a property of this changed.
          */
-        public signal void changed ();
+        public virtual signal void changed () {
+            
+        }
         
         /**
          * The status_changed signal is emitted when the value of done is 
          * changed.
+         * @param done ...
          */
-        public signal void status_changed (bool done);
+        public virtual signal void status_changed (bool done) {
+            changed ();
+        }
         
-        public TodoTask (string title = "unknown", bool done = false, 
-                         int64 time_spent = 0) 
-        {
-            _title = title;
-            _done = done;
-            _time_spent = time_spent;
+        /**
+         * The status_changed signal is emitted when the value of done is 
+         * changed.
+         * @param new_title ...
+         */
+        public virtual signal void title_changed (string new_title) {
+            changed ();
+        }
+        
+        /**
+         * ...
+         */
+        public TodoTask () {
+            title_set = false;
+            _title = "Undifined";
+            _done = false;
+            _time_spent = 0;
             _importance = 0;
+        }
+        
+        /**
+         * ...
+         */
+        public virtual bool is_valid () {
+            return (title_set);
         }
     }
 }
