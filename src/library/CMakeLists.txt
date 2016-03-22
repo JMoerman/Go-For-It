@@ -11,6 +11,8 @@ vala_precompile(VALA_C ${EXEC_NAME}
     TodoTask.vala
     Interface.vala
     TodoPlugin.vala
+    view/OrderBox.vala
+    view/OrderBoxRow.vala
 
 # tell what libraries to use when compiling
 PACKAGES
