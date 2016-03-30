@@ -82,21 +82,8 @@ namespace GOFI {
             context = this.get_style_context ();
             context.add_class (Gtk.STYLE_CLASS_LIST_ROW);
             context.add_class (Gtk.STYLE_CLASS_BUTTON);
-            inherrit_style (context);
             
             this.visible = true;
-        }
-        
-        /**
-         * Inherrit the style of Gtk.ListBoxRow.
-         * This function would need to be removed if used with Gtk+3.0 < 3.10.
-         */
-        private void inherrit_style (Gtk.StyleContext context) {
-            Gtk.WidgetPath path = new Gtk.WidgetPath ();
-            path.append_type (typeof (Gtk.ListBoxRow));
-            var parent_style = new Gtk.StyleContext ();
-            parent_style.set_path (path);
-            context.set_parent (parent_style);
         }
         
         private void update_style () {

@@ -389,9 +389,8 @@ namespace GOFI {
             drag_prepared = false;
             Gtk.StyleContext context = this.get_style_context ();
             context.add_class (Gtk.STYLE_CLASS_LIST);
-            inherit_style (context);
             
-            _selection_mode = Gtk.SelectionMode.MULTIPLE;
+            _selection_mode = Gtk.SelectionMode.SINGLE;
         }
         
         /**
@@ -485,18 +484,6 @@ namespace GOFI {
         /*
          * Drawing and allocating
          *--------------------------------------------------------------------*/
-         
-        /**
-         * inherit the style of Gtk.ListBoxRow.
-         * This function would need to be removed if used with Gtk+3.0 < 3.10.
-         */
-        private void inherit_style (Gtk.StyleContext context) {
-            Gtk.WidgetPath path = new Gtk.WidgetPath ();
-            path.append_type (typeof (Gtk.ListBox));
-            var parent_style = new Gtk.StyleContext ();
-            parent_style.set_path (path);
-            context.set_parent (parent_style);
-        }
         
         /**
          * @see Gtk.Widget.realize
