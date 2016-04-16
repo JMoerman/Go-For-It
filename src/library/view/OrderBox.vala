@@ -149,10 +149,10 @@ namespace GOFI {
         private Gtk.Widget placeholder;
         
         private bool active_row_active = false;
-        private unowned OrderBoxRow prelight_row;
-        private unowned OrderBoxRow active_row;
-        private unowned OrderBoxRow cursor_row;
-        private unowned OrderBoxRow selected_row;
+        private OrderBoxRow prelight_row;
+        private OrderBoxRow active_row;
+        private OrderBoxRow cursor_row;
+        private OrderBoxRow selected_row;
         
         private int rows_visible = 0;
         
@@ -1611,6 +1611,20 @@ namespace GOFI {
         private void remove_internal (Gtk.Widget child) {
             OrderBoxRow row = child as OrderBoxRow;
             if (row != null && row.get_parent () == this ) {
+                if (row == prelight_row) {
+                    row.unset_state_flags (Gtk.StateFlags.PRELIGHT);
+                    prelight_row = null;
+                }
+                if (row == active_row) {
+                    row.unset_state_flags (Gtk.StateFlags.ACTIVE);
+                    active_row = null;
+                }
+                if (row == cursor_row) {
+                    cursor_row = null;
+                }
+                if (row == selected_row) {
+                    selected_row = null;
+                }
                 row.unparent ();
                 row.iter.remove ();
                 if (row.priv_visible) {
