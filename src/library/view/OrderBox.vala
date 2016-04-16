@@ -139,12 +139,21 @@ namespace GOFI {
      * Unlike Gtk.ListBox this container supports reordering via drag and drop.
      */
     public class OrderBox : Gtk.Container {
+        private OrderBoxModel model;
         private GLib.Sequence<OrderBoxRow> children;
+        
+        private OrderBoxFilterFunc filter_func;
+        private OrderBoxSortFunc sort_func;
+        private Gtk.Adjustment adjustment = null;
+        
+        private Gtk.Widget placeholder;
         
         private bool active_row_active = false;
         private unowned OrderBoxRow active_row;
         private unowned OrderBoxRow cursor_row;
         private unowned OrderBoxRow selected_row;
+        
+        private int rows_visible = 0;
         
         private OrderBoxRow drag_row;
         private Gdk.Window drag_window;
@@ -166,11 +175,6 @@ namespace GOFI {
         /* Where the row would get placed when the drag ends */
         private int gap_pos = 0;
         private int drag_row_origin = 0;
-        
-        private OrderBoxModel model;
-        
-        private OrderBoxFilterFunc filter_func;
-        private OrderBoxSortFunc sort_func;
         
         private Gtk.SelectionMode _selection_mode;
         public Gtk.SelectionMode selection_mode {
@@ -245,9 +249,8 @@ namespace GOFI {
                                                 int count)
         {
             bool forward, modify, extend;
+            OrderBoxRow prev, next;
             OrderBoxRow row = null;
-            
-            stdout.printf ("%i %i\n", step, count);
             
             if (count == 0) {
                 return;
@@ -255,17 +258,22 @@ namespace GOFI {
             
             forward = (count > 0);
             
+            if (cursor_row == null) {
+                cursor_row = get_first_visible ();
+            }
+            
             if (step == Gtk.MovementStep.DISPLAY_LINES) {
-                if (cursor_row == null) {
-                    cursor_row = get_first_visible ();
-                }
-                
                 if (cursor_row != null) {
                     
-                    OrderBoxRow prev = cursor_row;
+                    prev = cursor_row;
                     
                     for (int i = count.abs (); i > 0; i--) {
-                        row = get_next_visible (prev.iter, forward);
+                        if (forward) {
+                            row = get_next_visible (prev.iter);
+                        } else {
+                            row = get_previous_visible (prev.iter);
+                        }
+                        
                         if (row != null) {
                             prev = row;
                         } else {
@@ -276,10 +284,45 @@ namespace GOFI {
                     
                 }
             } else if (step == Gtk.MovementStep.PAGES) {
-                warning (
-                    "TODO: move_cursor: implement correct behavior for " +
-                    "Gtk.MovementStep.PAGES"
-                );
+                int page_size = 100;
+                if (adjustment != null) {
+                    page_size = (int) adjustment.get_page_increment ();
+                }
+                
+                if (cursor_row != null) {
+                    int start_y = cursor_row.y;
+                    
+                    row = cursor_row;
+                    if (count < 0) {
+                        /* Up */
+                        while (!row.iter.is_begin ()) {
+                            prev = get_previous_visible (row.iter);
+                            if (prev == null) {
+                                break;
+                            }
+                            
+                            if (prev.y < start_y - page_size) {
+                                break;
+                            }
+                            
+                            row = prev;
+                        }
+                    } else {
+                        /* Down */
+                        while (!row.iter.is_end ()) {
+                            next = get_next_visible (row.iter);
+                            if (next == null) {
+                                break;
+                            }
+                            
+                            if (next.y > start_y + page_size) {
+                                break;
+                            }
+                            
+                            row = next;
+                        }
+                    }
+                }
             } else if (step == Gtk.MovementStep.BUFFER_ENDS) {
                 if (forward) {
                     row = get_last_visible ();
@@ -343,7 +386,6 @@ namespace GOFI {
          */
         [Signal (action=true)]        
         public virtual signal void select_all () {
-            stdout.printf ("select_all\n");
             if (selection_mode == Gtk.SelectionMode.MULTIPLE) {
                 if (children.get_length () > 0) {
                     select_all_between (null, null, false);
@@ -357,7 +399,6 @@ namespace GOFI {
          */
         [Signal (action=true)]
         public virtual signal void unselect_all () {
-            stdout.printf ("unselect_all\n");
             bool dirty = false;
 
             if (selection_mode == Gtk.SelectionMode.BROWSE) {
@@ -632,6 +673,15 @@ namespace GOFI {
             bool gap_placed = false;
             gap_pos = 0;
             
+            if (placeholder != null && placeholder.visible) {
+                placeholder.get_preferred_height_for_width (
+                    allocation.width, out child_min, null
+                );
+                child_allocation.height = allocation.height;
+                placeholder.size_allocate (child_allocation);
+                return;
+            }
+            
             GLib.SequenceIter<OrderBoxRow> iter = children.get_begin_iter ();
             if (dragging) {
                 allocate_drag_row (allocation.width);
@@ -641,7 +691,7 @@ namespace GOFI {
                         continue;
                     }
                     
-                    if (!row.get_visible()) {
+                    if (!row.priv_visible) {
                         if (!gap_placed) {
                             gap_pos++;
                         }
@@ -730,6 +780,16 @@ namespace GOFI {
         {
             int _minimum_height = 0;
             
+            if (placeholder != null && placeholder.visible) {
+                placeholder.get_preferred_height_for_width (
+                    width, out minimum_height, null
+                );
+                
+                natural_height = minimum_height;
+                
+                return;
+            }
+            
             GLib.SequenceIter<OrderBoxRow> iter = children.get_begin_iter ();
             for (; !iter.is_end (); iter = iter.next ()) {
                 OrderBoxRow row = iter.get ();
@@ -762,6 +822,14 @@ namespace GOFI {
                                                out int natural_width)
         {
             int _minimum_width = 0, _natural_width = 0;
+            
+            if (placeholder != null && placeholder.visible) {
+                placeholder.get_preferred_width (
+                    out minimum_width, out natural_width
+                );
+                
+                return;
+            }
             
             GLib.SequenceIter<OrderBoxRow> iter = children.get_begin_iter ();
             for (; !iter.is_end (); iter = iter.next ()) {
@@ -871,6 +939,7 @@ namespace GOFI {
                             active_row.set_state_flags (
                                 Gtk.StateFlags.ACTIVE, false
                             );
+                            cursor_row = row;
                             queue_draw ();
                             if (event.type == Gdk.EventType.2BUTTON_PRESS) {
                                 activate_row (row);
@@ -998,8 +1067,20 @@ namespace GOFI {
         }
         
         internal void update_cursor (OrderBoxRow row) {
+            ensure_row_visible (row);
             row.grab_focus ();
             row.queue_draw ();
+        }
+        
+        private void ensure_row_visible (OrderBoxRow row) {
+            Gtk.Allocation allocation;
+            
+            if (adjustment == null) {
+                return;
+            }
+            
+            row.get_allocation (out allocation);
+            adjustment.clamp_page (allocation.y, allocation.y + allocation.height);
         }
         
         private bool unselect_all_internal () {
@@ -1112,7 +1193,7 @@ namespace GOFI {
             GLib.SequenceIter<OrderBoxRow> iter = first_row.iter;
             for (int i = rows; i > 0 && !iter.is_end (); i--) {
                 OrderBoxRow row = iter.get ();
-                if (row.get_visible ()) {
+                if (row.priv_visible) {
                     if (modify) {
                         row.set_selected (!row.selected);
                     } else {
@@ -1187,7 +1268,7 @@ namespace GOFI {
         private unowned OrderBoxRow? get_first_visible () {
             unowned OrderBoxRow row = children.get_begin_iter ().get ();
             if (row != null && !row.is_visible ()) {
-                row = get_next_visible (row.iter, true);
+                row = get_next_visible (row.iter);
             }
             if (row != null) {
                 return row;
@@ -1204,7 +1285,7 @@ namespace GOFI {
             }
             unowned OrderBoxRow row = iter.get ();
             if (row != null && !row.is_visible ()) {
-                row = get_next_visible (row.iter, false);
+                row = get_previous_visible (row.iter);
             }
             return row;
         }
@@ -1222,8 +1303,19 @@ namespace GOFI {
             }
         }
         
+        /**
+         * ...
+         */
         internal void visibility_changed (OrderBoxRow row) {
-            warning ("stub: visibility_changed");
+            bool was_visible = row.priv_visible;
+            
+            row.priv_visible = row.get_visible () && row.get_child_visible ();
+            
+            if (was_visible && !row.priv_visible) {
+                change_visible_rows (-1);
+            } else if (!was_visible && row.priv_visible) {
+                change_visible_rows (1);
+            }
         }
         
         internal void got_row_changed (OrderBoxRow row) {
@@ -1233,8 +1325,15 @@ namespace GOFI {
         }
         
         public override void forall_internal (bool include_internals, 
-                                              Gtk.Callback callback) {
-            GLib.SequenceIter<OrderBoxRow> iter = children.get_begin_iter ();
+                                              Gtk.Callback callback)
+        {
+            GLib.SequenceIter<OrderBoxRow> iter;
+            
+            if (include_internals && placeholder != null) {
+                callback(placeholder);
+            }
+            
+            iter = children.get_begin_iter ();
             /* a for loop causes invalid reads here */
             while (iter != null && !iter.is_end ()) {
                 OrderBoxRow row = iter.get ();
@@ -1244,42 +1343,46 @@ namespace GOFI {
         }
         
         private unowned OrderBoxRow? get_next_visible (
-                                            GLib.SequenceIter<OrderBoxRow> iter,
-                                            bool forward) 
+                                            GLib.SequenceIter<OrderBoxRow> iter) 
         {
             GLib.SequenceIter<OrderBoxRow> _iter;
             unowned OrderBoxRow row;
-            if (forward) {
-                if (iter.is_end ()) {
-                    return null;
-                }
-                _iter = iter.next ();
-                while (true) {
-                    if (_iter.is_end ()) {
-                        break;
-                    }
-                    row = _iter.get ();
-                    if (row != null && row.get_visible()) {
-                        return row;
-                    }
-                    _iter = _iter.next ();
-                }
-            } else {
-                if (iter.is_begin ()) {
-                    return null;
-                }
-                _iter = iter.prev ();
-                while (true) {
-                    row = _iter.get ();
-                    if (row != null && row.get_visible()) {
-                        return row;
-                    }
-                    if (_iter.is_begin ()) {
-                        break;
-                    }
-                    _iter = _iter.prev ();
-                }
+            
+            if (iter.is_end ()) {
+                return null;
             }
+            _iter = iter.next ();
+            while (!_iter.is_end ()) {
+                row = _iter.get ();
+                if (row != null && row.priv_visible) {
+                    return row;
+                }
+                _iter = _iter.next ();
+            }
+            return null;
+        }
+        
+        private unowned OrderBoxRow? get_previous_visible (
+                                            GLib.SequenceIter<OrderBoxRow> iter)
+        {
+            GLib.SequenceIter<OrderBoxRow> _iter;
+            unowned OrderBoxRow row;
+            
+            if (iter.is_begin ()) {
+                return null;
+            }
+            _iter = iter.prev ();
+            while (true) {
+                row = _iter.get ();
+                if (row != null && row.priv_visible) {
+                    return row;
+                }
+                if (_iter.is_begin ()) {
+                    break;
+                }
+                _iter = _iter.prev ();
+            }
+            
             return null;
         }
         
@@ -1345,6 +1448,15 @@ namespace GOFI {
          * Public methods + helper functions
          *--------------------------------------------------------------------*/
         
+        
+        public void set_adjustment (Gtk.Adjustment? adjustment) {
+            this.adjustment = adjustment;
+        }
+        
+        public unowned Gtk.Adjustment? get_adjustment () {
+            return this.adjustment;
+        }
+        
         /**
          * Adds a widget to OrderBox unless a model is bound to this.
          * This does the same as {@link insert} (widget, -1).
@@ -1389,6 +1501,21 @@ namespace GOFI {
             }
             row.set_parent (this);
             row.iter = iter;
+            row.priv_visible = row.get_visible ();
+            
+            if (row.priv_visible) {
+                change_visible_rows (1);
+            }
+        }
+        
+        private void change_visible_rows (int change) {
+            bool was_zero = rows_visible == 0;
+            
+            rows_visible += change;
+            
+            if (placeholder != null && (was_zero || rows_visible == 0)) {
+                placeholder.set_visible (rows_visible == 0);
+            }
         }
         
         /**
@@ -1411,12 +1538,30 @@ namespace GOFI {
             if (row != null && row.get_parent () == this ) {
                 row.unparent ();
                 row.iter.remove ();
+                if (row.priv_visible) {
+                    change_visible_rows(-1);
+                }
                 if (this.get_visible()) {
                     this.queue_resize_no_redraw ();
                 }
                 return;
             }
             warning ("Tried to remove non-child %p", child);
+        }
+        
+        public void set_placeholder (Gtk.Widget? placeholder) {
+            
+            if (this.placeholder != null) {
+                this.placeholder.unparent ();
+                this.queue_resize ();
+            }
+            
+            this.placeholder = placeholder;
+            
+            if (this.placeholder != null) {
+                this.placeholder.set_parent (this);
+                this.placeholder.set_visible (rows_visible == 0);
+            }
         }
         
         /**

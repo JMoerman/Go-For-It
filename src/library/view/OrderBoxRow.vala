@@ -24,6 +24,7 @@ namespace GOFI {
      * OrderBox {@link Gtk.Widget.destroy} should not be called.
      */
     public class OrderBoxRow : Gtk.Bin {
+        internal bool priv_visible;
         internal bool selected = false;
         internal int y;
         internal GLib.SequenceIter iter;
@@ -83,7 +84,7 @@ namespace GOFI {
             context.add_class (Gtk.STYLE_CLASS_LIST_ROW);
             context.add_class (Gtk.STYLE_CLASS_BUTTON);
             
-            this.visible = true;
+            priv_visible = true;
         }
         
         private void update_style () {
