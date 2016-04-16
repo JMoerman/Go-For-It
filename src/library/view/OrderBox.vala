@@ -149,6 +149,7 @@ namespace GOFI {
         private Gtk.Widget placeholder;
         
         private bool active_row_active = false;
+        private unowned OrderBoxRow prelight_row;
         private unowned OrderBoxRow active_row;
         private unowned OrderBoxRow cursor_row;
         private unowned OrderBoxRow selected_row;
@@ -163,6 +164,7 @@ namespace GOFI {
         
         private int drag_min_y = 0;
         
+        private bool in_widget = false;
         private int mouse_y = 0;
         private int drag_begin_y = 0;
         private int drag_offset_y = 0;
@@ -1000,10 +1002,53 @@ namespace GOFI {
             return true;
         }
         
+        public override bool enter_notify_event (Gdk.EventCrossing event) {
+            OrderBoxRow row;
+            
+            if (event.window != this.get_window ()) {
+                return false;
+            }
+            
+            in_widget = true;
+            
+            row = get_row_at_y ((int) event.y);
+            update_prelight (row);
+            update_active (row);
+            
+            return false;
+        }
+        
+        public override bool leave_notify_event (Gdk.EventCrossing event) {
+            OrderBoxRow row;
+            
+            if (event.window != this.get_window ()) {
+                return false;
+            }
+            
+            if (event.detail != Gdk.NotifyType.INFERIOR) {
+                in_widget = false;
+                row = null;
+            } else {
+                row = get_row_at_y ((int) event.y);
+            }
+            
+            update_prelight (row);
+            update_active (row);
+            
+            return false;
+        }
+        
         public override bool motion_notify_event (Gdk.EventMotion event) {
             int x_win, y_win, y_mouse_temp;
             
             if (!drag_prepared) {
+                if (in_widget) {
+                    int relative_y;
+                    get_widget_y (event, out relative_y);
+                    OrderBoxRow row = get_row_at_y (relative_y);
+                    update_prelight (row);
+                    update_active (row);
+                }
                 return false;
             }
             
@@ -1057,7 +1102,7 @@ namespace GOFI {
         }
         
         /*
-         * Selection
+         * Selection and row manipulation
          *--------------------------------------------------------------------*/
         
         private void activate_row (OrderBoxRow row) {
@@ -1070,6 +1115,36 @@ namespace GOFI {
             ensure_row_visible (row);
             row.grab_focus ();
             row.queue_draw ();
+        }
+        
+        private void update_prelight (OrderBoxRow? row) {
+            if (row != prelight_row) {
+                if (prelight_row != null) {
+                    prelight_row.unset_state_flags (Gtk.StateFlags.PRELIGHT);
+                }
+                
+                if (row != null && row.is_sensitive ()) {
+                    prelight_row = row;
+                    prelight_row.set_state_flags (Gtk.StateFlags.PRELIGHT, false);
+                } else {
+                    prelight_row = null;
+                }
+                
+                queue_draw ();
+            }
+        }
+        
+        private void update_active (OrderBoxRow? row) {
+            bool val = active_row == row;
+            if (active_row != null && val != active_row_active) {
+                active_row_active = val;
+                if (active_row_active) {
+                    active_row.set_state_flags (Gtk.StateFlags.ACTIVE, false);
+                } else {
+                    active_row.unset_state_flags (Gtk.StateFlags.ACTIVE);
+                }
+                queue_draw ();
+            }
         }
         
         private void ensure_row_visible (OrderBoxRow row) {
