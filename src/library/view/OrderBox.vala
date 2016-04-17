@@ -1689,6 +1689,7 @@ namespace GOFI {
             }
             
             children.sort ( (GLib.CompareDataFunc<GOFI.OrderBoxRow>) sort_func);
+            queue_resize ();
         }
         
         /**
