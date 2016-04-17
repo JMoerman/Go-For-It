@@ -383,6 +383,7 @@ namespace GOFI.Application {
                         css_provider.load_from_path(path);
                         Gtk.StyleContext.add_provider_for_screen(
                             screen,css_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER);
+                        break;
                     } catch (Error e) {
                         warning ("Cannot load CSS stylesheet: %s", e.message);
                     }
