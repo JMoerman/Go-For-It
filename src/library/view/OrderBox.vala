@@ -250,7 +250,7 @@ namespace GOFI {
         public virtual signal void move_cursor (Gtk.MovementStep step, 
                                                 int count)
         {
-            bool forward, modify, extend;
+            bool forward;
             OrderBoxRow prev, next;
             OrderBoxRow row = null;
             
@@ -354,13 +354,7 @@ namespace GOFI {
                 return;
             }
             
-            cursor_row = row;
-            
-            get_current_selection_modifiers (this, out modify, out extend);
-            update_cursor (row);
-            if (!modify) {
-                update_selection (row, false, extend);
-            }
+            set_cursor_row (row);
         }
         
         /**
@@ -860,7 +854,7 @@ namespace GOFI {
                                                              out int minimum_width, 
                                                              out int natural_width)
         {
-            get_preferred_width (out minimum_width, out natural_width);
+            preferred_width_internal (out minimum_width, out natural_width);
         }
         
         /*
@@ -1105,6 +1099,17 @@ namespace GOFI {
          * Selection and row manipulation
          *--------------------------------------------------------------------*/
         
+        private void set_cursor_row (OrderBoxRow row) {
+            bool modify, extend;
+            cursor_row = row;
+            
+            get_current_selection_modifiers (this, out modify, out extend);
+            update_cursor (row);
+            if (!modify) {
+                update_selection (row, false, extend);
+            }
+        }
+        
         private void activate_row (OrderBoxRow row) {
             if (row != null) {
                 row_activated (row);
@@ -1341,7 +1346,12 @@ namespace GOFI {
          *--------------------------------------------------------------------*/
         
         private unowned OrderBoxRow? get_first_visible () {
-            unowned OrderBoxRow row = children.get_begin_iter ().get ();
+            SequenceIter<OrderBoxRow> iter = children.get_begin_iter ();
+            unowned OrderBoxRow row = null;
+            
+            if (!iter.is_end ()) {
+                row = children.get_begin_iter ().get ();
+            }
             if (row != null && !row.is_visible ()) {
                 row = get_next_visible (row.iter);
             }
@@ -1620,9 +1630,19 @@ namespace GOFI {
                     active_row = null;
                 }
                 if (row == cursor_row) {
-                    cursor_row = null;
-                }
-                if (row == selected_row) {
+                    var new_cursor_row = get_next_visible (row.iter);
+                    if (new_cursor_row == null) {
+                        new_cursor_row = get_previous_visible (row.iter);
+                    }
+                    if (new_cursor_row != null) {
+                        set_cursor_row (new_cursor_row);
+                    } else {
+                        /* No row can replace the cursor row, which means that
+                           no visible, selectable row exists. */ 
+                        selected_row = null;
+                        row_selected (null);
+                    }
+                } else if (row == selected_row) {
                     selected_row = null;
                 }
                 row.unparent ();
