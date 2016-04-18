@@ -25,7 +25,6 @@ namespace GOFI {
         private string _title;
         private bool _done;
         private int64 _time_spent;
-        private int _importance;
         
         private bool title_set;
         
@@ -70,19 +69,6 @@ namespace GOFI {
         }
         
         /**
-         * The importance of this task, a low value means low importance.
-         */
-        public int importance {
-            public set {
-                changed ();
-                _importance = value;
-            }
-            public get {
-                return _importance;
-            }
-        }
-        
-        /**
          * The changed signal is emitted when a property of this changed.
          */
         public virtual signal void changed () {
@@ -92,7 +78,7 @@ namespace GOFI {
         /**
          * The status_changed signal is emitted when the value of done is 
          * changed.
-         * @param done ...
+         * @param done whether or not this task is completed
          */
         public virtual signal void status_changed (bool done) {
             changed ();
@@ -101,25 +87,26 @@ namespace GOFI {
         /**
          * The status_changed signal is emitted when the value of done is 
          * changed.
-         * @param new_title ...
+         * @param new_title the new title of the task
          */
         public virtual signal void title_changed (string new_title) {
             changed ();
         }
         
         /**
-         * ...
+         * Creates an empty TodoTask
          */
         public TodoTask () {
             title_set = false;
-            _title = "Undifined";
+            _title = "Undefined";
             _done = false;
             _time_spent = 0;
-            _importance = 0;
         }
         
         /**
-         * ...
+         * Returns true if the TodoTask has all neccesary properties and fields 
+         * set.
+         * @return true if the TodoTask is valid
          */
         public virtual bool is_valid () {
             return (title_set);
