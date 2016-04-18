@@ -144,7 +144,7 @@ namespace GOFI {
         
         private OrderBoxFilterFunc filter_func;
         private OrderBoxSortFunc sort_func;
-        private Gtk.Adjustment adjustment = null;
+        private Gtk.Adjustment _vadjustment = null;
         
         private Gtk.Widget placeholder;
         
@@ -163,6 +163,7 @@ namespace GOFI {
         private bool drag_prepared;
         
         private int drag_min_y = 0;
+        private int drag_max_y = 0;
         
         private bool in_widget = false;
         private int mouse_y = 0;
@@ -198,6 +199,15 @@ namespace GOFI {
                     }
                     _selection_mode = value;
                 }
+            }
+        }
+        
+        public Gtk.Adjustment? vadjustment {
+            public get {
+                return _vadjustment;
+            }
+            public set {
+                _vadjustment = value;
             }
         }
         
@@ -287,8 +297,8 @@ namespace GOFI {
                 }
             } else if (step == Gtk.MovementStep.PAGES) {
                 int page_size = 100;
-                if (adjustment != null) {
-                    page_size = (int) adjustment.get_page_increment ();
+                if (_vadjustment != null) {
+                    page_size = (int) _vadjustment.get_page_increment ();
                 }
                 
                 if (cursor_row != null) {
@@ -515,6 +525,7 @@ namespace GOFI {
         
         public override void destroy () {
             this.model = null;
+            this._vadjustment = null;
             base.destroy ();
         }
         
@@ -730,6 +741,8 @@ namespace GOFI {
                     child_allocation.y += child_min;
                 }
             }
+            
+            drag_max_y = allocation.height - gap_height;
         }
         
         /**
@@ -1053,6 +1066,7 @@ namespace GOFI {
             
                 drag_window_y = mouse_y - drag_offset_y;
                 drag_window_y = int.max (drag_window_y, drag_min_y);
+                drag_window_y = int.min (drag_window_y, drag_max_y);
                 if (!dragging && drag_prepared && check_offset ()) {
                     dragging = true;
                     update_selection (drag_row, false, false);
@@ -1155,12 +1169,12 @@ namespace GOFI {
         private void ensure_row_visible (OrderBoxRow row) {
             Gtk.Allocation allocation;
             
-            if (adjustment == null) {
+            if (_vadjustment == null) {
                 return;
             }
             
             row.get_allocation (out allocation);
-            adjustment.clamp_page (allocation.y, allocation.y + allocation.height);
+            _vadjustment.clamp_page (allocation.y, allocation.y + allocation.height);
         }
         
         private bool unselect_all_internal () {
@@ -1532,15 +1546,6 @@ namespace GOFI {
         /*
          * Public methods + helper functions
          *--------------------------------------------------------------------*/
-        
-        
-        public void set_adjustment (Gtk.Adjustment? adjustment) {
-            this.adjustment = adjustment;
-        }
-        
-        public unowned Gtk.Adjustment? get_adjustment () {
-            return this.adjustment;
-        }
         
         /**
          * Adds a widget to OrderBox unless a model is bound to this.
