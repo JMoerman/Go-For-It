@@ -1772,11 +1772,13 @@ namespace GOFI {
          * @return a row if a row exists at that position, null otherwise
          */
         public unowned OrderBoxRow? get_row_at_y (int y) {
-            unowned OrderBoxRow prev = null;
+            GLib.SequenceIter<OrderBoxRow> iter;
+            unowned OrderBoxRow prev, row;
             
-            GLib.SequenceIter<OrderBoxRow> iter = children.get_begin_iter ();
+            prev = null;
+            iter = children.get_begin_iter ();
             for (; !iter.is_end (); iter = iter.next ()) {
-                OrderBoxRow row = iter.get ();
+                row = iter.get ();
                 if (row.get_visible()) {
                     if (row.y < y) {
                         prev = row;
@@ -1795,6 +1797,73 @@ namespace GOFI {
             }
             
             return null;
+        }
+        
+        /**
+         * Gets the n-th child in the list.
+         */
+        public unowned OrderBoxRow? get_row_at_index (int index) {
+            GLib.SequenceIter<OrderBoxRow> iter;
+            
+            iter = children.get_iter_at_pos (index);
+            if (!iter.is_end ()) {
+                return iter.get ();
+            }
+            
+            return null;
+        }
+        
+        /**
+         * Gets the n-th visibile child in the list.
+         */
+        public unowned OrderBoxRow? get_nth_visible (int index) {
+            GLib.SequenceIter<OrderBoxRow> iter;
+            unowned OrderBoxRow row = null;
+            int i;
+            
+            iter = children.get_begin_iter ();
+            for (i = -1; !iter.is_end () && i < index; iter = iter.next ()) {
+                row = iter.get ();
+                if (row.get_visible ()) {
+                    i++;
+                } 
+            }
+            
+            if (i == index && row != null) {
+                
+                return row;
+            }
+            
+            return null;
+        }
+        
+        /**
+         * Gets the selected row.
+         */
+        public unowned OrderBoxRow? get_selected_row () {
+            return selected_row;
+        }
+        
+        /**
+         * Creates a list of all selected children.
+         */
+        public GLib.List<unowned OrderBoxRow> get_selected_rows () {
+            GLib.List<unowned OrderBoxRow> selected;
+            GLib.SequenceIter<OrderBoxRow> iter;
+            unowned OrderBoxRow row;
+            
+            selected = new GLib.List<unowned OrderBoxRow> ();
+            iter = children.get_begin_iter ();
+            for (; iter.is_end (); iter = iter.next ()) {
+                row = iter.get ();
+                if (row.is_selected ()) {
+                    selected.prepend (row);
+                }
+            }
+            
+            selected.reverse ();
+            
+            return selected;
         }
     }
 }
