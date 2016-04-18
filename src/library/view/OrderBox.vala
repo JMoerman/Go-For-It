@@ -49,6 +49,8 @@ namespace GOFI {
          */
         public signal void items_changed ();
         
+        public signal void reset ();
+        
         /**
          * This signal is emitted after the contents of this have been sorted, 
          * causing the OrderBox to sort its rows as well.
@@ -1403,7 +1405,7 @@ namespace GOFI {
         }
         
         /**
-         * ...
+         * Used to keep track of the number of visible rows.
          */
         internal void visibility_changed (OrderBoxRow row) {
             bool was_visible = row.priv_visible;
@@ -1498,6 +1500,7 @@ namespace GOFI {
             model.item_removed.connect (on_item_removed);
             model.item_added.connect (on_item_added);
             model.sorted.connect (on_sorted);
+            model.reset.connect (on_reset);
         }
         
         private void disconnect_model_signals () {
@@ -1509,6 +1512,7 @@ namespace GOFI {
             model.item_removed.disconnect (on_item_removed);
             model.item_added.disconnect (on_item_added);
             model.sorted.disconnect (on_sorted);
+            model.reset.disconnect (on_reset);
         }
         
         private void on_item_moved (int pos1, int pos2, bool sync) {
@@ -1541,6 +1545,11 @@ namespace GOFI {
         
         private void on_sorted () {
             sort_internal ();
+        }
+        
+        private void on_reset () {
+            clear ();
+            populate ();
         }
         
         /*
@@ -1745,16 +1754,23 @@ namespace GOFI {
             
             disconnect_model_signals();
             
-            GLib.SequenceIter<OrderBoxRow> iter = children.get_begin_iter ();
-            while (iter != null && !iter.is_end ()) {
-                OrderBoxRow row = iter.get ();
-                iter = iter.next ();
-                row.destroy ();
-            }
             this.model = model;
             this.sort_func = this.model.get_sort_func();
             populate ();
             connect_model_signals ();
+        }
+        
+        private void clear () {
+            GLib.SequenceIter<OrderBoxRow> iter, next;
+            iter = children.get_begin_iter ();
+            while (iter != null && !iter.is_end ()) {
+                OrderBoxRow row = iter.get ();
+                row.unparent ();
+                next = iter.next ();
+                iter.remove ();
+                row.destroy ();
+                iter = next;
+            }
         }
         
         /**

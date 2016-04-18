@@ -37,7 +37,8 @@ namespace GOFI.Plugins.TodoTXT {
         
         public TXTTask active_task;
         
-        public signal void refreshed ();
+        public signal void refreshed_todo_list ();
+        public signal void refreshed_done_list ();
         public signal void active_task_completed ();
         
         public TaskManager (SettingsManager settings) {
@@ -71,11 +72,6 @@ namespace GOFI.Plugins.TodoTXT {
             return changed;
         }
         
-        public void refresh () {
-            load ();
-            refreshed ();
-        }
-        
         public void load () {
             Gee.LinkedList<TXTTask> todo_list = new Gee.LinkedList<TXTTask> ();
             Gee.LinkedList<TXTTask> done_list = new Gee.LinkedList<TXTTask> ();
@@ -93,6 +89,10 @@ namespace GOFI.Plugins.TodoTXT {
             }
             
             connect_store_signals ();
+        }
+        
+        public void clear_done_store () {
+            done_store.clear ();
         }
         
         private void connect_store_signals () {

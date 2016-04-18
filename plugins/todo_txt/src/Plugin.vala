@@ -59,15 +59,21 @@ namespace GOFI.Plugins.TodoTXT {
         private SettingsManager settings;
         private TaskManager task_manager;
         
+        // Primary and secondary widgets
         private TodoView todo_list_view;
         private DoneView done_list_view;
+        
+        // Menu items for this plugin
+        private Gtk.MenuItem clear_done_item;
         
         public TXTPlugin (TaskTimer timer, SettingsManager settings) {
             base (timer);
             
             this.settings = settings;
             task_manager = new TaskManager (settings);
+            
             setup_widgets ();
+            setup_menu ();
             connect_signals ();
         }
         
@@ -78,15 +84,31 @@ namespace GOFI.Plugins.TodoTXT {
             bind_models ();
         }
         
+        private void setup_menu () {
+            /* Initialization */
+            clear_done_item = new Gtk.MenuItem.with_label (_("Clear Done List"));
+            
+            /* Add Items to Menu */
+            menu_items.add (clear_done_item);
+        }
+        
         private void connect_signals () {
-            task_manager.refreshed.connect (bind_models);
+            task_manager.refreshed_todo_list.connect ( () => {
+                todo_list_view.set_store (task_manager.todo_store);
+            });
+            task_manager.refreshed_done_list.connect ( () => {
+                done_list_view.set_store (task_manager.done_store);
+            });
             todo_list_view.task_selected.connect ( (task) => {
-                this.task_timer.active_task = task;
-                this.task_manager.active_task = task;
+                task_timer.active_task = task;
+                task_manager.active_task = task;
             });
             
             task_manager.active_task_completed.connect (() => {
                 task_timer.remove_task ();
+            });
+            clear_done_item.activate.connect ( () => {
+                task_manager.clear_done_store ();
             });
         }
         

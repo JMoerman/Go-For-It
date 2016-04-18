@@ -35,6 +35,10 @@ namespace GOFI.Plugins.TodoTXT {
         public signal void link_clicked (string uri);
         
         public TaskStore (owned Gee.LinkedList<TXTTask> tasks) {
+            set_tasks (tasks);
+        }
+        
+        public void set_tasks (owned Gee.LinkedList<TXTTask> tasks) {
             this.tasks = tasks;
             
             foreach (TXTTask task in tasks) {
@@ -45,25 +49,7 @@ namespace GOFI.Plugins.TodoTXT {
             
             iter = tasks.bidir_list_iterator ();
             iter.next ();
-        }
-        
-        private void connect_task_signals (TXTTask task) {
-            task.changed.connect (on_task_changed);
-            task.status_changed_task.connect (on_status_changed);
-        }
-        
-        private void disconnect_task_signals (TXTTask task) {
-            task.changed.disconnect (on_task_changed);
-            task.status_changed_task.disconnect (on_status_changed);
-        }
-        
-        private void on_status_changed (TXTTask task) {
-            task_status_changed (task);
-            changed ();
-        }
-        
-        private void on_task_changed () {
-            task_data_changed ();
+            reset ();
             changed ();
         }
         
@@ -94,6 +80,26 @@ namespace GOFI.Plugins.TodoTXT {
             connect_task_signals (task);
         }
         
+        private void connect_task_signals (TXTTask task) {
+            task.changed.connect (on_task_changed);
+            task.status_changed_task.connect (on_status_changed);
+        }
+        
+        private void disconnect_task_signals (TXTTask task) {
+            task.changed.disconnect (on_task_changed);
+            task.status_changed_task.disconnect (on_status_changed);
+        }
+        
+        private void on_status_changed (TXTTask task) {
+            task_status_changed (task);
+            changed ();
+        }
+        
+        private void on_task_changed () {
+            task_data_changed ();
+            changed ();
+        }
+        
         /**
          * Removes the supplied task from this.
          */
@@ -114,6 +120,13 @@ namespace GOFI.Plugins.TodoTXT {
             task_removed (task);
             item_removed (pos);
             items_changed ();
+            changed ();
+        }
+        
+        public void clear () {
+            tasks.clear ();
+            size = 0;
+            reset ();
             changed ();
         }
         
