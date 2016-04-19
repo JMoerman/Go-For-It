@@ -1408,6 +1408,10 @@ namespace GOFI {
          * Used to keep track of the number of visible rows.
          */
         internal void visibility_changed (OrderBoxRow row) {
+            update_row_is_visible (row);
+        }
+        
+        private void update_row_is_visible (OrderBoxRow row) {
             bool was_visible = row.priv_visible;
             
             row.priv_visible = row.get_visible () && row.get_child_visible ();
@@ -1420,9 +1424,7 @@ namespace GOFI {
         }
         
         internal void got_row_changed (OrderBoxRow row) {
-            if (filter_func != null) {
-                row.set_visible (filter_func (row));
-            }
+            apply_filter (row);
         }
         
         public override void forall_internal (bool include_internals, 
@@ -1598,13 +1600,28 @@ namespace GOFI {
                 current_iter = children.get_iter_at_pos (position);
                 iter = current_iter.insert_before (row);
             }
-            row.set_parent (this);
             row.iter = iter;
+            row.set_parent (this);
+            row.set_child_visible (true);
+            
             row.priv_visible = row.get_visible ();
+            apply_filter (row);
             
             if (row.priv_visible) {
                 change_visible_rows (1);
             }
+            
+            apply_filter (row);
+        }
+        
+        private void apply_filter (OrderBoxRow row) {
+            bool show = true;
+            if (filter_func != null) {
+                show = filter_func (row);
+            }
+            row.set_child_visible (show);
+            
+            update_row_is_visible (row);
         }
         
         private void change_visible_rows (int change) {
@@ -1713,11 +1730,7 @@ namespace GOFI {
             GLib.SequenceIter<OrderBoxRow> iter = children.get_begin_iter ();
             for (; !iter.is_end (); iter = iter.next ()) {
                 OrderBoxRow row = iter.get ();
-                if (filter_func != null) {
-                    row.set_visible (filter_func (row));
-                } else {
-                    row.set_visible (true);
-                }
+                apply_filter (row);
             }
         }
         
@@ -1754,6 +1767,8 @@ namespace GOFI {
             
             disconnect_model_signals();
             
+            clear ();
+            
             this.model = model;
             this.sort_func = this.model.get_sort_func();
             populate ();
@@ -1782,8 +1797,11 @@ namespace GOFI {
             }
             
             int n_items = model.get_n_items ();
+            OrderBoxRow row;
             for (int i = 0; i < n_items; i++) {
-                insert_internal (model.get_row (i), -1);
+                row = model.get_row (i);
+                insert_internal (row, -1);
+                row.show_all ();
             }
         }
         
