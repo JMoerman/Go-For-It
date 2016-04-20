@@ -19,13 +19,24 @@ using GOFI;
 
 namespace GOFI.Plugins.TodoTXT {
     
+    private bool types_initialized = false;
+    
+    /**
+     * This function creates instances of objects to register their types.
+     * It is needed because otherwise 
+     */
+    private void init_types () {
+        if (!types_initialized) {
+            new TXTTask ();
+        }
+    }
+    
     private SettingsManager _settings;
     
     /**
      * ...
      */
     public class TXTPluginProvider : GOFI.TodoPluginProvider {
-        
         private SettingsManager settings {
             get {
                 if (_settings == null) {
@@ -39,7 +50,7 @@ namespace GOFI.Plugins.TodoTXT {
         }
 
         public override void on_activate () {
-            
+            init_types ();
         }
         
         public override void on_deactivate () {
@@ -93,12 +104,6 @@ namespace GOFI.Plugins.TodoTXT {
         }
         
         private void connect_signals () {
-            task_manager.refreshed_todo_list.connect ( () => {
-                todo_list_view.set_store (task_manager.todo_store);
-            });
-            task_manager.refreshed_done_list.connect ( () => {
-                done_list_view.set_store (task_manager.done_store);
-            });
             todo_list_view.task_selected.connect ( (task) => {
                 task_timer.active_task = task;
                 task_manager.active_task = task;

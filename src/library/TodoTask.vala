@@ -20,7 +20,7 @@ namespace GOFI {
     /**
      * A class for passing common task information.
      */
-    public class TodoTask : Object {
+    public class TodoTask {
         
         private string _title;
         private bool _done;

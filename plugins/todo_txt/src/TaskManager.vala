@@ -24,10 +24,6 @@ namespace GOFI.Plugins.TodoTXT {
      * by addressing the corresponding TaskStore instance.
      */
     class TaskManager {
-        
-        private Parser parser;
-        private Writer writer;
-        
         private File todo_dir;
         private File todo_txt;
         private File done_txt;
@@ -42,29 +38,27 @@ namespace GOFI.Plugins.TodoTXT {
         public signal void active_task_completed ();
         
         public TaskManager (SettingsManager settings) {
-            parser = new Parser ();
-            writer = new Writer ();
             todo_dir = File.new_for_path(settings.todo_txt_location);
             todo_txt = todo_dir.get_child ("todo.txt");
             done_txt = todo_dir.get_child ("done.txt");
-            load ();
+            setup_stores ();
         }
         
         private void move_task (TXTTask task, TaskStore dest) {
-            dest.add_task (task);
+            dest.add (task);
         }
-        
-        private bool transfer_tasks (Gee.List<TXTTask> todo_list, 
-                                     Gee.List<TXTTask> done_list) 
+
+        private bool transfer_tasks (TaskStore source, TaskStore destination, 
+                                     bool done) 
         {
-            Gee.ListIterator<TXTTask> iter = todo_list.list_iterator ();
+            var iter = source.iterator ();
             bool changed = false;
 
             while (iter.next ()) {
                 TXTTask task = iter.get ();
-                if (task.done) {
+                if (task.done == done) {
                     iter.remove ();
-                    done_list.add (task);
+                    destination.add (task);
                     changed = true;
                 }
             }
@@ -72,20 +66,27 @@ namespace GOFI.Plugins.TodoTXT {
             return changed;
         }
         
-        public void load () {
-            Gee.LinkedList<TXTTask> todo_list = new Gee.LinkedList<TXTTask> ();
-            Gee.LinkedList<TXTTask> done_list = new Gee.LinkedList<TXTTask> ();
+        private void setup_stores () {
+            todo_store = new TaskStore ();
+            done_store = new TaskStore ();
             
-            parser.read (todo_txt, todo_list);
-            parser.read (done_txt, done_list);
+            todo_store.txt_file = todo_txt;
+            done_store.txt_file = done_txt;
             
-            bool changed = transfer_tasks (todo_list, done_list);
+            todo_store.read ();
+            done_store.read ();
             
-            todo_store = new TaskStore (todo_list);
-            done_store = new TaskStore (done_list);
+            todo_store.file_read_only = true;
+            done_store.file_read_only = true;
+            
+            bool changed = transfer_tasks (todo_store, done_store, true);
+            
+            todo_store.file_read_only = false;
+            done_store.file_read_only = false;
             
             if (changed) {
-                save ();
+                todo_store.write ();
+                done_store.write ();
             }
             
             connect_store_signals ();
@@ -107,25 +108,6 @@ namespace GOFI.Plugins.TodoTXT {
                 move_task (task, todo_store);
                 done_store.remove_task (task);
             });
-            todo_store.changed.connect ( () => {
-                save_store (false);
-            });
-            done_store.changed.connect ( () => {
-                save_store (true);
-            });
-        }
-        
-        public void save_store (bool done) {
-            if (done) {
-                writer.write (done_txt, done_store.get_tasks ());
-            } else {
-                writer.write (todo_txt, todo_store.get_tasks ());
-            }
-        }
-        
-        public void save () {
-            save_store (true);
-            save_store (false);
         }
     }
 }

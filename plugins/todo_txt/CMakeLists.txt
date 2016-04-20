@@ -4,14 +4,12 @@ set (PLUGIN_NAME "todo_txt")
 
 include(ValaPrecompile)
 vala_precompile(VALA_C ${PLUGIN_NAME}
-    src/Parser.vala
     src/Filter.vala
     src/Plugin.vala
     src/SettingsManager.vala
     src/TaskManager.vala
     src/TaskStore.vala
     src/TXTTask.vala
-    src/Writer.vala
     src/view/TaskRow.vala
     src/view/BottomBar.vala
     src/view/TodoView.vala

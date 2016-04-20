@@ -26,7 +26,31 @@ namespace GOFI.Plugins.TodoTXT {
         
         private Gee.LinkedList<TXTTask> tasks;
         
-        private int size;
+        private FileMonitor monitor;
+        
+        private bool reading;
+        
+        private File file;
+        public File? txt_file {
+            public get {
+                return file;
+            }
+            public set {
+                file = value;
+                stop_monitoring ();
+                start_monitoring ();
+            }
+        }
+        
+        private bool _file_read_only;
+        public bool file_read_only {
+            public get {
+                return _file_read_only;
+            }
+            public set {
+                _file_read_only = value;
+            }
+        }
         
         public signal void task_removed (TXTTask task);
         public signal void task_status_changed (TXTTask task);
@@ -34,18 +58,51 @@ namespace GOFI.Plugins.TodoTXT {
         public signal void changed ();
         public signal void link_clicked (string uri);
         
-        public TaskStore (owned Gee.LinkedList<TXTTask> tasks) {
-            set_tasks (tasks);
+        /**
+         * 
+         */
+        public TaskStore () {
+            tasks = new Gee.LinkedList<TXTTask> ();
+            
+            reading = false;
         }
         
+        /**
+         * 
+         */
+        private void start_monitoring () {
+            if (file != null) {
+                try {
+                    monitor = file.monitor (FileMonitorFlags.NONE, null);
+                    monitor.changed.connect ((src, dest, event) => {
+                        if (event == FileMonitorEvent.CHANGES_DONE_HINT) {
+                            read ();
+                        }
+                    });
+                } catch (Error e) {
+                    
+                }
+            }
+        }
+        
+        /**
+         * 
+         */
+        private void stop_monitoring () {
+            if (monitor != null) {
+                monitor.cancel ();
+            }
+        }
+        
+        /**
+         * 
+         */
         public void set_tasks (owned Gee.LinkedList<TXTTask> tasks) {
             this.tasks = tasks;
             
             foreach (TXTTask task in tasks) {
                 connect_task_signals (task);
             }
-            
-            size = tasks.size;
             
             iter = tasks.bidir_list_iterator ();
             iter.next ();
@@ -54,18 +111,17 @@ namespace GOFI.Plugins.TodoTXT {
         }
         
         /**
-         * Returns a read only view of all tasks in this.
+         * 
          */
-        public Gee.List<TXTTask> get_tasks () {
-            return tasks.read_only_view;
+        public TaskStoreIterator iterator () {
+            return new TaskStoreIterator (this, tasks);
         }
-        
         
         /**
          * Adds an item at the end.
          */
-        public void add_task (TXTTask task) {
-            insert (task, size);
+        public void add (TXTTask task) {
+            insert (task, tasks.size);
         }
         
         /**
@@ -74,7 +130,6 @@ namespace GOFI.Plugins.TodoTXT {
         public void insert (TXTTask task, int position) {
             tasks.insert (position, task);
             make_iter ();
-            size++;
             item_added (position);
             
             connect_task_signals (task);
@@ -90,14 +145,21 @@ namespace GOFI.Plugins.TodoTXT {
             task.status_changed_task.disconnect (on_status_changed);
         }
         
+        private void on_change () {
+            changed ();
+            if (!_file_read_only) {
+                write ();
+            }
+        }
+        
         private void on_status_changed (TXTTask task) {
             task_status_changed (task);
-            changed ();
+            on_change ();
         }
         
         private void on_task_changed () {
             task_data_changed ();
-            changed ();
+            on_change ();
         }
         
         /**
@@ -115,19 +177,18 @@ namespace GOFI.Plugins.TodoTXT {
             TXTTask task = tasks.remove_at (pos);
             disconnect_task_signals (task);
             make_iter ();
-            size--;
             
             task_removed (task);
             item_removed (pos);
             items_changed ();
-            changed ();
+            on_change ();
         }
         
         public void clear () {
             tasks.clear ();
-            size = 0;
             reset ();
-            changed ();
+            items_changed ();
+            on_change ();
         }
         
         private void make_iter () {
@@ -217,6 +278,190 @@ namespace GOFI.Plugins.TodoTXT {
                 }
                 return 1;
             }
+        }
+        
+        /*
+         * Reading from a .txt file
+         **********************************************************************/
+        
+        /**
+         * @param tasks list containing the parsed tasks
+         */
+        public void read () {
+            reading = true;
+            stop_monitoring ();
+            Gee.LinkedList<TXTTask> new_tasks = new Gee.LinkedList<TXTTask> ();
+            if (!file.query_exists()) {
+                DirUtils.create_with_parents (
+                    file.get_parent().get_path (), 0700
+                );
+                try {
+                    file.create (FileCreateFlags.NONE); 
+                } catch (Error e) {
+                    error ("%s", e.message);
+                }
+                return;
+            }
+            
+            // Read data from todo.txt or done.txt file
+            try {
+                var stream_in = new DataInputStream (file.read ());
+                string line;
+                
+                while ((line = stream_in.read_line (null)) != null) {
+                    int length = line.length;
+                    if (length > 0) {
+                        if (line.get (length - 1) == 13) {
+                            if (length == 1) {
+                                continue;
+                            }
+                            line = line.slice (0, length - 1);
+                        }
+                    } else {
+                        continue;
+                    }
+                    if (line.strip().length > 0) {
+                        TXTTask task = new TXTTask.from_txt (line);
+                        new_tasks.add (task);
+                    }
+                }
+            } catch (Error e) {
+                error ("%s", e.message);
+            }
+            
+            set_tasks (new_tasks);
+            reading = false;
+            start_monitoring ();
+        }
+        
+        /*
+         * Writing to a txt file
+         **********************************************************************/
+        
+        /**
+         * @param tasks list of tasks that needs to be written to a todo.txt
+         * file.
+         */
+        public void write () {
+            if (reading || _file_read_only) {
+                return;
+            }
+            try {
+                var file_io_stream = 
+                    file.replace_readwrite (null, true, FileCreateFlags.NONE);
+                var stream_out = 
+                    new DataOutputStream (file_io_stream.output_stream);
+                
+                foreach (TXTTask task in tasks) {
+                    stream_out.put_string (task.to_txt () + "\n");
+                }
+            } catch (Error e) {
+                error ("%s", e.message);
+            }
+        }
+    }
+    
+    public class TaskStoreIterator {    
+        private Gee.BidirListIterator<TXTTask> gee_iter;
+        private TaskStore store;
+        
+        public bool read_only {
+            public get {
+                return gee_iter.read_only;
+            }
+        }
+        
+        private bool _valid;
+        
+        public bool valid {
+            public get {
+                return _valid && gee_iter.valid;
+            }
+        }
+        
+        internal TaskStoreIterator (TaskStore store, 
+                                    Gee.LinkedList<TXTTask> tasks)
+        {
+            this.store = store;
+            this.gee_iter = tasks.bidir_list_iterator ();
+            
+            _valid = true;
+            
+            stdout.printf ("valid: %s\n", gee_iter.valid.to_string ());
+            stdout.printf ("valid: %s\n", valid.to_string ());
+            
+            store.reset.connect (() => {
+                stdout.printf ("invalid\n");
+                _valid = false;
+            });
+        }
+        
+        public int index () {
+            return gee_iter.index ();
+        }
+        
+        public bool has_next () {
+            return gee_iter.has_next ();
+        }
+        
+        public bool next () {
+            return gee_iter.next ();
+        }
+        
+        public bool has_previous () {
+            return gee_iter.previous ();
+        }
+        
+        public bool previous () {
+            return gee_iter.previous ();
+        }
+        
+        public bool first () {
+            return gee_iter.first ();
+        }
+        
+        public bool last () {
+            return gee_iter.last ();
+        }
+        
+        public TXTTask @get () {
+            return gee_iter.@get ();
+        }
+        
+        public void add (TXTTask task) {
+            assert (valid);
+            if (read_only) {
+                return;
+            }
+            
+            int index = gee_iter.index ();
+            
+            gee_iter.add (task);
+            store.item_added (index + 1);
+        }
+        
+        public void remove () {
+            assert (valid);
+            if (read_only) {
+                return;
+            }
+            
+            int index = gee_iter.index ();
+            
+            gee_iter.remove ();
+            store.item_removed (index);
+        }
+        
+        public void insert (TXTTask task) {
+            assert (valid);
+            if (read_only) {
+                return;
+            }
+            
+            int index = gee_iter.index ();
+            
+            gee_iter.insert (task);
+            store.item_added (index);
         }
     }
 }
