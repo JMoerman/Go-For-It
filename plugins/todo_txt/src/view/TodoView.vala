@@ -30,6 +30,7 @@ namespace GOFI.Plugins.TodoTXT {
         private BottomBar bottom_bar;
         
         public signal void task_selected (TXTTask? task);
+        public signal void link_clicked (string uri);
         
         public TodoView () {
             this.orientation = Gtk.Orientation.VERTICAL;
@@ -60,8 +61,7 @@ namespace GOFI.Plugins.TodoTXT {
         public void set_store (TaskStore task_store) {
             this.task_store = task_store;
             bottom_bar.sort_clicked.connect (task_store.sort);
-            task_store.link_clicked.connect (bottom_bar.set_search_string);
-            task_list.bind_model (task_store);
+            task_list.bind_model (task_store, widget_func);
         }
         
         private void connect_signals () {
@@ -84,6 +84,17 @@ namespace GOFI.Plugins.TodoTXT {
             if (task_list.get_selected_row () == null) {
                 task_list.select_row (task_list.get_nth_visible (0));   
             }
+        }
+        
+        private Gtk.Widget widget_func (Object item) {
+            TaskRow row = new TaskRow ((TXTTask) item);
+            
+            row.link_clicked.connect ( (uri) => {
+                link_clicked (uri);
+                bottom_bar.set_search_string (uri);
+            });
+            
+            return row;
         }
         
     }

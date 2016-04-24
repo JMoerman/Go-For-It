@@ -77,10 +77,10 @@ namespace GOFI {
         public abstract void move_item (int pos1, int pos2, bool sync);
         
         /**
-         * Returns an OrderBoxRow for the specified position.
-         * @param pos position of the item to create a row for
+         * Returns the item at the specified position.
+         * @param pos the position of the item to fetch
          */
-        public abstract OrderBoxRow get_row (int pos);
+        public abstract GLib.Object get_item (int pos);
         
         /**
          * Returns an OrderBoxSortFunc for sorting the OrderBox, or null.
@@ -90,6 +90,12 @@ namespace GOFI {
         public abstract OrderBoxSortFunc? get_sort_func ();
         
     }
+    
+    /**
+     * Function used to generate rows from the Objets returned by get_item of
+     * OrderBoxModel.
+     */
+    public delegate Gtk.Widget OrderBoxCreateWidgetFunc (Object item);
     
     /**
      * A function for comparing rows so an OrderBox's contents can be sorted.
@@ -144,6 +150,7 @@ namespace GOFI {
         private OrderBoxModel model;
         private GLib.Sequence<OrderBoxRow> children;
         
+        private OrderBoxCreateWidgetFunc widget_func;
         private OrderBoxFilterFunc filter_func;
         private OrderBoxSortFunc sort_func;
         private Gtk.Adjustment _vadjustment = null;
@@ -1540,7 +1547,7 @@ namespace GOFI {
         }
         
         private void on_item_added (int pos) {
-            OrderBoxRow row = model.get_row (pos);
+            Gtk.Widget row = widget_func(model.get_item (pos));
             insert_internal (row, pos);
             row.show_all ();
         }
@@ -1580,17 +1587,17 @@ namespace GOFI {
                 );
                 return;
             }
+            
+            insert_internal (widget, position);
+        }
+        
+        private void insert_internal (Gtk.Widget widget, int position) {
+            GLib.SequenceIter iter;
             OrderBoxRow row = widget as OrderBoxRow;
             if (row == null) {
                 row = new OrderBoxRow ();
                 row.add (widget);
             }
-            insert_internal (row, position);
-        }
-        
-        private void insert_internal (OrderBoxRow row, int position) {
-            GLib.SequenceIter iter;
-            
             if (position < 0) {
                 iter = children.append (row);
             } else if (position == 0) {
@@ -1760,7 +1767,9 @@ namespace GOFI {
          * This will remove all current children from this.
          * @param model model to bind to this
          */
-        public void bind_model (OrderBoxModel model) {
+        public void bind_model (OrderBoxModel model, 
+                                owned OrderBoxCreateWidgetFunc widget_func)
+        {
             if (model == this.model) {
                 return;
             }
@@ -1770,6 +1779,7 @@ namespace GOFI {
             clear ();
             
             this.model = model;
+            this.widget_func = (owned) widget_func;
             this.sort_func = this.model.get_sort_func();
             populate ();
             connect_model_signals ();
@@ -1797,9 +1807,9 @@ namespace GOFI {
             }
             
             int n_items = model.get_n_items ();
-            OrderBoxRow row;
+            Gtk.Widget row;
             for (int i = 0; i < n_items; i++) {
-                row = model.get_row (i);
+                row = widget_func(model.get_item (i));
                 insert_internal (row, -1);
                 row.show_all ();
             }

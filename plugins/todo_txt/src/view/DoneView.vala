@@ -49,7 +49,13 @@ namespace GOFI.Plugins.TodoTXT {
          */
         public void set_store (TaskStore task_store) {
             this.task_store = task_store;
-            task_list.bind_model (task_store);
+            task_list.bind_model (task_store, widget_func);
+        }
+        
+        private Gtk.Widget widget_func (Object item) {
+            TaskRow row = new TaskRow ((TXTTask) item);
+            
+            return row;
         }
     }
 }

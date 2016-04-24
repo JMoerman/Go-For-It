@@ -56,7 +56,6 @@ namespace GOFI.Plugins.TodoTXT {
         public signal void task_status_changed (TXTTask task);
         public signal void task_data_changed ();
         public signal void changed ();
-        public signal void link_clicked (string uri);
         
         /**
          * 
@@ -229,7 +228,7 @@ namespace GOFI.Plugins.TodoTXT {
             sorted ();
         }
         
-        public OrderBoxRow get_row (int pos) {
+        public Object get_item (int pos) {
             int iter_index = iter.index ();
             while (iter_index < pos && iter.has_next ()) {
                 iter.next ();
@@ -240,13 +239,7 @@ namespace GOFI.Plugins.TodoTXT {
                 iter_index--;
             }
             
-            TaskRow row = new TaskRow (iter.get ());
-            
-            row.link_clicked.connect ( (uri) => {
-                link_clicked (uri);
-            });
-            
-            return row;
+            return iter.get ();
         }
         
         /**
@@ -387,11 +380,7 @@ namespace GOFI.Plugins.TodoTXT {
             
             _valid = true;
             
-            stdout.printf ("valid: %s\n", gee_iter.valid.to_string ());
-            stdout.printf ("valid: %s\n", valid.to_string ());
-            
             store.reset.connect (() => {
-                stdout.printf ("invalid\n");
                 _valid = false;
             });
         }
