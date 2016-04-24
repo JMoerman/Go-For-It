@@ -142,31 +142,41 @@ namespace GOFI {
         }
     }
     
+    private enum ScrollDirection {
+      UP,
+      NONE,
+      DOWN
+    }
+    
     /**
      * Custom container based on the code of Gtk.ListBox.
      * Unlike Gtk.ListBox this container supports reordering via drag and drop.
      */
     public class OrderBox : Gtk.Container {
-        private OrderBoxModel model;
         private GLib.Sequence<OrderBoxRow> children;
+        private Gtk.Widget placeholder;
         
+        private OrderBoxModel model;
         private OrderBoxCreateWidgetFunc widget_func;
         private OrderBoxFilterFunc filter_func;
         private OrderBoxSortFunc sort_func;
-        private Gtk.Adjustment _vadjustment = null;
-        
-        private Gtk.Widget placeholder;
         
         private bool active_row_active = false;
         private OrderBoxRow prelight_row;
         private OrderBoxRow active_row;
         private OrderBoxRow cursor_row;
         private OrderBoxRow selected_row;
+        private OrderBoxRow drag_row;
         
         private int rows_visible = 0;
         
-        private OrderBoxRow drag_row;
-        private Gdk.Window drag_window;
+        private Gtk.Adjustment _vadjustment = null;
+        
+        private bool in_widget = false;
+        private int mouse_y = 0;
+        private ScrollDirection scroll_direction;
+        private bool timer_running = false;
+        private uint drag_timer;
         
         private bool dragging;
         private bool drag_prepared;
@@ -174,8 +184,6 @@ namespace GOFI {
         private int drag_min_y = 0;
         private int drag_max_y = 0;
         
-        private bool in_widget = false;
-        private int mouse_y = 0;
         private int drag_begin_y = 0;
         private int drag_offset_y = 0;
         
@@ -183,6 +191,7 @@ namespace GOFI {
         private int gap_width = 0;
         private int drag_window_x = 0;
         private int drag_window_y = 0;
+        private Gdk.Window drag_window;
         
         /* Where the row would get placed when the drag ends */
         private int gap_pos = 0;
@@ -211,12 +220,17 @@ namespace GOFI {
             }
         }
         
+        /**
+         * This property should be set if an OrderBox is used in a 
+         * ScrolledWindow.
+         */
         public Gtk.Adjustment? vadjustment {
             public get {
                 return _vadjustment;
             }
             public set {
                 _vadjustment = value;
+                stop_scrolling ();
             }
         }
         
@@ -259,7 +273,7 @@ namespace GOFI {
          * Activates the cursor row.
          */
         public virtual signal void activate_cursor_row () {
-            selected_row.activate ();
+            on_activate_cursor_row ();
         }
         
         /**
@@ -269,111 +283,7 @@ namespace GOFI {
         public virtual signal void move_cursor (Gtk.MovementStep step, 
                                                 int count)
         {
-            bool forward;
-            OrderBoxRow prev, next;
-            OrderBoxRow row = null;
-            
-            if (count == 0) {
-                return;
-            }
-            
-            forward = (count > 0);
-            
-            if (cursor_row == null) {
-                cursor_row = get_first_visible ();
-            }
-            
-            if (step == Gtk.MovementStep.DISPLAY_LINES) {
-                if (cursor_row != null) {
-                    
-                    prev = cursor_row;
-                    
-                    for (int i = count.abs (); i > 0; i--) {
-                        if (forward) {
-                            row = get_next_visible (prev.iter);
-                        } else {
-                            row = get_previous_visible (prev.iter);
-                        }
-                        
-                        if (row != null) {
-                            prev = row;
-                        } else {
-                            row = prev;
-                            break;
-                        }
-                    }
-                    
-                }
-            } else if (step == Gtk.MovementStep.PAGES) {
-                int page_size = 100;
-                if (_vadjustment != null) {
-                    page_size = (int) _vadjustment.get_page_increment ();
-                }
-                
-                if (cursor_row != null) {
-                    int start_y = cursor_row.y;
-                    
-                    row = cursor_row;
-                    if (count < 0) {
-                        /* Up */
-                        while (!row.iter.is_begin ()) {
-                            prev = get_previous_visible (row.iter);
-                            if (prev == null) {
-                                break;
-                            }
-                            
-                            if (prev.y < start_y - page_size) {
-                                break;
-                            }
-                            
-                            row = prev;
-                        }
-                    } else {
-                        /* Down */
-                        while (!row.iter.is_end ()) {
-                            next = get_next_visible (row.iter);
-                            if (next == null) {
-                                break;
-                            }
-                            
-                            if (next.y > start_y + page_size) {
-                                break;
-                            }
-                            
-                            row = next;
-                        }
-                    }
-                }
-            } else if (step == Gtk.MovementStep.BUFFER_ENDS) {
-                if (forward) {
-                    row = get_last_visible ();
-                } else {
-                    row = get_first_visible ();
-                }
-            }
-            if (row == null || row == cursor_row) {
-                Gtk.DirectionType direction;
-                if (forward) {
-                    direction = Gtk.DirectionType.DOWN;
-                } else {
-                    direction = Gtk.DirectionType.UP;
-                }
-                
-                if (!keynav_failed (direction)) {
-                    Gtk.Widget toplevel_widget = this.get_toplevel ();
-                    if (toplevel_widget != null) {
-                        if (direction == Gtk.DirectionType.UP) {
-                            direction = Gtk.DirectionType.TAB_BACKWARD;
-                        } else {
-                            direction = Gtk.DirectionType.TAB_FORWARD;
-                        }
-                        toplevel_widget.child_focus (direction);
-                    }
-                }
-                return;
-            }
-            
-            set_cursor_row (row);
+            on_move_cursor (step, count);
         }
         
         /**
@@ -382,18 +292,7 @@ namespace GOFI {
          */
         [Signal (action=true)]
         public virtual signal void toggle_cursor_row () {
-            if (cursor_row == null){
-                return;
-            }
-            
-            if ((selection_mode == Gtk.SelectionMode.SINGLE || 
-                 selection_mode == Gtk.SelectionMode.MULTIPLE) &&
-                cursor_row.selected)
-            {
-                unselect_row (cursor_row);
-            } else {
-                select_and_activate (cursor_row);
-            }
+            on_toggle_cursor_row ();
         }
         
         /**
@@ -401,12 +300,7 @@ namespace GOFI {
          */
         [Signal (action=true)]        
         public virtual signal void select_all () {
-            if (selection_mode == Gtk.SelectionMode.MULTIPLE) {
-                if (children.get_length () > 0) {
-                    select_all_between (null, null, false);
-                    selected_rows_changed ();
-                }
-            }
+            on_select_all ();
         }
         
         /**
@@ -414,26 +308,12 @@ namespace GOFI {
          */
         [Signal (action=true)]
         public virtual signal void unselect_all () {
-            bool dirty = false;
-
-            if (selection_mode == Gtk.SelectionMode.BROWSE) {
-                return;
-            }
-            
-            if (selection_mode == Gtk.SelectionMode.SINGLE) {
-                if (selected_row != null) {
-                    selected_row.set_selected (false);
-                    dirty = true;
-                }
-            } else {
-                dirty = unselect_all_internal ();
-            }
-            
-            if (dirty) {
-                row_selected (null);
-                selected_rows_changed ();
-            }
+            on_unselect_all ();
         }
+        
+        /*
+         * Construction and destruction
+         *--------------------------------------------------------------------*/
         
         public OrderBox () {
             base.can_focus = true;
@@ -542,9 +422,6 @@ namespace GOFI {
          * Drawing and allocating
          *--------------------------------------------------------------------*/
         
-        /**
-         * @see Gtk.Widget.realize
-         */
         public override void realize () {
             Gtk.Allocation allocation;
             Gdk.WindowAttr attributes = Gdk.WindowAttr ();
@@ -579,9 +456,6 @@ namespace GOFI {
             this.set_window (window);
         }
         
-        /**
-         * {@inheritDoc}
-         */
         public override bool draw (Cairo.Context cr) {
             Gtk.Allocation allocation;
             this.get_allocation (out allocation);
@@ -751,7 +625,19 @@ namespace GOFI {
                 }
             }
             
-            drag_max_y = allocation.height - gap_height;
+            if (_vadjustment == null) {
+                set_drag_limits (0, allocation.height);
+            } else {
+                set_drag_limits (
+                    (int)_vadjustment.value, 
+                    (int)(_vadjustment.value + _vadjustment.page_size)
+                );
+            }
+        }
+        
+        private void set_drag_limits (int min, int max) {
+            drag_min_y = min;
+            drag_max_y = max - gap_height;
         }
         
         /**
@@ -880,6 +766,236 @@ namespace GOFI {
         }
         
         /*
+         * Dragging
+         *--------------------------------------------------------------------*/
+        
+        private void prepare_drag (OrderBoxRow row) {
+            Gtk.Allocation allocation;
+            row.get_allocation (out allocation);
+            gap_height = allocation.height;
+            gap_width = allocation.width;
+            drag_offset_y = mouse_y - allocation.y;
+            drag_begin_y = mouse_y - drag_offset_y;
+            drag_window_y = drag_begin_y;
+            drag_row = row;
+            drag_row_origin = row.iter.get_position ();
+            drag_prepared = true;
+        }
+        
+        private void start_scrolling () {
+            if (timer_running) {
+                return;
+            }
+            
+            drag_timer = Gdk.threads_add_timeout (250, drag_scroll);
+            timer_running = true;
+            
+            drag_scroll ();
+        }
+        
+        private void stop_scrolling () {
+            if (!timer_running) {
+                return;
+            }
+            
+            GLib.Source.remove (drag_timer);
+            timer_running = false;
+        }
+        
+        private bool drag_scroll () {
+            double orig_value, new_value;
+            int delta, increment;
+            
+            orig_value = _vadjustment.value;
+            increment = (int)_vadjustment.step_increment;
+            
+            if (scroll_direction == ScrollDirection.NONE) {
+                new_value = double.min (
+                    orig_value + increment, 
+                    _vadjustment.upper
+                );
+            } else {
+                new_value = double.max (
+                    orig_value - increment, 
+                    _vadjustment.lower
+                );
+            }
+            
+            _vadjustment.value = new_value;
+            
+            delta = (int)(_vadjustment.value - orig_value);
+            
+            drag_window_y += delta;
+            mouse_y += delta;
+            
+            allocate_rows ();
+            
+            return true;
+        }
+        
+        /*
+         * Default signal handlers
+         *--------------------------------------------------------------------*/
+         
+        private void on_activate_cursor_row () {
+            selected_row.activate ();
+        }
+        
+        private void on_move_cursor (Gtk.MovementStep step, int count) {
+            bool forward;
+            OrderBoxRow prev, next;
+            OrderBoxRow row = null;
+            
+            if (count == 0) {
+                return;
+            }
+            
+            forward = (count > 0);
+            
+            if (cursor_row == null) {
+                cursor_row = get_first_visible ();
+            }
+            
+            if (step == Gtk.MovementStep.DISPLAY_LINES) {
+                if (cursor_row != null) {
+                    
+                    prev = cursor_row;
+                    
+                    for (int i = count.abs (); i > 0; i--) {
+                        if (forward) {
+                            row = get_next_visible (prev.iter);
+                        } else {
+                            row = get_previous_visible (prev.iter);
+                        }
+                        
+                        if (row != null) {
+                            prev = row;
+                        } else {
+                            row = prev;
+                            break;
+                        }
+                    }
+                    
+                }
+            } else if (step == Gtk.MovementStep.PAGES) {
+                int page_size = 100;
+                if (_vadjustment != null) {
+                    page_size = (int) _vadjustment.get_page_increment ();
+                }
+                
+                if (cursor_row != null) {
+                    int start_y = cursor_row.y;
+                    
+                    row = cursor_row;
+                    if (count < 0) {
+                        /* Up */
+                        while (!row.iter.is_begin ()) {
+                            prev = get_previous_visible (row.iter);
+                            if (prev == null) {
+                                break;
+                            }
+                            
+                            if (prev.y < start_y - page_size) {
+                                break;
+                            }
+                            
+                            row = prev;
+                        }
+                    } else {
+                        /* Down */
+                        while (!row.iter.is_end ()) {
+                            next = get_next_visible (row.iter);
+                            if (next == null) {
+                                break;
+                            }
+                            
+                            if (next.y > start_y + page_size) {
+                                break;
+                            }
+                            
+                            row = next;
+                        }
+                    }
+                }
+            } else if (step == Gtk.MovementStep.BUFFER_ENDS) {
+                if (forward) {
+                    row = get_last_visible ();
+                } else {
+                    row = get_first_visible ();
+                }
+            }
+            if (row == null || row == cursor_row) {
+                Gtk.DirectionType direction;
+                if (forward) {
+                    direction = Gtk.DirectionType.DOWN;
+                } else {
+                    direction = Gtk.DirectionType.UP;
+                }
+                
+                if (!keynav_failed (direction)) {
+                    Gtk.Widget toplevel_widget = this.get_toplevel ();
+                    if (toplevel_widget != null) {
+                        if (direction == Gtk.DirectionType.UP) {
+                            direction = Gtk.DirectionType.TAB_BACKWARD;
+                        } else {
+                            direction = Gtk.DirectionType.TAB_FORWARD;
+                        }
+                        toplevel_widget.child_focus (direction);
+                    }
+                }
+                return;
+            }
+            
+            set_cursor_row (row);
+        }
+        
+        private void on_toggle_cursor_row () {
+            if (cursor_row == null){
+                return;
+            }
+            
+            if ((selection_mode == Gtk.SelectionMode.SINGLE || 
+                 selection_mode == Gtk.SelectionMode.MULTIPLE) &&
+                cursor_row.selected)
+            {
+                unselect_row (cursor_row);
+            } else {
+                select_and_activate (cursor_row);
+            }
+        }
+        
+        private void on_select_all () {
+            if (selection_mode == Gtk.SelectionMode.MULTIPLE) {
+                if (children.get_length () > 0) {
+                    select_all_between (null, null, false);
+                    selected_rows_changed ();
+                }
+            }
+        }
+        
+        private void on_unselect_all () {
+            bool dirty = false;
+
+            if (selection_mode == Gtk.SelectionMode.BROWSE) {
+                return;
+            }
+            
+            if (selection_mode == Gtk.SelectionMode.SINGLE) {
+                if (selected_row != null) {
+                    selected_row.set_selected (false);
+                    dirty = true;
+                }
+            } else {
+                dirty = unselect_all_internal ();
+            }
+            
+            if (dirty) {
+                row_selected (null);
+                selected_rows_changed ();
+            }
+        }
+        
+        /*
          * Input
          *--------------------------------------------------------------------*/
         
@@ -973,27 +1089,21 @@ namespace GOFI {
             return false;
         }
         
-        private void prepare_drag (OrderBoxRow row) {
-            Gtk.Allocation allocation;
-            row.get_allocation (out allocation);
-            gap_height = allocation.height;
-            gap_width = allocation.width;
-            drag_offset_y = mouse_y - allocation.y;
-            drag_begin_y = mouse_y - drag_offset_y;
-            drag_window_y = drag_begin_y;
-            drag_row = row;
-            drag_row_origin = row.iter.get_position ();
-            drag_prepared = true;
-        }
-        
         public override bool button_release_event (Gdk.EventButton event) {
             if (event.button == Gdk.BUTTON_PRIMARY) {
                 if (dragging) {
+                    stdout.printf ("val1 %f\n", _vadjustment.value);
+                    stop_scrolling ();
+                    stdout.printf ("val2 %f\n", _vadjustment.value);
                     move_row (drag_row, drag_row_origin, gap_pos);
+                    stdout.printf ("val3 %f\n", _vadjustment.value);
                     hide_drag_window ();
+                    stdout.printf ("val4 %f\n", _vadjustment.value);
                     update_cursor (drag_row);
+                    stdout.printf ("val5 %f\n", _vadjustment.value);
                     drag_row = null;
                     dragging = false;
+                    stdout.printf ("val %f\n", _vadjustment.value);
                 }
                 drag_prepared = false;
                 if (active_row != null && active_row_active) {
@@ -1007,7 +1117,7 @@ namespace GOFI {
                         modify = !modify;
                     }
                     
-                    update_selection(active_row, modify, extend);
+                    update_selection (active_row, modify, extend);
                 }
                 
                 active_row = null;
@@ -1073,9 +1183,7 @@ namespace GOFI {
             if (this.mouse_y != y_mouse_temp) {
                 this.mouse_y = y_mouse_temp;
             
-                drag_window_y = mouse_y - drag_offset_y;
-                drag_window_y = int.max (drag_window_y, drag_min_y);
-                drag_window_y = int.min (drag_window_y, drag_max_y);
+                calc_drag_y (mouse_y - drag_offset_y);
                 if (!dragging && drag_prepared && check_offset ()) {
                     dragging = true;
                     update_selection (drag_row, false, false);
@@ -1086,6 +1194,30 @@ namespace GOFI {
                 }
             }
             return true;
+        }
+        
+        /**
+         * Keeps drag_window_y within the set limits and checks wether we should
+         * start scrolling.
+         */
+        private void calc_drag_y (int y) {
+            drag_window_y = int.max (y, drag_min_y);
+            drag_window_y = int.min (drag_window_y, drag_max_y);
+            
+            if (_vadjustment != null) {
+                if (dragging) {
+                    if (y > drag_window_y + 10) {
+                        scroll_direction = ScrollDirection.NONE;
+                        start_scrolling ();
+                    } else if (y < drag_window_y - 10) {
+                        scroll_direction = ScrollDirection.UP;
+                        start_scrolling ();
+                    } else {
+                        scroll_direction = ScrollDirection.DOWN;
+                        stop_scrolling ();
+                    }
+                }
+            }
         }
         
         /**
