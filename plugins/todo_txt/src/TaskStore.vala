@@ -29,6 +29,9 @@ namespace GOFI.Plugins.TodoTXT {
         private FileMonitor monitor;
         
         private bool reading;
+        private bool needs_refresh;
+        
+        private string etag = "";
         
         private File file;
         public File? txt_file {
@@ -64,33 +67,7 @@ namespace GOFI.Plugins.TodoTXT {
             tasks = new Gee.LinkedList<TXTTask> ();
             
             reading = false;
-        }
-        
-        /**
-         * 
-         */
-        private void start_monitoring () {
-            if (file != null) {
-                try {
-                    monitor = file.monitor (FileMonitorFlags.NONE, null);
-                    monitor.changed.connect ((src, dest, event) => {
-                        if (event == FileMonitorEvent.CHANGES_DONE_HINT) {
-                            read ();
-                        }
-                    });
-                } catch (Error e) {
-                    
-                }
-            }
-        }
-        
-        /**
-         * 
-         */
-        private void stop_monitoring () {
-            if (monitor != null) {
-                monitor.cancel ();
-            }
+            needs_refresh = false;
         }
         
         /**
@@ -220,7 +197,7 @@ namespace GOFI.Plugins.TodoTXT {
             TXTTask task = tasks.remove_at (pos1);
             tasks.insert (pos2, task);
             item_moved (pos1, pos2, sync);
-            changed ();
+            on_change ();
         }
         
         public void sort () {
@@ -274,15 +251,83 @@ namespace GOFI.Plugins.TodoTXT {
         }
         
         /*
+         * File monitoring
+         *--------------------------------------------------------------------*/
+         
+        /**
+         * 
+         */
+        private void start_monitoring () {
+            if (file != null) {
+                try {
+                    monitor = file.monitor (FileMonitorFlags.NONE, null);
+                    monitor.changed.connect ((src, dest, event) => {
+                        if (event == FileMonitorEvent.CHANGES_DONE_HINT) {
+                            if (!needs_refresh) {
+                                needs_refresh = true;
+                                GLib.Timeout.add(
+                                    50, auto_refresh, GLib.Priority.DEFAULT_IDLE
+                                );
+                            }
+                        }
+                    });
+                } catch (Error e) {
+                    
+                }
+            }
+        }
+        
+        /**
+         * 
+         */
+        private void stop_monitoring () {
+            if (monitor != null) {
+                monitor.cancel ();
+            }
+        }
+        
+        private void gen_etag () {
+            FileInfo info;
+            
+            if (file != null) {
+                try {
+                    info = file.query_info (GLib.FileAttribute.ETAG_VALUE, 0);
+                    etag = info.get_etag ();
+                } catch (Error e) {
+                    error (e.message);
+                }
+            }
+        }
+        
+        private bool check_etag () {
+            string old_etag = etag;
+            
+            gen_etag ();
+            
+            return (old_etag == etag);
+        }
+        
+        private bool auto_refresh () {
+            if (!check_etag ()) {
+                read ();
+            }
+            
+            needs_refresh = false;
+            return false;
+        }
+        
+        /*
          * Reading from a .txt file
-         **********************************************************************/
+         *--------------------------------------------------------------------*/
         
         /**
          * @param tasks list containing the parsed tasks
          */
         public void read () {
+            
+            stdout.printf ("reading file\n");
+            
             reading = true;
-            stop_monitoring ();
             Gee.LinkedList<TXTTask> new_tasks = new Gee.LinkedList<TXTTask> ();
             if (!file.query_exists()) {
                 DirUtils.create_with_parents (
@@ -321,21 +366,23 @@ namespace GOFI.Plugins.TodoTXT {
             } catch (Error e) {
                 error ("%s", e.message);
             }
-            
+            gen_etag ();
             set_tasks (new_tasks);
             reading = false;
-            start_monitoring ();
         }
         
         /*
          * Writing to a txt file
-         **********************************************************************/
+         *--------------------------------------------------------------------*/
         
         /**
          * @param tasks list of tasks that needs to be written to a todo.txt
          * file.
          */
         public void write () {
+            
+            stdout.printf ("writing file\n");
+            
             if (reading || _file_read_only) {
                 return;
             }
@@ -351,10 +398,11 @@ namespace GOFI.Plugins.TodoTXT {
             } catch (Error e) {
                 error ("%s", e.message);
             }
+            gen_etag ();
         }
     }
     
-    public class TaskStoreIterator {    
+    public class TaskStoreIterator {
         private Gee.BidirListIterator<TXTTask> gee_iter;
         private TaskStore store;
         

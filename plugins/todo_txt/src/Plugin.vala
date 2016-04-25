@@ -88,6 +88,11 @@ namespace GOFI.Plugins.TodoTXT {
             connect_signals ();
         }
         
+        ~TXTPlugin () {
+            todo_list_view.destroy ();
+            done_list_view.destroy ();
+        }
+        
         private void setup_widgets () {
             todo_list_view = new TodoView ();
             done_list_view = new DoneView ();

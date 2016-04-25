@@ -40,15 +40,27 @@ namespace GOFI.Plugins.TodoTXT {
             connect_signals ();
         }
         
+        /**
+         * We need to make sure that task_list is freed, because it holds a 
+         * reference to this: bind_model increases the ref_count of this because
+         * widget_func is defined in this class.
+         */
+        public override void destroy () {
+            base.destroy ();
+            task_list = null;
+        }
+        
         private void setup_widgets () {
-            scroll_view = new Gtk.ScrolledWindow (null, null);
+            var adjustment = new Gtk.Adjustment (0, 0, 0, 60, 0, 0);
+            
+            scroll_view = new Gtk.ScrolledWindow (null, adjustment);
             task_list = new OrderBox ();
             bottom_bar = new BottomBar ();
             filter = new Filter ();
             
             task_list.set_filter_func (filter.filter);
             task_list.expand = true;
-            task_list.vadjustment = scroll_view.vadjustment;
+            task_list.vadjustment = adjustment;
             
             scroll_view.add (task_list);
             this.add (scroll_view);
