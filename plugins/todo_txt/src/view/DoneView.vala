@@ -64,7 +64,7 @@ namespace GOFI.Plugins.TodoTXT {
         
         private Gtk.Widget widget_func (Object item) {
             TaskRow row = new TaskRow ((TXTTask) item);
-            
+            row.show_all ();
             return row;
         }
     }

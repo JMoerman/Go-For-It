@@ -610,7 +610,7 @@ namespace GOFI {
             } else {
                 for (; !iter.is_end (); iter = iter.next ()) {
                     OrderBoxRow row = iter.get ();
-                    if (!row.get_visible()) {
+                    if (!row.priv_visible) {
                         continue;
                     }
                     
@@ -1554,7 +1554,6 @@ namespace GOFI {
             bool was_visible = row.priv_visible;
             
             row.priv_visible = row.get_visible () && row.get_child_visible ();
-            
             if (was_visible && !row.priv_visible) {
                 change_visible_rows (-1);
             } else if (!was_visible && row.priv_visible) {
@@ -1871,6 +1870,7 @@ namespace GOFI {
                 OrderBoxRow row = iter.get ();
                 apply_filter (row);
             }
+            queue_resize ();
         }
         
         /**
@@ -1943,7 +1943,6 @@ namespace GOFI {
             for (int i = 0; i < n_items; i++) {
                 row = widget_func(model.get_item (i));
                 insert_internal (row, -1);
-                row.show_all ();
             }
         }
         

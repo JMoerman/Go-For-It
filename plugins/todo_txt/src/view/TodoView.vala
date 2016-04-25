@@ -105,6 +105,7 @@ namespace GOFI.Plugins.TodoTXT {
                 link_clicked (uri);
                 bottom_bar.set_search_string (uri);
             });
+            row.show_all ();
             
             return row;
         }
