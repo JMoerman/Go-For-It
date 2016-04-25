@@ -170,8 +170,6 @@ namespace GOFI {
         
         private int rows_visible = 0;
         
-        private Gtk.Adjustment _vadjustment = null;
-        
         private bool in_widget = false;
         private int mouse_y = 0;
         private ScrollDirection scroll_direction;
@@ -197,7 +195,6 @@ namespace GOFI {
         private int gap_pos = 0;
         private int drag_row_origin = 0;
         
-        private Gtk.SelectionMode _selection_mode;
         public Gtk.SelectionMode selection_mode {
             public get {
                 return _selection_mode;
@@ -219,6 +216,23 @@ namespace GOFI {
                 }
             }
         }
+        private Gtk.SelectionMode _selection_mode;
+        
+        public bool lock_rows {
+            public get {
+                return _lock_rows;
+            }
+            public set {
+                _lock_rows = value;
+                if (_lock_rows) {
+                    if (dragging) {
+                        stop_dragging (true);
+                    }
+                    drag_prepared = false;
+                }
+            }
+        }
+        private bool _lock_rows = false;
         
         /**
          * This property should be set if an OrderBox is used in a 
@@ -233,6 +247,7 @@ namespace GOFI {
                 stop_scrolling ();
             }
         }
+        private Gtk.Adjustment _vadjustment = null;
         
         /*
          * Signals
@@ -697,7 +712,7 @@ namespace GOFI {
             GLib.SequenceIter<OrderBoxRow> iter = children.get_begin_iter ();
             for (; !iter.is_end (); iter = iter.next ()) {
                 OrderBoxRow row = iter.get ();
-	            if (row.get_visible ()) {
+	            if (row.priv_visible) {
 	                int row_minimum;
 	                row.get_preferred_height_for_width (
 	                    width, out row_minimum, null
@@ -738,7 +753,7 @@ namespace GOFI {
             GLib.SequenceIter<OrderBoxRow> iter = children.get_begin_iter ();
             for (; !iter.is_end (); iter = iter.next ()) {
                 OrderBoxRow row = iter.get ();
-	            if (row.get_visible ()) {
+	            if (row.priv_visible) {
 	                int row_minimum, row_natural;
 	                row.get_preferred_width (
 	                    out row_minimum, out row_natural
@@ -780,6 +795,21 @@ namespace GOFI {
             drag_row = row;
             drag_row_origin = row.iter.get_position ();
             drag_prepared = true;
+        }
+        
+        private void stop_dragging (bool save) {
+            stop_scrolling ();
+            
+            if (save) {
+                move_row (drag_row, drag_row_origin, gap_pos);
+            }
+            
+            hide_drag_window ();
+            stdout.printf ("adjustment before update_cursor: %f\n", _vadjustment.value);
+            update_cursor (drag_row);
+            stdout.printf ("adjustment after update_cursor: %f\n", _vadjustment.value);
+            drag_row = null;
+            dragging = false;
         }
         
         private void start_scrolling () {
@@ -1079,7 +1109,9 @@ namespace GOFI {
                                 activate_row (row);
                             } else {
                                 mouse_y = y;
-                                prepare_drag (row);
+                                if (!_lock_rows) {
+                                    prepare_drag (row);
+                                }
                             }
                         }
                     }
@@ -1092,18 +1124,7 @@ namespace GOFI {
         public override bool button_release_event (Gdk.EventButton event) {
             if (event.button == Gdk.BUTTON_PRIMARY) {
                 if (dragging) {
-                    stdout.printf ("val1 %f\n", _vadjustment.value);
-                    stop_scrolling ();
-                    stdout.printf ("val2 %f\n", _vadjustment.value);
-                    move_row (drag_row, drag_row_origin, gap_pos);
-                    stdout.printf ("val3 %f\n", _vadjustment.value);
-                    hide_drag_window ();
-                    stdout.printf ("val4 %f\n", _vadjustment.value);
-                    update_cursor (drag_row);
-                    stdout.printf ("val5 %f\n", _vadjustment.value);
-                    drag_row = null;
-                    dragging = false;
-                    stdout.printf ("val %f\n", _vadjustment.value);
+                    stop_dragging (true);
                 }
                 drag_prepared = false;
                 if (active_row != null && active_row_active) {
@@ -1688,6 +1709,9 @@ namespace GOFI {
         }
         
         private void on_reset () {
+            if (dragging) {
+                stop_dragging (false);
+            }
             clear ();
             populate ();
         }
@@ -1959,7 +1983,7 @@ namespace GOFI {
             iter = children.get_begin_iter ();
             for (; !iter.is_end (); iter = iter.next ()) {
                 row = iter.get ();
-                if (row.get_visible()) {
+                if (row.priv_visible) {
                     if (row.y < y) {
                         prev = row;
                     } else {
