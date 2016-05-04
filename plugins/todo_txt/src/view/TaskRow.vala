@@ -52,10 +52,6 @@ namespace GOFI.Plugins.TodoTXT {
             title_label.edit ();
         }
         
-        public void abort_editing () {
-            title_label.abort_editing ();
-        }
-        
         private void setup_widgets () {
             layout = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 6);
             check_button = new Gtk.CheckButton ();
@@ -68,8 +64,6 @@ namespace GOFI.Plugins.TodoTXT {
             drag_image.halign = Gtk.Align.END;
             
             check_button.active = _task.done;
-            
-            update ();
             
             layout.add (check_button);
             layout.add (title_label);
@@ -105,7 +99,6 @@ namespace GOFI.Plugins.TodoTXT {
     class TaskLabel : Gtk.Stack {
         Gtk.Label label;
         Gtk.Entry entry;
-        Gtk.Button button;
         
         private string markup_string;
         
@@ -150,26 +143,29 @@ namespace GOFI.Plugins.TodoTXT {
             if (entry != null) {
                 return;
             }
-            stdout.printf ("editing\n");
             entry = new Gtk.Entry ();
             entry.can_focus = true;
             entry.text = _txt_string;
+            
             add (entry);
             entry.show ();
             set_visible_child (entry);
             entry.grab_focus ();
             entry.activate.connect(stop_editing);
-            entry.focus_out_event.connect ( (event) => {
-                abort_editing ();
-                return false;
-            });
+            entry.focus_out_event.connect (on_entry_focus_out);
         }
         
-        public void abort_editing () {
+        private bool on_entry_focus_out () {
+            abort_editing ();
+            return false;
+        }
+        
+        private void abort_editing () {
             if (entry != null) {
-                set_visible_child (label);
-                remove (entry);
+                var _entry = entry;
                 entry = null;
+                set_visible_child (label);
+                remove (_entry);
             }
         }
         
@@ -185,51 +181,47 @@ namespace GOFI.Plugins.TodoTXT {
         }
         
         private void gen_markup () {
-            string markup;
-            
-            markup = make_links (_txt_string, "+", "project:");
-            markup = make_links (markup, "@", "context:");
-            
-            markup_string = markup;
+            markup_string = make_links (
+                _txt_string, 
+                {"+", "@"}, 
+                {"project:", "context:"}
+            );
         }
         
         /**
          * Used to find projects and contexts and replace those parts with a 
          * link.
          * @param title the string to took for contexts or projects
-         * @param delimiter prefix of the context or project (+/@)
-         * @param prefix prefix of the new links
+         * @param delimiters prefixes of the context or project (+/@)
+         * @param prefixes prefixes of the new links
          */
-        private string make_links (string title, string delimiter, 
-                                   string prefix)
+        private string make_links (string title, string[] delimiters, 
+                                   string[] prefixes)
         {
-            string parsed, remainder, val;
+            string parsed = "";
+            string delimiter, prefix;
             
-            parsed = "";
-            remainder = title;
+            int n_delimiters = delimiters.length;
             
-            while (remainder != null) {
-                string[] string_parts = remainder.split (@" $delimiter", 2);
-                parsed += string_parts[0];
-                if (string_parts[1] != null) {
-                    if (string_parts[1].get (0) == ' ') {
-                        parsed += @" $delimiter";
-                        remainder = string_parts[1];
-                    } else {
-                        string_parts = string_parts[1].split (" ", 2);
-                        val = string_parts[0];
+            foreach (string part in title.split (" ")) {
+                string? val = null;
+                
+                for (int i = 0; val == null && i < n_delimiters; i++) {
+                    val = part.split(delimiters[i], 2)[1];
+                    if (val != null) {
+                        delimiter = delimiters[i];
+                        prefix = prefixes[i];
                         parsed += @" <a href=\"$prefix$val\" title=\"$val\">" +
                                   @"$delimiter$val</a>";
-                        remainder = string_parts[1];
-                        if (remainder != null) {
-                            remainder = " " + remainder;
-                        }
                     }
-                } else {
-                    remainder = null;
+                }
+                
+                if (val == null) {
+                    parsed += " " + part;
                 }
             }
-            return parsed;
+            
+            return parsed.chug ();
         }
     }
 }

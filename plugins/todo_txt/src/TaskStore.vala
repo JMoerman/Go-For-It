@@ -363,6 +363,7 @@ namespace GOFI.Plugins.TodoTXT {
                 TXTTask to_preserve = this.to_preserve;
                 
                 while ((line = stream_in.read_line (null)) != null) {
+                    line = line.strip ();
                     int length = line.length;
                     if (length > 0) {
                         if (line.get (length - 1) == 13) {
