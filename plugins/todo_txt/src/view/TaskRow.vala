@@ -208,7 +208,7 @@ namespace GOFI.Plugins.TodoTXT {
                 
                 for (int i = 0; val == null && i < n_delimiters; i++) {
                     val = part.split(delimiters[i], 2)[1];
-                    if (val != null) {
+                    if (val != null && val != "") {
                         delimiter = delimiters[i];
                         prefix = prefixes[i];
                         parsed += @" <a href=\"$prefix$val\" title=\"$val\">" +
@@ -216,7 +216,7 @@ namespace GOFI.Plugins.TodoTXT {
                     }
                 }
                 
-                if (val == null) {
+                if (val == null || val == "") {
                     parsed += " " + part;
                 }
             }
