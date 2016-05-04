@@ -108,14 +108,30 @@ namespace GOFI.Plugins.TodoTXT {
             menu_items.add (clear_done_item);
         }
         
+        private void set_active_task (TXTTask? task) {
+            task_timer.active_task = task;
+            task_manager.active_task = task;
+        }
+        
         private void connect_signals () {
-            todo_list_view.task_selected.connect ( (task) => {
-                task_timer.active_task = task;
-                task_manager.active_task = task;
-            });
+            todo_list_view.task_selected.connect (set_active_task);
             
             task_manager.active_task_completed.connect (() => {
+                TXTTask task;
+                
+                if (task_timer.running || 
+                    task_timer.active_task == task_manager.active_task)
+                {
+                    task_timer.remove_task ();
+                    task = todo_list_view.get_selected ();
+                    set_active_task(task);
+                }
+            });
+            task_manager.active_task_invalid.connect (() => {
+                TXTTask task;
                 task_timer.remove_task ();
+                task = todo_list_view.get_selected ();
+                set_active_task(task);
             });
             clear_done_item.activate.connect ( () => {
                 task_manager.clear_done_store ();

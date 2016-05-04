@@ -31,11 +31,21 @@ namespace GOFI.Plugins.TodoTXT {
         public TaskStore todo_store;
         public TaskStore done_store;
         
-        public TXTTask active_task;
+        public TXTTask active_task {
+            public get {
+                return _active_task;
+            }
+            public set {
+                _active_task = value;
+                todo_store.try_preserve (_active_task);
+            }
+        }
+        private TXTTask _active_task;
         
         public signal void refreshed_todo_list ();
         public signal void refreshed_done_list ();
         public signal void active_task_completed ();
+        public signal void active_task_invalid ();
         
         public TaskManager (SettingsManager settings) {
             todo_dir = File.new_for_path(settings.todo_txt_location);
@@ -66,16 +76,7 @@ namespace GOFI.Plugins.TodoTXT {
             return changed;
         }
         
-        private void setup_stores () {
-            todo_store = new TaskStore ();
-            done_store = new TaskStore ();
-            
-            todo_store.txt_file = todo_txt;
-            done_store.txt_file = done_txt;
-            
-            todo_store.read ();
-            done_store.read ();
-            
+        private void on_todo_store_refreshed () {
             todo_store.file_read_only = true;
             done_store.file_read_only = true;
             
@@ -88,6 +89,19 @@ namespace GOFI.Plugins.TodoTXT {
                 todo_store.write ();
                 done_store.write ();
             }
+        }
+        
+        private void setup_stores () {
+            todo_store = new TaskStore ();
+            done_store = new TaskStore ();
+            
+            todo_store.txt_file = todo_txt;
+            done_store.txt_file = done_txt;
+            
+            todo_store.read ();
+            done_store.read ();
+            
+            on_todo_store_refreshed ();
             
             connect_store_signals ();
         }
@@ -98,15 +112,19 @@ namespace GOFI.Plugins.TodoTXT {
         
         private void connect_store_signals () {
             todo_store.task_status_changed.connect ((task) => {
-                if (task == active_task) {
-                    active_task_completed ();
-                }
                 move_task (task, done_store);
                 todo_store.remove_task (task);
+                if (task == _active_task) {
+                    active_task_completed ();
+                }
             });
             done_store.task_status_changed.connect ((task) => {
                 move_task (task, todo_store);
                 done_store.remove_task (task);
+            });
+            todo_store.reset.connect (on_todo_store_refreshed);
+            todo_store.preserving_failed.connect ( () => {
+                active_task_invalid ();
             });
         }
     }

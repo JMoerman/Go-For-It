@@ -25,8 +25,10 @@ namespace GOFI.Plugins.TodoTXT {
         private Gee.BidirListIterator<TXTTask> iter;
         
         private Gee.LinkedList<TXTTask> tasks;
+        private TXTTask to_preserve = null;
         
         private FileMonitor monitor;
+        
         
         private bool reading;
         private bool needs_refresh;
@@ -59,6 +61,7 @@ namespace GOFI.Plugins.TodoTXT {
         public signal void task_status_changed (TXTTask task);
         public signal void task_data_changed ();
         public signal void changed ();
+        public signal void preserving_failed ();
         
         /**
          * 
@@ -68,6 +71,13 @@ namespace GOFI.Plugins.TodoTXT {
             
             reading = false;
             needs_refresh = false;
+        }
+        
+        /**
+         * 
+         */
+        public void try_preserve (TXTTask? task) {
+            to_preserve = task;
         }
         
         /**
@@ -161,10 +171,15 @@ namespace GOFI.Plugins.TodoTXT {
         }
         
         public void clear () {
+            foreach (TXTTask task in tasks) {
+                disconnect_task_signals (task);
+            }
+            
             tasks.clear ();
             reset ();
             items_changed ();
             on_change ();
+            make_iter ();
         }
         
         private void make_iter () {
@@ -345,6 +360,7 @@ namespace GOFI.Plugins.TodoTXT {
             try {
                 var stream_in = new DataInputStream (file.read ());
                 string line;
+                TXTTask to_preserve = this.to_preserve;
                 
                 while ((line = stream_in.read_line (null)) != null) {
                     int length = line.length;
@@ -360,6 +376,12 @@ namespace GOFI.Plugins.TodoTXT {
                     }
                     if (line.strip().length > 0) {
                         TXTTask task = new TXTTask.from_txt (line);
+                        if (to_preserve != null) {
+                            if (task.equals(to_preserve)) {
+                                task = to_preserve;
+                                to_preserve = null;
+                            }
+                        }
                         new_tasks.add (task);
                     }
                 }
@@ -369,6 +391,9 @@ namespace GOFI.Plugins.TodoTXT {
             gen_etag ();
             set_tasks (new_tasks);
             reading = false;
+            if (to_preserve != null) {
+                preserving_failed ();
+            }
         }
         
         /*

@@ -24,7 +24,7 @@ namespace GOFI.Plugins.TodoTXT {
         
         private Gtk.Box layout;
         private Gtk.CheckButton check_button;
-        private Gtk.Label title_label;
+        private TaskLabel title_label;
         private Gtk.Image drag_image;
         
         private TXTTask _task;
@@ -48,21 +48,23 @@ namespace GOFI.Plugins.TodoTXT {
             connect_signals ();
         }
         
+        public void edit () {
+            title_label.edit ();
+        }
+        
+        public void abort_editing () {
+            title_label.abort_editing ();
+        }
+        
         private void setup_widgets () {
             layout = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 6);
             check_button = new Gtk.CheckButton ();
-            title_label = new Gtk.Label (null);
+            title_label = new TaskLabel (task.title);
+            title_label.hexpand = true;
             drag_image = new Gtk.Image.from_icon_name (
                 "view-list-symbolic", Gtk.IconSize.BUTTON
             );
             
-            title_label.wrap = true;
-            title_label.wrap_mode = Pango.WrapMode.WORD_CHAR;
-            title_label.width_request = 200;
-            // Workaround for: "undefined symbol: gtk_label_set_xalign"
-            ((Gtk.Misc) title_label).xalign = 0f;
-            
-            drag_image.expand = true;
             drag_image.halign = Gtk.Align.END;
             
             check_button.active = _task.done;
@@ -87,6 +89,108 @@ namespace GOFI.Plugins.TodoTXT {
                 link_clicked (uri);
                 return true;
             });
+            title_label.string_changed.connect ( () => {
+                task.title = title_label.txt_string;
+            });
+        }
+        
+        private void update () {
+            title_label.txt_string = task.title;
+        }
+    }
+    
+    /**
+     * ...
+     */
+    class TaskLabel : Gtk.Stack {
+        Gtk.Label label;
+        Gtk.Entry entry;
+        Gtk.Button button;
+        
+        private string markup_string;
+        
+        private string _txt_string;
+        public string txt_string {
+            public get {
+                return _txt_string;
+            }
+            public set {
+                _txt_string = value;
+                update ();
+            }
+        }
+        
+        public signal bool activate_link (string uri);
+        public signal void string_changed ();
+        
+        public TaskLabel (string txt_string) {
+            _txt_string = txt_string;
+            
+            setup_widgets ();
+        }
+        
+        public void setup_widgets () {
+            label = new Gtk.Label(null);
+            
+            label.wrap = true;
+            label.wrap_mode = Pango.WrapMode.WORD_CHAR;
+            label.width_request = 200;
+            // Workaround for: "undefined symbol: gtk_label_set_xalign"
+            ((Gtk.Misc) label).xalign = 0f;
+            
+            update ();
+            
+            label.activate_link.connect ( (uri) => {
+                return activate_link (uri);
+            });
+            add (label);
+        }
+        
+        public void edit () {
+            if (entry != null) {
+                return;
+            }
+            stdout.printf ("editing\n");
+            entry = new Gtk.Entry ();
+            entry.can_focus = true;
+            entry.text = _txt_string;
+            add (entry);
+            entry.show ();
+            set_visible_child (entry);
+            entry.grab_focus ();
+            entry.activate.connect(stop_editing);
+            entry.focus_out_event.connect ( (event) => {
+                abort_editing ();
+                return false;
+            });
+        }
+        
+        public void abort_editing () {
+            if (entry != null) {
+                set_visible_child (label);
+                remove (entry);
+                entry = null;
+            }
+        }
+        
+        private void stop_editing () {
+            txt_string = entry.text;
+            string_changed ();
+            abort_editing ();
+        }
+        
+        private void update () {
+            gen_markup ();
+            label.set_markup (markup_string);
+        }
+        
+        private void gen_markup () {
+            string markup;
+            
+            markup = make_links (_txt_string, "+", "project:");
+            markup = make_links (markup, "@", "context:");
+            
+            markup_string = markup;
         }
         
         /**
@@ -126,15 +230,6 @@ namespace GOFI.Plugins.TodoTXT {
                 }
             }
             return parsed;
-        }
-        
-        private void update () {
-            string title = task.title;
-            
-            title = make_links (title, "+", "project:");
-            title = make_links (title, "@", "context:");
-            
-            title_label.set_markup (title);
         }
     }
 }

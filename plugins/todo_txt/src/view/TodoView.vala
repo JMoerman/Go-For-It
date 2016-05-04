@@ -40,6 +40,20 @@ namespace GOFI.Plugins.TodoTXT {
             connect_signals ();
         }
         
+        public TXTTask? get_selected () {
+            var row = task_list.get_selected_row ();
+            
+            if (row != null) {
+                return ((TaskRow)row).task;
+            }
+            
+            return null;
+        }
+        
+        public void select_first_row () {
+            task_list.select_row (task_list.get_nth_visible (0));
+        }
+        
         /**
          * We need to make sure that task_list is freed, because it holds a 
          * reference to this: bind_model increases the ref_count of this because
@@ -71,9 +85,15 @@ namespace GOFI.Plugins.TodoTXT {
          * Binds a TaskStore to this.
          */
         public void set_store (TaskStore task_store) {
+            if (this.task_store != null) {
+                bottom_bar.sort_clicked.disconnect (task_store.sort);
+                task_store.reset.disconnect (select_first_row);
+            }
+            
             this.task_store = task_store;
             bottom_bar.sort_clicked.connect (task_store.sort);
             task_list.bind_model (task_store, widget_func);
+            task_store.reset.connect_after (select_first_row);
         }
         
         private void connect_signals () {
@@ -87,6 +107,12 @@ namespace GOFI.Plugins.TodoTXT {
                 }
                 task_selected (task);
             });
+            
+            task_list.row_activated.connect ( (row) => {
+                TaskRow edit_row = (TaskRow) row;
+                
+                edit_row.edit ();
+            });
         }
         
         public override void show_all () {
@@ -94,7 +120,7 @@ namespace GOFI.Plugins.TodoTXT {
             
             // Select the first row on startup
             if (task_list.get_selected_row () == null) {
-                task_list.select_row (task_list.get_nth_visible (0));   
+                task_list.select_row (task_list.get_nth_visible (0));
             }
         }
         

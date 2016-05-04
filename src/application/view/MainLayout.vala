@@ -137,6 +137,9 @@ namespace GOFI.Application {
                 activity_stack.remove (widget);
             }
             
+            first_page = null;
+            last_page = null;
+            
             task_timer.reset ();
             timer_view.reset ();
             

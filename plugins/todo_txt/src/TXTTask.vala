@@ -48,6 +48,10 @@ namespace GOFI.Plugins.TodoTXT {
             creation_date = parse_date (ref line);
             title = line;
         }
+        
+        public bool equals (TXTTask other_task) {
+            return this.title == other_task.title;
+        }
 
         /**
          * If line contains a priority at the start of it, this removes the date 
