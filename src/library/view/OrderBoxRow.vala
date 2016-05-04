@@ -85,6 +85,8 @@ namespace GOFI {
             context.add_class (Gtk.STYLE_CLASS_BUTTON);
             
             priv_visible = true;
+            
+            this.activate_signal = Signal.lookup ("activate", typeof (OrderBoxRow));
         }
         
         private void update_style () {

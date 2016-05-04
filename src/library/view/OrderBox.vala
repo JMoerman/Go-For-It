@@ -170,6 +170,7 @@ namespace GOFI {
         
         private int rows_visible = 0;
         
+        private bool double_click = false;
         private bool in_widget = false;
         private int mouse_y = 0;
         private ScrollDirection scroll_direction;
@@ -1098,16 +1099,18 @@ namespace GOFI {
                     }
                     if ((row = get_row_at_y (y)) != null) {
                         if (row.is_sensitive ()) {
-                            active_row = row;
-                            active_row_active = true;
-                            active_row.set_state_flags (
-                                Gtk.StateFlags.ACTIVE, false
-                            );
-                            cursor_row = row;
-                            queue_draw ();
                             if (event.type == Gdk.EventType.2BUTTON_PRESS) {
+                                double_click = true;
+                                drag_prepared = false;
                                 activate_row (row);
                             } else {
+                                active_row = row;
+                                active_row_active = true;
+                                active_row.set_state_flags (
+                                    Gtk.StateFlags.ACTIVE, false
+                                );
+                                cursor_row = row;
+                                queue_draw ();
                                 mouse_y = y;
                                 if (!_lock_rows) {
                                     prepare_drag (row);
@@ -1132,14 +1135,18 @@ namespace GOFI {
                     
                     active_row.unset_state_flags (Gtk.StateFlags.ACTIVE);
                     
-                    get_current_selection_modifiers (this, out modify, out extend);
+                    if (!double_click) {
+                        get_current_selection_modifiers (
+                            this, out modify, out extend
+                        );
                     
-                    if (event.get_device ().get_source () == Gdk.InputSource.TOUCHSCREEN) {
-                        modify = !modify;
+                        if (event.get_device ().get_source () == Gdk.InputSource.TOUCHSCREEN) {
+                            modify = !modify;
+                        }
+                        update_selection (active_row, modify, extend);
                     }
-                    
-                    update_selection (active_row, modify, extend);
                 }
+                double_click = false;
                 
                 active_row = null;
                 active_row_active = false;
@@ -1287,9 +1294,7 @@ namespace GOFI {
         }
         
         private void activate_row (OrderBoxRow row) {
-            if (row != null) {
-                row_activated (row);
-            }
+            row_activated (row);
         }
         
         internal void update_cursor (OrderBoxRow row) {
