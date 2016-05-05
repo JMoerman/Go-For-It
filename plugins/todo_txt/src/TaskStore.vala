@@ -149,8 +149,8 @@ namespace GOFI.Plugins.TodoTXT {
             }
         }
         
-        private void on_status_changed (TXTTask task) {
-            task_status_changed (task);
+        private void on_status_changed (TodoTask task) {
+            task_status_changed ((TXTTask)task);
             on_change ();
         }
         

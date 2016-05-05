@@ -35,7 +35,10 @@ namespace GOFI.Plugins.Classic {
                 return _done;
             }
             public set {
-                _done = value;
+                if (_done != value) {
+                    _done = value;
+                    status_changed ();
+                }
             }
         }
         private bool _done;

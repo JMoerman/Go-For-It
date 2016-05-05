@@ -59,7 +59,7 @@ namespace GOFI.Application {
             timer.timer_updated.connect (set_time);
             timer.timer_running_changed.connect (set_running);
             timer.active_task_changed.connect (timer_active_task_changed);
-            timer.active_task_data_changed.connect (
+            timer.active_task_title_changed.connect (
                 timer_active_task_data_changed
             );
             timer.timer_updated_relative.connect ((s, p) => {

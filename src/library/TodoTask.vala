@@ -53,6 +53,12 @@ namespace GOFI {
         }
         
         /**
+         * The status_changed signal is emitted when the value of done is 
+         * changed.
+         */
+        public signal void status_changed ();
+        
+        /**
          * Creates an empty TodoTask
          */
         public TodoTask () {

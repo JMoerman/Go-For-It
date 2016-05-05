@@ -61,7 +61,6 @@ namespace GOFI.Plugins.TodoTXT {
         }
         
         public signal void changed ();
-        public signal void status_changed ();
         
         public TXTTask () {
             base ();
