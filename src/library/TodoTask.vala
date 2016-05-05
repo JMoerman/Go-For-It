@@ -109,7 +109,7 @@ namespace GOFI {
          * @return true if the TodoTask is valid
          */
         public virtual bool is_valid () {
-            return (title_set);
+            return (title_set && _title != "");
         }
     }
 }

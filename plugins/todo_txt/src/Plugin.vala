@@ -72,7 +72,7 @@ namespace GOFI.Plugins.TodoTXT {
         
         // Primary and secondary widgets
         private TodoView todo_list_view;
-        private DoneView done_list_view;
+        private TodoView done_list_view;
         
         // Menu items for this plugin
         private Gtk.MenuItem clear_done_item;
@@ -94,8 +94,8 @@ namespace GOFI.Plugins.TodoTXT {
         }
         
         private void setup_widgets () {
-            todo_list_view = new TodoView ();
-            done_list_view = new DoneView ();
+            todo_list_view = new TodoView (true);
+            done_list_view = new TodoView ();
             
             bind_models ();
         }
@@ -115,6 +115,7 @@ namespace GOFI.Plugins.TodoTXT {
         
         private void connect_signals () {
             todo_list_view.task_selected.connect (set_active_task);
+            todo_list_view.add_new_task.connect (task_manager.add_task_from_txt);
             
             task_manager.active_task_completed.connect (() => {
                 TXTTask task;

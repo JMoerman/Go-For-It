@@ -23,8 +23,10 @@ namespace GOFI.Plugins.TodoTXT {
      */
     class BottomBar : Gtk.Box {
         
-        private Gtk.Revealer revealer;
+        private Gtk.Revealer search_revealer;
         private Gtk.SearchEntry search_entry;
+        private Gtk.Revealer add_revealer;
+        private Gtk.Entry add_entry;
         
         private Gtk.ActionBar bar;
         
@@ -32,13 +34,17 @@ namespace GOFI.Plugins.TodoTXT {
         private Gtk.Button sort_button;
         private Gtk.Button add_button;
         
+        private bool add_new;
+        
+        /* Signals */
+        public signal void add_new_task (string task);
         public signal void search_changed (string search_string);
-        public signal void add_clicked ();
         public signal void sort_clicked ();
         
-        public BottomBar () {
+        public BottomBar (bool add_new = false) {
             this.orientation = Gtk.Orientation.VERTICAL;
             this.spacing = 0;
+            this.add_new = add_new;
             
             setup_widgets ();
             
@@ -46,7 +52,7 @@ namespace GOFI.Plugins.TodoTXT {
         }
         
         private void setup_widgets () {
-            revealer = new Gtk.Revealer ();
+            search_revealer = new Gtk.Revealer ();
             search_entry = new Gtk.SearchEntry ();
             bar = new Gtk.ActionBar ();
             
@@ -54,30 +60,56 @@ namespace GOFI.Plugins.TodoTXT {
                 "edit-find", 
                 Gtk.IconSize.SMALL_TOOLBAR
             );
-            add_button = new Gtk.Button.from_icon_name (
-                "list-add-symbolic", 
-                Gtk.IconSize.SMALL_TOOLBAR
-            );
+            
             sort_button = new Gtk.Button.from_icon_name (
                 "view-sort-ascending", // TODO: find a better icon for this
                 Gtk.IconSize.SMALL_TOOLBAR
             );
             
-            revealer.add (search_entry);
+            search_revealer.add (search_entry);
             
             bar.pack_start (search_button);
             bar.pack_start (sort_button);
-            bar.pack_end (add_button);
             
-            this.add (revealer);
+            if (add_new) {
+                setup_add_widgets ();
+            }
+            
+            this.add (search_revealer);
             this.add (bar);
         }
         
-        private void connect_signals () {
-            search_button.clicked.connect (toggle_revealer);
-            add_button.clicked.connect ( () => {
-                add_clicked ();
+        private void setup_add_widgets () {
+            add_revealer = new Gtk.Revealer ();
+            add_entry = new Gtk.Entry ();
+            
+            add_button = new Gtk.Button.from_icon_name (
+                "list-add-symbolic", 
+                Gtk.IconSize.SMALL_TOOLBAR
+            );
+            
+            add_entry.placeholder_text = _("Add new task...");
+
+            add_entry.set_icon_from_icon_name (
+                Gtk.EntryIconPosition.PRIMARY, "list-add-symbolic");
+            
+            add_button.clicked.connect (toggle_add_revealer);
+            
+            add_entry.activate.connect ( () => {
+                add_new_task (add_entry.text);
+                add_entry.text = "";
+                toggle_add_revealer ();
             });
+            
+            add_revealer.add (add_entry);
+            
+            bar.pack_end (add_button);
+            this.add (add_revealer);
+        }
+        
+        private void connect_signals () {
+            search_button.clicked.connect (toggle_search_revealer);
+            
             sort_button.clicked.connect ( () => {
                 sort_clicked ();
             });
@@ -86,12 +118,25 @@ namespace GOFI.Plugins.TodoTXT {
             });
         }
         
-        public void toggle_revealer () {
-            if (revealer.reveal_child) {
-                revealer.set_reveal_child(false);
+        public void toggle_search_revealer () {
+            if (search_revealer.reveal_child) {
+                search_revealer.set_reveal_child (false);
             } else {
-                revealer.set_reveal_child(true);
+                if (add_new) {
+                    add_revealer.set_reveal_child (false);
+                }
+                search_revealer.set_reveal_child (true);
                 search_entry.grab_focus ();
+            }
+        }
+        
+        private void toggle_add_revealer () {
+            if (add_revealer.reveal_child) {
+                add_revealer.set_reveal_child (false);
+            } else {
+                search_revealer.set_reveal_child (false);
+                add_revealer.set_reveal_child (true);
+                add_entry.grab_focus ();
             }
         }
         

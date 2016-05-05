@@ -22,7 +22,7 @@ namespace GOFI.Plugins.TodoTXT {
         public GLib.DateTime? completion_date = null;
         public char txt_priority;
         
-        public signal void status_changed_task (TXTTask task);
+        private string _title;
         
         public TXTTask () {
             base ();
@@ -33,6 +33,10 @@ namespace GOFI.Plugins.TodoTXT {
          * Parses a single line from the todo.txt file.
          */
         public TXTTask.from_txt (string todo_line) {
+            set_txt (todo_line);
+        }
+        
+        public void set_txt (string todo_line) {
             string line = todo_line;
             
             // Todo.txt notation: completed tasks start with an "x "
@@ -46,7 +50,8 @@ namespace GOFI.Plugins.TodoTXT {
             
             txt_priority = parse_priority (ref line);
             creation_date = parse_date (ref line);
-            title = line;
+            _title = line;
+            title = priority_to_string (txt_priority) + _title;
         }
         
         public bool equals (TXTTask other_task) {
@@ -107,8 +112,6 @@ namespace GOFI.Plugins.TodoTXT {
                 completion_date = null;
             }
             
-            status_changed_task (this);
-            
             base.status_changed (done);
         }
         
@@ -129,7 +132,7 @@ namespace GOFI.Plugins.TodoTXT {
             
             string pre = done_str + completion_str + priority_str + creation_str;
             
-            return pre + title;
+            return pre + _title;
         }
 
         private string date_to_string (GLib.DateTime? date) {

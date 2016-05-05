@@ -84,7 +84,7 @@ namespace GOFI.Plugins.TodoTXT {
                 return true;
             });
             title_label.string_changed.connect ( () => {
-                task.title = title_label.txt_string;
+                task.set_txt (title_label.txt_string);
             });
         }
         

@@ -23,12 +23,13 @@ namespace GOFI.Plugins.TodoTXT {
     class TaskStore : GLib.Object, OrderBoxModel {
         
         private Gee.BidirListIterator<TXTTask> iter;
+        private bool need_new_iter = true;
+        internal uint external_iters = 0;
         
         private Gee.LinkedList<TXTTask> tasks;
         private TXTTask to_preserve = null;
         
         private FileMonitor monitor;
-        
         
         private bool reading;
         private bool needs_refresh;
@@ -100,6 +101,7 @@ namespace GOFI.Plugins.TodoTXT {
          * 
          */
         public TaskStoreIterator iterator () {
+            need_new_iter = true;
             return new TaskStoreIterator (this, tasks);
         }
         
@@ -115,7 +117,7 @@ namespace GOFI.Plugins.TodoTXT {
          */
         public void insert (TXTTask task, int position) {
             tasks.insert (position, task);
-            make_iter ();
+            need_new_iter = true;
             item_added (position);
             
             connect_task_signals (task);
@@ -123,12 +125,20 @@ namespace GOFI.Plugins.TodoTXT {
         
         private void connect_task_signals (TXTTask task) {
             task.changed.connect (on_task_changed);
-            task.status_changed_task.connect (on_status_changed);
+            task.status_changed.connect (on_status_changed);
+            task.title_changed.connect (on_task_title_changed);
         }
         
         private void disconnect_task_signals (TXTTask task) {
             task.changed.disconnect (on_task_changed);
-            task.status_changed_task.disconnect (on_status_changed);
+            task.status_changed.disconnect (on_status_changed);
+            task.title_changed.disconnect (on_task_title_changed);
+        }
+        
+        private void on_task_title_changed (TodoTask task, string title) {
+            if (!task.is_valid ()) {
+                remove_task ((TXTTask)task);
+            }
         }
         
         private void on_change () {
@@ -138,8 +148,9 @@ namespace GOFI.Plugins.TodoTXT {
             }
         }
         
-        private void on_status_changed (TXTTask task) {
-            task_status_changed (task);
+        private void on_status_changed (TodoTask task, bool done) {
+            stdout.printf ("%s\n", task.title);
+            task_status_changed ((TXTTask)task);
             on_change ();
         }
         
@@ -161,8 +172,8 @@ namespace GOFI.Plugins.TodoTXT {
          */
         public void remove_task_at (int pos) {
             TXTTask task = tasks.remove_at (pos);
+            need_new_iter = true;
             disconnect_task_signals (task);
-            make_iter ();
             
             task_removed (task);
             item_removed (pos);
@@ -176,15 +187,18 @@ namespace GOFI.Plugins.TodoTXT {
             }
             
             tasks.clear ();
+            need_new_iter = true;
             reset ();
             items_changed ();
             on_change ();
-            make_iter ();
         }
         
-        private void make_iter () {
-            iter = tasks.bidir_list_iterator ();
-            iter.next ();
+        private void fix_iter () {
+            if (need_new_iter || !iter.valid) {
+                iter = tasks.bidir_list_iterator ();
+                iter.next ();
+                need_new_iter = false;
+            }
         }
         
         /**
@@ -221,17 +235,21 @@ namespace GOFI.Plugins.TodoTXT {
         }
         
         public Object get_item (int pos) {
-            int iter_index = iter.index ();
-            while (iter_index < pos && iter.has_next ()) {
-                iter.next ();
-                iter_index++;
+            if (external_iters > 0) {
+                fix_iter ();
+                int iter_index = iter.index ();
+                while (iter_index < pos && iter.has_next ()) {
+                    iter.next ();
+                    iter_index++;
+                }
+                while (iter_index > pos && iter.has_previous ()) {
+                    iter.previous ();
+                    iter_index--;
+                }
+                
+                return iter.get ();
             }
-            while (iter_index > pos && iter.has_previous ()) {
-                iter.previous ();
-                iter_index--;
-            }
-            
-            return iter.get ();
+            return tasks.get (pos);
         }
         
         /**
@@ -452,11 +470,17 @@ namespace GOFI.Plugins.TodoTXT {
             this.store = store;
             this.gee_iter = tasks.bidir_list_iterator ();
             
+            store.external_iters++;
+            
             _valid = true;
             
             store.reset.connect (() => {
                 _valid = false;
             });
+        }
+        
+        ~TaskStoreIterator () {
+            store.external_iters--;
         }
         
         public int index () {

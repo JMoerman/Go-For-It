@@ -29,11 +29,14 @@ namespace GOFI.Plugins.TodoTXT {
         private OrderBox task_list;
         private BottomBar bottom_bar;
         
-        public signal void task_selected (TXTTask? task);
-        public signal void link_clicked (string uri);
+        private bool add_new;
         
-        public TodoView () {
+        public signal void task_selected (TXTTask? task);
+        public signal void add_new_task (string task);
+        
+        public TodoView (bool add_new = false) {
             this.orientation = Gtk.Orientation.VERTICAL;
+            this.add_new = add_new;
             
             setup_widgets ();
             
@@ -69,7 +72,7 @@ namespace GOFI.Plugins.TodoTXT {
             
             scroll_view = new Gtk.ScrolledWindow (null, adjustment);
             task_list = new OrderBox ();
-            bottom_bar = new BottomBar ();
+            bottom_bar = new BottomBar (add_new);
             filter = new Filter ();
             
             task_list.set_filter_func (filter.filter);
@@ -98,6 +101,9 @@ namespace GOFI.Plugins.TodoTXT {
         
         private void connect_signals () {
             bottom_bar.search_changed.connect (filter.parse);
+            bottom_bar.add_new_task.connect ( (txt_task) => {
+                add_new_task (txt_task);
+            });
             filter.changed.connect (task_list.invalidate_filter);
             
             task_list.row_selected.connect ( (row) => {
@@ -128,7 +134,6 @@ namespace GOFI.Plugins.TodoTXT {
             TaskRow row = new TaskRow ((TXTTask) item);
             
             row.link_clicked.connect ( (uri) => {
-                link_clicked (uri);
                 bottom_bar.set_search_string (uri);
             });
             row.show_all ();
