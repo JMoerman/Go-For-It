@@ -24,7 +24,7 @@ namespace GOFI.Plugins.TodoTXT {
         
         private Gee.BidirListIterator<TXTTask> iter;
         private bool need_new_iter = true;
-        internal uint external_iters = 0;
+        private uint external_iters = 0;
         
         private Gee.LinkedList<TXTTask> tasks;
         private TXTTask to_preserve = null;
@@ -100,7 +100,7 @@ namespace GOFI.Plugins.TodoTXT {
         /**
          * 
          */
-        public TaskStoreIterator iterator () {
+        public SimpleIterator<TXTTask> iterator () {
             need_new_iter = true;
             return new TaskStoreIterator (this, tasks);
         }
@@ -126,17 +126,18 @@ namespace GOFI.Plugins.TodoTXT {
         private void connect_task_signals (TXTTask task) {
             task.changed.connect (on_task_changed);
             task.status_changed.connect (on_status_changed);
-            task.title_changed.connect (on_task_title_changed);
+            task.notify["title"].connect (on_task_title_changed);
         }
         
         private void disconnect_task_signals (TXTTask task) {
             task.changed.disconnect (on_task_changed);
             task.status_changed.disconnect (on_status_changed);
-            task.title_changed.disconnect (on_task_title_changed);
+            task.notify["title"].disconnect (on_task_title_changed);
         }
         
-        private void on_task_title_changed (TodoTask task, string title) {
-            if (!task.is_valid ()) {
+        private void on_task_title_changed (Object _task, ParamSpec pspec) {
+            TXTTask task = (TXTTask)_task;
+            if (!task.valid) {
                 remove_task ((TXTTask)task);
             }
         }
@@ -148,9 +149,8 @@ namespace GOFI.Plugins.TodoTXT {
             }
         }
         
-        private void on_status_changed (TodoTask task, bool done) {
-            stdout.printf ("%s\n", task.title);
-            task_status_changed ((TXTTask)task);
+        private void on_status_changed (TXTTask task) {
+            task_status_changed (task);
             on_change ();
         }
         
@@ -171,6 +171,11 @@ namespace GOFI.Plugins.TodoTXT {
          * Removes a task from this.
          */
         public void remove_task_at (int pos) {
+            if (pos < 0) {
+                foreach (TXTTask task in tasks) {
+                    stdout.printf ("task: %s\n", task.title);
+                }
+            }
             TXTTask task = tasks.remove_at (pos);
             need_new_iter = true;
             disconnect_task_signals (task);
@@ -444,111 +449,124 @@ namespace GOFI.Plugins.TodoTXT {
             }
             gen_etag ();
         }
+        
+        private class TaskStoreIterator : GLib.Object, SimpleIterator<TXTTask> {
+            private Gee.BidirListIterator<TXTTask> gee_iter;
+            private TaskStore store;
+            
+            public bool read_only {
+                public get {
+                    return gee_iter.read_only;
+                }
+            }
+            
+            private bool _valid;
+            
+            public bool valid {
+                public get {
+                    return _valid && gee_iter.valid;
+                }
+            }
+            
+            internal TaskStoreIterator (TaskStore store, 
+                                        Gee.LinkedList<TXTTask> tasks)
+            {
+                this.store = store;
+                this.gee_iter = tasks.bidir_list_iterator ();
+                
+                store.external_iters++;
+                
+                _valid = true;
+                
+                store.reset.connect (() => {
+                    _valid = false;
+                });
+            }
+            
+            ~TaskStoreIterator () {
+                store.external_iters--;
+            }
+            
+            public int index () {
+                return gee_iter.index ();
+            }
+            
+            public bool has_next () {
+                return gee_iter.has_next ();
+            }
+            
+            public bool next () {
+                return gee_iter.next ();
+            }
+            
+            public bool has_previous () {
+                return gee_iter.previous ();
+            }
+            
+            public bool previous () {
+                return gee_iter.previous ();
+            }
+            
+            public new TXTTask SimpleIterator.@get () {
+                return gee_iter.get ();
+            }
+            
+            public void add (TXTTask task) {
+                assert (valid);
+                if (read_only) {
+                    return;
+                }
+                
+                int index = gee_iter.index ();
+                
+                gee_iter.add (task);
+                store.item_added (index + 1);
+            }
+            
+            public void remove () {
+                assert (valid);
+                if (read_only) {
+                    return;
+                }
+                
+                int index = gee_iter.index ();
+                
+                store.disconnect_task_signals (gee_iter.get());
+                gee_iter.remove ();
+                store.item_removed (index);
+            }
+            
+            public void insert (TXTTask task) {
+                assert (valid);
+                if (read_only) {
+                    return;
+                }
+                
+                int index = gee_iter.index ();
+                
+                gee_iter.insert (task);
+                store.item_added (index);
+            }
+        }
     }
     
-    public class TaskStoreIterator {
-        private Gee.BidirListIterator<TXTTask> gee_iter;
-        private TaskStore store;
-        
-        public bool read_only {
-            public get {
-                return gee_iter.read_only;
-            }
+    public interface SimpleIterator<G> : GLib.Object {
+        public abstract bool read_only {
+            public get;
         }
         
-        private bool _valid;
-        
-        public bool valid {
-            public get {
-                return _valid && gee_iter.valid;
-            }
+        public abstract bool valid {
+            public get;
         }
         
-        internal TaskStoreIterator (TaskStore store, 
-                                    Gee.LinkedList<TXTTask> tasks)
-        {
-            this.store = store;
-            this.gee_iter = tasks.bidir_list_iterator ();
-            
-            store.external_iters++;
-            
-            _valid = true;
-            
-            store.reset.connect (() => {
-                _valid = false;
-            });
-        }
-        
-        ~TaskStoreIterator () {
-            store.external_iters--;
-        }
-        
-        public int index () {
-            return gee_iter.index ();
-        }
-        
-        public bool has_next () {
-            return gee_iter.has_next ();
-        }
-        
-        public bool next () {
-            return gee_iter.next ();
-        }
-        
-        public bool has_previous () {
-            return gee_iter.previous ();
-        }
-        
-        public bool previous () {
-            return gee_iter.previous ();
-        }
-        
-        public bool first () {
-            return gee_iter.first ();
-        }
-        
-        public bool last () {
-            return gee_iter.last ();
-        }
-        
-        public TXTTask @get () {
-            return gee_iter.@get ();
-        }
-        
-        public void add (TXTTask task) {
-            assert (valid);
-            if (read_only) {
-                return;
-            }
-            
-            int index = gee_iter.index ();
-            
-            gee_iter.add (task);
-            store.item_added (index + 1);
-        }
-        
-        public void remove () {
-            assert (valid);
-            if (read_only) {
-                return;
-            }
-            
-            int index = gee_iter.index ();
-            
-            gee_iter.remove ();
-            store.item_removed (index);
-        }
-        
-        public void insert (TXTTask task) {
-            assert (valid);
-            if (read_only) {
-                return;
-            }
-            
-            int index = gee_iter.index ();
-            
-            gee_iter.insert (task);
-            store.item_added (index);
-        }
+        public abstract int index ();
+        public abstract bool has_next ();
+        public abstract bool next ();
+        public abstract bool has_previous ();
+        public abstract bool previous ();
+        public abstract G @get ();
+        public abstract void add (G item);
+        public abstract void insert (G item);
+        public abstract void remove ();
     }
 }

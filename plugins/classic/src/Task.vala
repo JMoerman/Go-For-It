@@ -20,18 +20,41 @@ namespace GOFI.Plugins.Classic {
         
         public Gtk.TreeRowReference reference;
         
+        public override string title {
+            public get {
+                return _title;
+            }
+            protected set {
+                _title = value;
+            }
+        }
+        private string _title;
+        
+        public override bool done {
+            public get {
+                return _done;
+            }
+            public set {
+                _done = value;
+            }
+        }
+        private bool _done;
+        
+        public bool valid {
+            public get {
+                return reference.valid ();
+            }
+        }
+        
         public TXTTask (string title, bool done, Gtk.TreeRowReference reference) {
             base ();
-            this.title = title;
-            this.done = done;
+            this._title = title;
+            this._done = done;
             this.reference = reference;
         }
         
-        public override bool is_valid () {
-            if (base.is_valid ()) {
-                return reference.valid ();
-            }
-            return false;
+        public void set_title (string title) {
+            this.title = title;
         }
         
     }

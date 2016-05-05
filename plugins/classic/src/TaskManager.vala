@@ -183,7 +183,7 @@ namespace GOFI.Plugins.Classic {
             if (compare_tasks (iter)) {
                 string description;
                 todo_store.get (iter, 1, out description, -1);
-                timer_task.title = description;
+                timer_task.set_title (description);
             }
         }
         

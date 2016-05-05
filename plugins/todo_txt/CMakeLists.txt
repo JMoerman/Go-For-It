@@ -13,7 +13,6 @@ vala_precompile(VALA_C ${PLUGIN_NAME}
     src/view/TaskRow.vala
     src/view/BottomBar.vala
     src/view/TodoView.vala
-    src/view/DoneView.vala
 
 # tell what libraries to use when compiling
 PACKAGES

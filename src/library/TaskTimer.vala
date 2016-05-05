@@ -58,11 +58,11 @@ namespace GOFI {
                 // Don't change task, while timer is running
                 if (!running) {
                     if (_active_task != null) {
-                        _active_task.changed.disconnect (on_task_change);
+                        _active_task.notify["title"].disconnect (on_title_change);
                     }
                     
                     _active_task = value;
-                    _active_task.changed.connect (on_task_change);
+                    _active_task.notify["title"].connect (on_title_change);
                     // Emit the corresponding notifier signal
                     update_active_task ();
                 }
@@ -79,7 +79,7 @@ namespace GOFI {
         public signal void active_task_done (TodoTask task);
         public signal void active_task_changed (TodoTask? task, 
             bool break_active);   
-        public signal void active_task_data_changed (TodoTask task);
+        public signal void active_task_title_changed (TodoTask task);
         
         public TaskTimer (SettingsManager settings) {
             this.settings = settings;
@@ -137,8 +137,8 @@ namespace GOFI {
             }
         }
         
-        private void on_task_change () {
-            active_task_data_changed (_active_task);
+        private void on_title_change () {
+            active_task_title_changed (_active_task);
         }
         
         /**

@@ -22,10 +22,51 @@ namespace GOFI.Plugins.TodoTXT {
         public GLib.DateTime? completion_date = null;
         public char txt_priority;
         
+        private string title_part;
+        
+        public override string title {
+            public get {
+                return _title;
+            }
+            protected set {
+                _title = value;
+                changed ();
+            }
+        }
         private string _title;
+        
+        public override bool done {
+            public get {
+                return _done;
+            }
+            public set {
+                if (_done != value) {
+                    _done = value;
+                    if (_done) {
+                        completion_date = new GLib.DateTime.now_local ();
+                    } else {
+                        completion_date = null;
+                    }
+                    changed ();
+                    status_changed ();
+                }
+            }
+        }
+        private bool _done;
+        
+        public bool valid {
+            public get {
+                return (title != "");
+            }
+        }
+        
+        public signal void changed ();
+        public signal void status_changed ();
         
         public TXTTask () {
             base ();
+            _title = "";
+            _done = false;
             txt_priority = 0;
         }
         
@@ -33,6 +74,7 @@ namespace GOFI.Plugins.TodoTXT {
          * Parses a single line from the todo.txt file.
          */
         public TXTTask.from_txt (string todo_line) {
+            done = false;
             set_txt (todo_line);
         }
         
@@ -50,8 +92,8 @@ namespace GOFI.Plugins.TodoTXT {
             
             txt_priority = parse_priority (ref line);
             creation_date = parse_date (ref line);
-            _title = line;
-            title = priority_to_string (txt_priority) + _title;
+            title_part = line;
+            title = priority_to_string (txt_priority) + title_part;
         }
         
         public bool equals (TXTTask other_task) {
@@ -105,16 +147,6 @@ namespace GOFI.Plugins.TodoTXT {
             return null;
         }
         
-        public override void status_changed (bool done) {
-            if (done) {
-                completion_date = new GLib.DateTime.now_local ();
-            } else {
-                completion_date = null;
-            }
-            
-            base.status_changed (done);
-        }
-        
         public string to_txt () {
             string creation_str = date_to_string(creation_date);
             string done_str, completion_str, priority_str;
@@ -132,7 +164,7 @@ namespace GOFI.Plugins.TodoTXT {
             
             string pre = done_str + completion_str + priority_str + creation_str;
             
-            return pre + _title;
+            return pre + title_part;
         }
 
         private string date_to_string (GLib.DateTime? date) {
