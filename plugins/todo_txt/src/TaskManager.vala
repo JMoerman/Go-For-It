@@ -54,6 +54,11 @@ namespace GOFI.Plugins.TodoTXT {
             setup_stores ();
         }
         
+        public void add_task_from_txt (string txt_task) {
+            TXTTask task = new TXTTask.from_txt (txt_task);
+            todo_store.add (task);
+        }
+        
         private void move_task (TXTTask task, TaskStore dest) {
             dest.add (task);
         }
