@@ -1,0 +1,63 @@
+@define-color text_color #000;
+@define-color text_color_focus #FFF;
+
+@define-color list_bg #FFF;
+@define-color selected #d8d8d8;
+@define-color selected_focus #3e86d0;
+
+GtkLabel.task_status {
+    font-size: 200%;
+    font-weight: bold;
+}
+
+GtkLabel.task_break {
+    font-size: 120%;
+    color: #ababab;
+}
+
+GtkLabel.task_active {
+    font-size: 120%;
+}
+
+.timerview GtkSpinButton {
+    font-size: 400%;
+}
+
+.timerview GtkLabel {
+    font-size: 250%;
+}
+
+GOFIOrderBox {
+    background-color: @list_bg;
+}
+
+GOFIOrderBoxRow {
+    background-image: none;
+    padding: 3px 6px;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+GOFIOrderBoxRow:selected,
+GOFIOrderBoxRow:selected:backdrop {
+    background-color: @selected;
+    color: @text_color;
+    icon-shadow: none;
+    text-shadow: none;
+}
+
+GOFIOrderBoxRow:selected:focus {
+    background-color: @selected_focus;
+    color: @text_color_focus;
+}
+
+GOFIOrderBoxRow GtkLabel {
+    color: @text_color;
+    text-shadow: none;
+    padding: 0 6px;
+}
+
+GOFIOrderBoxRow:selected:focus GtkLabel {
+    color: @text_color_focus;
+}

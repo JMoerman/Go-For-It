@@ -372,11 +372,17 @@ namespace GOFI.Application {
         private void load_css () {
             var screen = this.get_screen();
             var css_provider = new Gtk.CssProvider();
+            string css_folder;
+            if (Gtk.get_minor_version () <= 18) {
+                css_folder = "3.10";
+            } else {
+                css_folder = "3.20";
+            }
             // Scan all potential data dirs for the corresponding css file
             foreach (var dir in Environment.get_system_data_dirs ()) {
                 // The path where the file is to be located
                 var path = Path.build_filename (dir, Constants.APP_SYSTEM_NAME, 
-                    "style", "go-for-it.css");
+                    "style", css_folder, "go-for-it.css");
                 // Only proceed, if file has been found
                 if (FileUtils.test (path, FileTest.EXISTS)) {
                     try {

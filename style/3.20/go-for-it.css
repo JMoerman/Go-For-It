@@ -1,0 +1,63 @@
+@define-color text_color #000;
+@define-color text_color_focus #FFF;
+
+@define-color list_bg #FFF;
+@define-color selected #d8d8d8;
+@define-color selected_focus #3e86d0;
+
+label.task_status {
+    font-size: 200%;
+    font-weight: bold;
+}
+
+label.task_break {
+    font-size: 120%;
+    color: #ababab;
+}
+
+label.task_active {
+    font-size: 120%;
+}
+
+.timerview spinbutton {
+    font-size: 400%;
+}
+
+.timerview label {
+    font-size: 250%;
+}
+
+.list {
+    background-color: @list_bg;
+}
+
+.list-row {
+    background-image: none;
+    padding: 3px 6px;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+.list-row:selected,
+.list-row:selected:backdrop {
+    background-color: @selected;
+    color: @text_color;
+    -gtk-icon-shadow: none;
+    text-shadow: none;
+}
+
+.list-row:selected:focus {
+    background-color: @selected_focus;
+    color: @text_color_focus;
+}
+
+.list-row label {
+    color: @text_color;
+    text-shadow: none;
+    padding: 0 6px;
+}
+
+.list-row:selected:focus label {
+    color: @text_color_focus;
+}

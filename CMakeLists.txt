@@ -69,7 +69,7 @@ add_subdirectory (plugins)
 # install .desktop file so the Applications menu will display it
 install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/data/go-for-it.desktop DESTINATION ${DATADIR}/applications/)
 # install the application's stylesheet
-install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/style/go-for-it.css DESTINATION ${PKGDATADIR}/style/)
+install (DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/style DESTINATION ${PKGDATADIR})
 # install the application's icons
 set(SYSTEM_DEFAULT_THEME ${CMAKE_INSTALL_PREFIX}/share/icons/hicolor)
 install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/data/icons/hicolor/16x16/apps/go-for-it.svg DESTINATION ${SYSTEM_DEFAULT_THEME}/16x16/apps)
