@@ -36,7 +36,10 @@ namespace GOFI.Plugins.TodoTXT {
     /**
      * ...
      */
-    public class TXTPluginProvider : GOFI.TodoPluginProvider {
+    public class TXTPluginProvider : GOFI.TaskListProvider {
+        
+        private GLib.List<TXTPlugin> lists;
+        
         private SettingsManager settings {
             get {
                 if (_settings == null) {
@@ -48,24 +51,33 @@ namespace GOFI.Plugins.TodoTXT {
                 _settings = value;
             }
         }
-
+        
         public override void on_activate () {
             init_types ();
+            lists = new GLib.List<TXTPlugin> ();
+            lists.append (new TXTPlugin (this.get_plugin_info (),settings));
         }
         
         public override void on_deactivate () {
-            
+            lists = null;
         }
         
-        public override TodoPlugin get_plugin (TaskTimer timer) {
-            return new TXTPlugin (timer, settings);
+        /**
+         * 
+         */
+        public override Gtk.Widget get_creation_widget () {
+            return new Gtk.Label ("WIP");
+        }
+        
+        public override unowned GLib.List<GOFI.TaskList> get_lists () {
+            return lists;
         }
     }
     
     /**
      * ...
      */
-    public class TXTPlugin : TodoPlugin {
+    public class TXTPlugin : GOFI.TaskList {
         
         private SettingsManager settings;
         private TaskManager task_manager;
@@ -76,11 +88,18 @@ namespace GOFI.Plugins.TodoTXT {
         
         // Menu items for this plugin
         private Gtk.MenuItem clear_done_item;
+        private GLib.List<Gtk.MenuItem> menu_items;
         
-        public TXTPlugin (TaskTimer timer, SettingsManager settings) {
-            base (timer);
-            
+        public TXTPlugin (Peas.PluginInfo plugin_info, 
+                          SettingsManager settings)
+        {
+            base(plugin_info);
             this.settings = settings;
+        }
+        
+        public override void activate (TaskTimer timer) {
+            this.task_timer = timer;
+            
             task_manager = new TaskManager (settings);
             
             setup_widgets ();
@@ -88,9 +107,16 @@ namespace GOFI.Plugins.TodoTXT {
             connect_signals ();
         }
         
-        ~TXTPlugin () {
+        public override void deactivate () {
+            if (task_timer.active_task != null) {
+                task_timer.remove_task ();
+            }
             todo_list_view.destroy ();
             done_list_view.destroy ();
+            clear_done_item = null;
+            todo_list_view = null;
+            done_list_view = null;
+            task_manager = null;
         }
         
         private void setup_widgets () {
@@ -105,7 +131,7 @@ namespace GOFI.Plugins.TodoTXT {
             clear_done_item = new Gtk.MenuItem.with_label (_("Clear Done List"));
             
             /* Add Items to Menu */
-            menu_items.add (clear_done_item);
+            menu_items.append (clear_done_item);
         }
         
         private void set_active_task (TXTTask? task) {
@@ -142,12 +168,6 @@ namespace GOFI.Plugins.TodoTXT {
         private void bind_models () {
             todo_list_view.set_store (task_manager.todo_store);
             done_list_view.set_store (task_manager.done_store);
-        }
-        
-        public override void stop () {
-            if (task_timer.active_task != null) {
-                task_timer.remove_task ();
-            }
         }
         
         public override Gtk.Widget get_primary_widget (out string page_name) {

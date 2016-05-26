@@ -21,8 +21,10 @@ namespace GOFI.Plugins.Classic {
     
     private SettingsManager _settings;
     
-    public class ClassicPluginProvider : GOFI.TodoPluginProvider,
+    public class ClassicPluginProvider : GOFI.TaskListProvider,
              PeasGtk.Configurable {
+        
+        private GLib.List<ClassicPlugin> lists;
         
         private SettingsManager settings {
             get {
@@ -35,24 +37,33 @@ namespace GOFI.Plugins.Classic {
                 _settings = value;
             }
         }
-
+        
         public override void on_activate () {
+            lists = new GLib.List<ClassicPlugin> ();
+            lists.append (new ClassicPlugin (this.get_plugin_info (),settings));
         }
         
         public override void on_deactivate () {
-            
+            lists = null;
         }
         
         public Gtk.Widget create_configure_widget () {
             return new SettingsWidget (settings);
         }
         
-        public override TodoPlugin get_plugin (TaskTimer timer) {
-            return new ClassicPlugin (timer, settings);
+        /**
+         * 
+         */
+        public override Gtk.Widget get_creation_widget () {
+            return new Gtk.Label ("WIP");
+        }
+        
+        public override unowned GLib.List<GOFI.TaskList> get_lists () {
+            return lists;
         }
     }
     
-    public class ClassicPlugin : TodoPlugin {
+    public class ClassicPlugin : GOFI.TaskList {
         private TaskManager task_manager;
         private SettingsManager settings;
         
@@ -61,18 +72,36 @@ namespace GOFI.Plugins.Classic {
         
         // Menu items for this plugin
         private Gtk.MenuItem clear_done_item;
+        private GLib.List<Gtk.MenuItem> menu_items;
         
         private Gtk.TreeSelection todo_selection;
         
-        public ClassicPlugin (TaskTimer timer, SettingsManager settings) {
-            base (timer);
+        public ClassicPlugin (Peas.PluginInfo plugin_info, 
+                              SettingsManager settings)
+        {
+            base (plugin_info);
             this.settings = settings;
+            
+            this.name = "Classic";
+        }
+        
+        public override void activate (TaskTimer timer) {
+            this.task_timer = timer;
+            
             task_manager = new TaskManager(settings);
             this.task_timer.active_task_done.connect (task_manager.mark_task_done);
             
             setup_widgets ();
             setup_menu ();
             connect_signals ();
+        }
+        
+        public override void deactivate () {
+            clear_done_item = null;
+            todo_selection = null;
+            todo_list = null;
+            done_list = null;
+            task_manager = null;
         }
         
         private void setup_widgets () {
@@ -96,10 +125,11 @@ namespace GOFI.Plugins.Classic {
         
         private void setup_menu () {
             /* Initialization */
+            menu_items = new GLib.List<Gtk.MenuItem> ();
             clear_done_item = new Gtk.MenuItem.with_label (_("Clear Done List"));
             
             /* Add Items to Menu */
-            menu_items.add (clear_done_item);
+            menu_items.append (clear_done_item);
         }
         
         public static string tree_row_ref_to_task (Gtk.TreeRowReference reference) {
@@ -170,10 +200,6 @@ namespace GOFI.Plugins.Classic {
             todo_selection_changed ();
         }
         
-        public override void stop () {
-            
-        }
-        
         public override Gtk.Widget get_primary_widget (out string page_name) {
             page_name = _("To-Do");
             return todo_list;
@@ -182,6 +208,13 @@ namespace GOFI.Plugins.Classic {
         public override Gtk.Widget get_secondary_widget (out string page_name) {
             page_name = _("Done");
             return done_list;
+        }
+        
+        /**
+         * List of menu items to be added to the application menu.
+         */
+        public override GLib.List<unowned Gtk.MenuItem> get_menu_items () {
+            return menu_items.copy ();
         }
     }
 }
