@@ -19,14 +19,14 @@ using GOFI;
 namespace GOFI.Application {
     
     /**
-     * A widget containing a TodoPlugin and its widgets and the TimerView.
+     * A widget containing a TaskList and its widgets and the TimerView.
      */
     public class MainLayout : Gtk.Grid {
         /* Various Variables */
         private SettingsManager settings;
         private bool use_header_bar;
         
-        private TodoPlugin todo_plugin = null;
+        private TaskList task_list = null;
         private TaskTimer task_timer;
         
         /* Various GTK Widgets */
@@ -37,7 +37,15 @@ namespace GOFI.Application {
         private TimerView timer_view;
         private Gtk.Widget last_page;
         
-        private Gee.List<Gtk.MenuItem> menu_items;
+        private GLib.List<unowned Gtk.MenuItem> menu_items;
+        
+        public bool list_valid {
+            public get;
+            private set;
+            default = false;
+        }
+        
+        public signal void removing_list ();
         
         /**
          * The constructor of the MainWindow class.
@@ -74,21 +82,21 @@ namespace GOFI.Application {
                 this.add (activity_switcher);
             }
             
-            menu_items = new Gee.LinkedList<Gtk.MenuItem> ();
+            menu_items = new GLib.List<Gtk.MenuItem> ();
             
             this.add (activity_stack);
         }
         
         /**
-         * Adds the widgets from todo_plugin as well as timer_view to the stack.
+         * Adds the widgets from task_list as well as timer_view to the stack.
          */
         private void add_widgets () {
             string first_page_name;
             string second_page_name;
             
             /* Instantiation of the Widgets */
-            first_page = todo_plugin.get_primary_widget (out first_page_name);
-            last_page = todo_plugin.get_secondary_widget (out second_page_name);
+            first_page = task_list.get_primary_widget (out first_page_name);
+            last_page = task_list.get_secondary_widget (out second_page_name);
             
             // Add widgets to the activity stack
             activity_stack.add_titled (first_page, "primary", first_page_name);
@@ -110,31 +118,34 @@ namespace GOFI.Application {
         }
         
         /**
-         * Updates this to display the new TodoPlugin.
+         * Updates this to display the new TaskList.
          */
-        public void set_todo_plugin (TodoPlugin todo_plugin) {
-            if (this.todo_plugin == null) {
-                this.todo_plugin = todo_plugin;
-                todo_plugin.cleared.connect ( () => {
+        public void set_task_list (TaskList task_list) {
+            if (this.task_list == null) {
+                this.task_list = task_list;
+                task_list.cleared.connect ( () => {
                    timer_view.show_no_task (); 
                 });
                 add_widgets ();
                 
-                menu_items = todo_plugin.get_menu_items ();
+                menu_items = task_list.get_menu_items ();
             } else {
-                warning ("Previous plugin was not removed!");
+                warning ("Previous list was not removed!");
             }
         }
         
         /**
-         * Restores this to its state from before set_todo_plugin was called.
+         * Restores this to its state from before set_task_list was called.
          */
-        public void remove_todo_plugin () {
-            if (todo_plugin != null) {
-                todo_plugin.stop ();
+        public void remove_task_list () {
+            if (task_list != null) {
+                task_list.deactivate ();
             }
             foreach (Gtk.Widget widget in activity_stack.get_children()) {
                 activity_stack.remove (widget);
+            }
+            foreach (Gtk.MenuItem item in menu_items) {
+                item.destroy ();
             }
             
             first_page = null;
@@ -143,7 +154,7 @@ namespace GOFI.Application {
             task_timer.reset ();
             timer_view.reset ();
             
-            todo_plugin = null;
+            task_list = null;
         }
         
         /**
@@ -153,12 +164,9 @@ namespace GOFI.Application {
             return activity_switcher;
         }
         
-        public Gee.List<Gtk.MenuItem> get_menu_items () {
-            if (ready) {
-                return menu_items;
-            } else {
-                return new Gee.LinkedList<Gtk.MenuItem> ();
-            }
+        public unowned GLib.List<unowned Gtk.MenuItem> get_menu_items () {
+            assert (list_valid);
+            return menu_items;
         }
         
         /**
@@ -166,7 +174,7 @@ namespace GOFI.Application {
          */
         public bool ready {
             get {
-                return (todo_plugin != null);
+                return (task_list != null);
             }
         }
     }

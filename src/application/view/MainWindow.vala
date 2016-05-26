@@ -27,14 +27,14 @@ namespace GOFI.Application {
         private SettingsManager settings;
         private PluginManager plugin_manager;
         private TaskTimer task_timer;
-        private TodoPluginProvider plugin_provider = null;
+        private TaskList task_list = null;
         private bool use_header_bar;
         
         /* Various GTK Widgets */
         private Gtk.Grid layout;
         private Gtk.Stack stack;
         private MainLayout main_layout;
-        private PluginSelector selector;
+        private ListSelector selector;
         
         private Gtk.ToggleToolButton menu_btn;
         private Gtk.ToolButton switch_btn;
@@ -48,8 +48,6 @@ namespace GOFI.Application {
         private Gtk.MenuItem config_item;
         private Gtk.MenuItem contribute_item;
         private Gtk.MenuItem about_item;
-        
-        private Gee.List<Gtk.MenuItem> plugin_items;
 
         /**
          * Used to determine if a notification should be sent.
@@ -81,7 +79,7 @@ namespace GOFI.Application {
             setup_notifications ();
             // Enable Notifications for the App
             Notify.init (Constants.APP_NAME);
-            plugin_manager.load_last_todo_plugin();
+            set_task_list (plugin_manager.get_last_list ());
         }
         
         public override bool delete_event (Gdk.EventAny event) {
@@ -97,51 +95,42 @@ namespace GOFI.Application {
             }
             
             if (dont_exit == false) {
-                main_layout.remove_todo_plugin ();
+                main_layout.remove_task_list ();
                 Notify.uninit ();
             }
                 
             return dont_exit;
         }
         
-        private void set_plugin_provider (TodoPluginProvider plugin_provider) {
-            if (this.plugin_provider != plugin_provider) {
-                if (this.plugin_provider != null) {
-                    main_layout.remove_todo_plugin ();
+        private void set_task_list (TaskList task_list) {
+            if (this.task_list != task_list) {
+                if (this.task_list != null) {
+                    main_layout.remove_task_list ();
                 }
-                this.plugin_provider = plugin_provider;
-                print("Loading: %s\n", plugin_provider.plugin_info.get_name ());
-                main_layout.set_todo_plugin (plugin_provider.get_plugin (task_timer));
+                this.task_list = task_list;
+                print("Loading: %s, %s\n", task_list.name, task_list.plugin_name);
+                main_layout.set_task_list (task_list);
                 break_previously_active = false;
                 
-                plugin_items = main_layout.get_menu_items ();
-                foreach (Gtk.MenuItem item in plugin_items) {
-                    app_menu.add (item);
+                if (main_layout.list_valid) {
+                    foreach (Gtk.MenuItem item in main_layout.get_menu_items ()) {
+                        app_menu.add (item);
+                    }
                 }
             }
-            if (main_layout.ready) {
-                main_layout.show_all ();
+            if (main_layout.list_valid) {
                 switch_stack ();
             }
             else {
                 warning (
-                    "Plugin %s Couldn't be loaded!",
-                    plugin_provider.plugin_info.get_name ()
+                    "TaskList %s, %s couldn't be loaded!",
+                    task_list.name, task_list.plugin_name
                 );
             }
         }
         
         private void setup_plugin_manager () {
             this.plugin_manager = new PluginManager (settings, task_timer);
-            plugin_manager.todo_plugin_load.connect (set_plugin_provider);
-            plugin_manager.todo_plugin_removed.connect ( (plugin_provider) => {
-                if (this.plugin_provider == plugin_provider) {
-                    if (main_layout_shown) {
-                        switch_stack ();
-                    }
-                    main_layout.remove_todo_plugin ();
-                }
-            });
         }
         
         /**
@@ -158,13 +147,17 @@ namespace GOFI.Application {
          */
         private void setup_widgets () {
             layout = new Gtk.Grid ();
-            selector = new PluginSelector (plugin_manager);
+            selector = new ListSelector (plugin_manager);
             main_layout = new MainLayout (settings, task_timer, use_header_bar);
             
             layout.orientation = Gtk.Orientation.VERTICAL;
             
             setup_stack ();
             setup_top_bar ();
+            
+            main_layout.removing_list.connect ( () => {
+                switch_stack ();
+            });
             
             if (!use_header_bar) {
                 layout.add(hb_replacement);
@@ -226,19 +219,11 @@ namespace GOFI.Application {
                 main_layout.get_switcher().visible = false;
                 main_layout_shown = false;
                 switch_img.set_from_icon_name ("go-next", Gtk.IconSize.LARGE_TOOLBAR);
-                
-                foreach (Gtk.MenuItem item in plugin_items) {
-                    item.hide ();
-                }
-            } else if (main_layout.ready) {
+            } else if (main_layout.list_valid) {
                 stack.set_visible_child (main_layout);
                 main_layout_shown = true;
                 main_layout.get_switcher().visible = true;
                 switch_img.set_from_icon_name ("go-previous", Gtk.IconSize.LARGE_TOOLBAR);
-                
-                foreach (Gtk.MenuItem item in plugin_items) {
-                    item.show ();
-                }
             }
         }
         
@@ -276,7 +261,6 @@ namespace GOFI.Application {
             config_item = new Gtk.MenuItem.with_label (_("Settings"));
             contribute_item = new Gtk.MenuItem.with_label (_("Contribute / Donate"));
             about_item = new Gtk.MenuItem.with_label (_("About"));
-            plugin_items = new Gee.LinkedList<Gtk.MenuItem> ();
             
             /* Signal and Action Handling */
             // Untoggle menu button, when menu is hidden

@@ -19,6 +19,48 @@ using GOFI;
 
 namespace GOFI.Application {
     
+    private class TaskListCollection {
+        private TaskListProvider provider;
+        private GLib.List<TaskList> lists;
+        
+        public string module_name {
+            get {
+                return provider.plugin_info.get_module_name ();
+            }
+        }
+        
+        public virtual signal void remove () {
+            foreach (TaskList list in lists) {
+                list.remove ();
+            }
+        }
+        
+        public signal void new_list_added (TaskList list);
+        
+        public TaskListCollection (TaskListProvider provider) {
+            this.provider = provider;
+            foreach (TaskList list in provider.get_lists ()) {
+                lists.append (list);
+            }
+            provider.list_removed.connect ( (list) => {
+                lists.remove (list);
+            });
+        }
+        
+        public TaskList? get_list_by_name (string name) {
+            foreach (TaskList list in lists) {
+                if (list.name == name) {
+                    return list;
+                }
+            }
+            return null;
+        }
+        
+        public GLib.List<TaskList> get_lists () {
+            return lists.copy ();
+        }
+    }
+    
     /**
      * PluginManager loads and controls all plugins.
      */
@@ -28,15 +70,13 @@ namespace GOFI.Application {
         private Peas.ExtensionSet exts;
 
         private SettingsManager settings;
-        private Gee.HashMap<string, TodoPluginProvider> providers;
+        private Gee.HashMap<string, TaskListCollection> list_collections;
         
         public Interface plugin_iface { private set; public get; }
         
         public TaskTimer timer;
         
-        public signal void todo_plugin_load (TodoPluginProvider provider);
-        public signal void todo_plugin_added (TodoPluginProvider provider);
-        public signal void todo_plugin_removed (TodoPluginProvider provider);
+        public signal void task_lists_added (GLib.List<TaskList> task_lists);
         
         /**
          * Constructor of PluginManager
@@ -44,7 +84,7 @@ namespace GOFI.Application {
         public PluginManager (SettingsManager settings, TaskTimer timer) {
             this.settings = settings;
             this.timer = timer;
-            providers = new Gee.HashMap<string, TodoPluginProvider> ();
+            list_collections = new Gee.HashMap<string, TaskListCollection> ();
 
             plugin_iface = new Interface (this);
 
@@ -95,44 +135,48 @@ namespace GOFI.Application {
         /**
          * Adds plugin_provider to the known TodoPluginProviders.
          */
-        public void add_plugin_provider (TodoPluginProvider plugin_provider) {
-            providers.set (
-                plugin_provider.plugin_info.get_module_name (), 
-                plugin_provider
-            );
-            todo_plugin_added (plugin_provider);
-            plugin_provider.removed.connect ( () => {
-                todo_plugin_removed (plugin_provider);
-            });
+        public void add_task_provider (TaskListProvider task_provider) {
+            TaskListCollection collection;
+            Peas.PluginInfo plugin_info = task_provider.get_plugin_info();
+            string plugin_name = plugin_info.get_module_name();
+            
+            if (!list_collections.has_key (plugin_name)) {
+                collection = new TaskListCollection (task_provider);
+                list_collections.set (plugin_name, collection);
+                task_lists_added (collection.get_lists ());
+                collection.remove.connect_after (on_collection_remove);
+            }
+        }
+        
+        private void on_collection_remove (TaskListCollection collection) {
+            list_collections.unset (collection.module_name);
         }
         
         /**
          * Attempts to load the last uses TodoPlugin.
          */
-        public bool load_last_todo_plugin () {
-            string identifier = settings.last_plugin;
-            return load_todo_plugin (identifier);
+        public TaskList? get_last_list () {
+            string[] names = settings.last_list;
+            return get_list_by_name (names[0], names[1]);
         }
         
-        /**
-         * Loads the specified TodoPlugin.
-         */
-        public bool load_todo_plugin (string identifier) {
-            if (providers.has_key (identifier)) {
-                todo_plugin_load (providers.get (identifier));
-                settings.last_plugin = identifier;
-                return true;
+        public TaskList? get_list_by_name (string plugin_name, string list_name) {
+            TaskListCollection collection;
+            
+            collection = list_collections.get(plugin_name);
+            if (collection != null) {
+                return collection.get_list_by_name (list_name);
             }
-            return false;
+            return null;
         }
         
         /**
          * Returns a list of available TodoPluginProvider instances.
          */
-        public Gee.List<TodoPluginProvider> get_plugins () {
-            var temp = new Gee.LinkedList<TodoPluginProvider> ();
-            foreach (TodoPluginProvider provider in providers.values) {
-                temp.add (provider);
+        public GLib.List<TaskList> get_lists () {
+            var temp = new GLib.List<TaskList> ();
+            foreach (TaskListCollection collection in list_collections.values) {
+                temp.concat (collection.get_lists());
             }
             return temp;
         }

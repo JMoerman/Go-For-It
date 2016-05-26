@@ -28,7 +28,7 @@ set (PROJECT_WEBSITE "http://manuel-kehl.de/projects/go-for-it/")
 set (PROJECT_REPO "https://github.com/mank319/Go-For-It")
 set (PROJECT_DONATIONS "http://manuel-kehl.de/donations/")
 
-set (DEFAULT_PLUGINS "classic")
+set (DEFAULT_PLUGINS "{\"classic\",\"todo_txt\"}")
 
 set (PREFIX ${CMAKE_INSTALL_PREFIX})
 set (DOLLAR "$")

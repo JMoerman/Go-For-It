@@ -60,8 +60,8 @@ namespace GOFI {
          * Adds a TodoPluginProvider to the list of known the list of available 
          * TodoPluginProvider instances.
          */
-        public void register_launcher (TodoPluginProvider plugin_provider) {
-            plugin_manager.add_plugin_provider(plugin_provider);
+        public void register_task_provider (TaskListProvider list_provider) {
+            plugin_manager.add_task_provider (list_provider);
         }
         
         /**

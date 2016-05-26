@@ -42,32 +42,20 @@ namespace GOFI.Application {
         /*---GROUP:Plugins----------------------------------------------------*/
         public string[] enabled_plugins {
             owned get {
-                var plugins = get_value (
+                return get_string_list (
                     GROUP_PLUGINS, "enabled_plugins", Constants.DEFAULT_PLUGINS
                 );
-                return plugins.split(":");
             }
             set {
-                string plugins = "";
-                for (int i = 0; value[i] != null; i++) {
-                    plugins = plugins.concat (value[i], ":");
-                }
-                if (plugins.length > 2) {
-                    set_value (
-                        GROUP_PLUGINS, "enabled_plugins", 
-                        plugins.slice(0, plugins.length-1)
-                    );
-                } else {
-                    set_value (GROUP_PLUGINS, "enabled_plugins", "");
-                }
+                set_string_list(GROUP_PLUGINS, "enabled_plugins", value);
             }
         }
-        public string last_plugin {
+        public string[] last_list {
             owned get {
-                return get_value (GROUP_PLUGINS, "last_plugin", "");
+                return get_string_list (GROUP_PLUGINS, "last_list", {});
             }
             set {
-                set_value (GROUP_PLUGINS, "last_plugin", value);
+                set_string_list (GROUP_PLUGINS, "last_list", value);
             }
         }
         /*---GROUP:Timer------------------------------------------------------*/
@@ -223,6 +211,30 @@ namespace GOFI.Application {
         }
         
         /**
+         * Provides read access to a setting, given a certain group and key.
+         * Public access is granted via the SettingsManager's attributes, so 
+         * this function has been declared private
+         */
+        private string[] get_string_list (string group, string key, 
+                                          string[] default = {})
+        {
+            try {
+                // use key_file, if it has been assigned
+                if (key_file != null
+                    && key_file.has_group (group)
+                    && key_file.has_key (group, key)) {
+                        return key_file.get_string_list(group, key);
+                } else {
+                    return default;
+                }
+            } catch (Error e) {
+                    warning ("An error occured while reading the setting"
+                        +" %s.%s: %s", group, key, e.message);
+                    return default;
+            }
+        }
+        
+        /**
          * Provides write access to a setting, given a certain group key and 
          * value.
          * Public access is granted via the SettingsManager's attributes, so 
@@ -236,6 +248,24 @@ namespace GOFI.Application {
                 } catch (Error e) {
                     warning ("An error occured while setting the setting"
                         +" %s.%s to %s: %s", group, key, value, e.message);
+                }
+            }
+        }
+        
+        /**
+         * Provides write access to a setting, given a certain group key and 
+         * value.
+         * Public access is granted via the SettingsManager's attributes, so 
+         * this function has been declared private
+         */
+        private void set_string_list (string group, string key, string[] list) {
+            if (key_file != null) {
+                try {
+                    key_file.set_string_list (group, key, list);
+                    write_key_file ();
+                } catch (Error e) {
+                    warning ("An error occured while setting the setting"
+                        +" %s.%s: %s", group, key, e.message);
                 }
             }
         }

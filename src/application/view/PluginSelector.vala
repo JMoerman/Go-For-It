@@ -22,18 +22,22 @@ namespace GOFI.Application {
     /**
      * A list of available plugins the user can choose from.
      */
-    public class PluginSelector : Gtk.ScrolledWindow {
+    public class ListSelector : Gtk.ScrolledWindow {
         
         private Gtk.ListBox layout;
         private Gtk.Label place_holder;
         private PluginManager plugin_manager;
         
-        public PluginSelector (PluginManager plugin_manager) {
+        public signal void list_selected (TaskList list);
+        
+        public ListSelector (PluginManager plugin_manager) {
             this.plugin_manager = plugin_manager;
             setup_layout ();
             update ();
-            plugin_manager.todo_plugin_added.connect ( (provider) => {
-                add_plugin (provider);
+            plugin_manager.task_lists_added.connect ( (lists) => {
+                foreach (TaskList list in lists) {
+                    add_list (list);
+                }
             });
             layout.row_activated.connect (on_row_activated);
         }
@@ -54,17 +58,17 @@ namespace GOFI.Application {
         
         public void update () {
             reset ();
-            var plugins = plugin_manager.get_plugins ();
-            foreach (TodoPluginProvider plugin_provider in plugins) {
-                add_plugin (plugin_provider);
+            var lists = plugin_manager.get_lists ();
+            foreach (TaskList list in lists) {
+                add_list (list);
             }
         }
         
-        public void add_plugin (TodoPluginProvider plugin_provider) {
-            var new_row = new PluginSelectorRow (plugin_provider.plugin_info);
+        public void add_list (TaskList list) {
+            var new_row = new ListSelectorRow (list);
             layout.add(new_row);
             
-            plugin_provider.removed.connect ( () => {
+            list.remove.connect ( () => {
                 new_row.destroy ();
             });
         }
@@ -73,24 +77,21 @@ namespace GOFI.Application {
          * Removes all plugins.
          */
         public void reset () {
-            var plugins = layout.get_children();
-            foreach (Gtk.Widget plugin in plugins) {
-                plugin.destroy ();
+            var rows = layout.get_children();
+            foreach (Gtk.Widget row in rows) {
+                row.destroy ();
             }
         }
         
         private void on_row_activated (Gtk.ListBoxRow row) {
-            string module_name = ((PluginSelectorRow) row).plugin_info.get_module_name ();
-            plugin_manager.load_todo_plugin (module_name);
+            list_selected (((ListSelectorRow)row).list);
         }
         
         private int sort_func (Gtk.ListBoxRow row1, Gtk.ListBoxRow row2) {
-            string row1_name = ((PluginSelectorRow) row1).plugin_info.get_name ();
-            string row2_name = ((PluginSelectorRow) row2).plugin_info.get_name ();
+            var _row1 = (ListSelectorRow) row1;
+            var _row2 = (ListSelectorRow) row2;
             
-            if (row1_name > row2_name)
-                return 1;
-            return -1;
+            return _row1.compare (_row2);
         }
     }
     
@@ -98,14 +99,22 @@ namespace GOFI.Application {
      * A row in PluginSelector, used to select a TodoPlugin to load, also stores
      * a TodoPluginProvider for the timebeing.
      */
-    class PluginSelectorRow : Gtk.ListBoxRow {
+    class ListSelectorRow : Gtk.ListBoxRow {
         private Gtk.Box layout;
         private Gtk.Label label;
-        public Peas.PluginInfo plugin_info;
+        
+        public TaskList list {
+            public get;
+            private set;
+        }
 
-        public PluginSelectorRow (Peas.PluginInfo plugin_info) {
-            this.plugin_info = plugin_info;
+        public ListSelectorRow (TaskList list) {
+            this.list = list;
             setup_layout ();
+            
+            this.list.notify["name"].connect ( () => {
+                label.label = this.list.name;
+            });
             
             this.activatable = true;
             this.show_all ();
@@ -116,9 +125,25 @@ namespace GOFI.Application {
          */
         private void setup_layout () {
             layout = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
-            label = new Gtk.Label(plugin_info.get_name ());
+            label = new Gtk.Label(list.name);
             layout.pack_start (label);
             this.add (layout);
+        }
+        
+        public int compare (ListSelectorRow other_row) {
+            if (other_row.list.plugin_name < list.plugin_name) {
+                return 1;
+            } else if (other_row.list.plugin_name > list.plugin_name) {
+                return -1;
+            } else {
+                if (other_row.list.name < list.name) {
+                    return 1;
+                } else if (other_row.list.name > list.name) {
+                    return -1;
+                } else {
+                    return 0;
+                }
+            }
         }
     }
 }

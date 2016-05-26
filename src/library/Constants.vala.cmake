@@ -27,5 +27,5 @@ namespace Constants {
     public const string PROJECT_REPO = "@PROJECT_REPO@";
     public const string PROJECT_DONATIONS = "@PROJECT_DONATIONS@";
     public const string PLUGINDIR = "@PLUGINDIR@";
-    public const string DEFAULT_PLUGINS = "@DEFAULT_PLUGINS@";
+    public const string[] DEFAULT_PLUGINS = @DEFAULT_PLUGINS@;
 }

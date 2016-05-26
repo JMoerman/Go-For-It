@@ -20,7 +20,7 @@ namespace GOFI {
     /**
      * A TodoPluginProvider provides a TodoPlugin when it is needed.
      */
-    public abstract class TodoPluginProvider : Peas.ExtensionBase,  
+    public abstract class TaskListProvider : Peas.ExtensionBase,  
             Peas.Activatable {
         
         /**
@@ -34,13 +34,28 @@ namespace GOFI {
         public Object object { owned get; construct; }
         
         /**
+         * Signal that is emited when this gets unloaded.
+         */
+        public signal void removed ();
+        
+        /**
+         * ...
+         */
+        public signal void list_removed (TaskList list);
+        
+        /**
+         * ...
+         */
+        public signal void list_added (TaskList list);
+        
+        /**
          * Implementation of Peas.Activatable.activate, this function should 
          * only be called by the main application.
          */
         public void activate () {
             plugin_iface = (Interface) object;
             on_activate ();
-            plugin_iface.register_launcher (this);
+            plugin_iface.register_task_provider (this);
         }
         
         /**
@@ -61,16 +76,6 @@ namespace GOFI {
         }
         
         /**
-         * Signal that is emited when this gets unloaded.
-         */
-        public signal void removed (); 
-        
-        /**
-         * Returns a new TodoPlugin.
-         */
-        public abstract TodoPlugin get_plugin (TaskTimer timer);
-        
-        /**
          * Function called when a TodoPluginProvider gets deactivated.
          */
         public abstract void on_deactivate ();
@@ -79,13 +84,35 @@ namespace GOFI {
          * Function called when a TodoPluginProvider gets activated.
          */
         public abstract void on_activate ();
+        
+        /**
+         * 
+         */
+        public abstract Gtk.Widget get_creation_widget ();
+        
+        public abstract unowned GLib.List<TaskList> get_lists ();
     }
     
     /**
      * This class is responsible for managing tasks and controlling the 
      * TaskTimer.
      */
-    public abstract class TodoPlugin : GLib.Object {
+    public abstract class TaskList : GLib.Object {
+        public string name {
+            public get;
+            public set;
+        }
+        
+        public string plugin_name {
+            public get {
+                return plugin_info.get_name ();
+            }
+        }
+        
+        public Peas.PluginInfo plugin_info {
+            public get;
+            construct set;
+        }
         
         /**
          * TaskTimer for controlling the TimerView in MainLayout.
@@ -93,35 +120,39 @@ namespace GOFI {
         protected TaskTimer task_timer;
         
         /**
-         * List of menu items to be added to the application menu.
-         */
-        protected Gee.List<Gtk.MenuItem> menu_items;
-        
-        /**
          * Signal that is emited when there are no tasks left.
          */
         public signal void cleared ();
         
         /**
+         * 
+         */
+        public signal void remove ();
+        
+        /**
          * Constructor of TodoPlugin, should always be called by sub classes.
          */
-        public TodoPlugin (TaskTimer timer) {
-            this.task_timer = timer;
-            this.menu_items = new Gee.LinkedList<Gtk.MenuItem> ();
+        public TaskList (Peas.PluginInfo plugin_info) {
+            this.plugin_info = plugin_info;
         }
         
         /**
-         * Returns a list of menu_items.
+         * ...
          */
-        public Gee.List<Gtk.MenuItem> get_menu_items () {
-            return menu_items;
-        }
+        public abstract void activate (TaskTimer timer);
         
         /**
          * A function called when this TodoPlugin is about to get removed from 
          * the application. Stops all activity and saves all tasks.
          */
-        public abstract void stop ();
+        public abstract void deactivate ();
+        
+        /**
+         * List of menu items to be added to the application menu.
+         */
+        public virtual GLib.List<unowned Gtk.MenuItem> get_menu_items () {
+            return new GLib.List<unowned Gtk.MenuItem> ();
+        }
         
         /**
          * Primary widget showing all tasks that need to be done.
