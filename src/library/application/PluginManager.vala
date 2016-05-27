@@ -153,11 +153,14 @@ namespace GOFI.Application {
         }
         
         /**
-         * Attempts to load the last uses TodoPlugin.
+         * Attempts to load the last used TaskList.
          */
-        public TaskList? get_last_list () {
+        public TaskList? get_last_opened_list () {
             string[] names = settings.last_list;
-            return get_list_by_name (names[0], names[1]);
+            if (names.length == 2) {
+                return get_list_by_name (names[0], names[1]);
+            }
+            return null;
         }
         
         public TaskList? get_list_by_name (string plugin_name, string list_name) {

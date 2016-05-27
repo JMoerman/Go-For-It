@@ -55,17 +55,21 @@ namespace GOFI {
         public TodoTask? active_task {
             get { return _active_task; }
             set {
-                // Don't change task, while timer is running
-                if (!running) {
-                    if (_active_task != null) {
-                        _active_task.notify["title"].disconnect (on_title_change);
-                    }
-                    
-                    _active_task = value;
-                    _active_task.notify["title"].connect (on_title_change);
-                    // Emit the corresponding notifier signal
-                    update_active_task ();
+                if (_active_task == value) {
+                    return;
                 }
+                
+                stop ();
+                if (_active_task != null) {
+                    _active_task.notify["title"].disconnect (on_title_change);
+                }
+                
+                _active_task = value;
+                if (_active_task != null) {
+                    _active_task.notify["title"].connect (on_title_change);
+                }
+                // Emit the corresponding notifier signal
+                update_active_task ();
             }
         }
         private bool almost_over_sent_already { get; set; default = false; }
@@ -215,7 +219,6 @@ namespace GOFI {
          */
         public void set_active_task_done () {
             stop ();
-            _active_task.done = true;
             active_task_done (_active_task);
             // Resume break, only keep stopped when a Task is active
             if (break_active) {

@@ -95,11 +95,13 @@ namespace GOFI.Plugins.TodoTXT {
         {
             base(plugin_info);
             this.settings = settings;
+            
+            this.notify["active-task"].connect (on_active_task_changed);
+            
+            this.name = "Todo.txt";
         }
         
-        public override void activate (TaskTimer timer) {
-            this.task_timer = timer;
-            
+        public override void activate () {
             task_manager = new TaskManager (settings);
             
             setup_widgets ();
@@ -108,9 +110,8 @@ namespace GOFI.Plugins.TodoTXT {
         }
         
         public override void deactivate () {
-            if (task_timer.active_task != null) {
-                task_timer.remove_task ();
-            }
+            active_task = null;
+            selected_task = null;
             todo_list_view.destroy ();
             done_list_view.destroy ();
             clear_done_item = null;
@@ -134,31 +135,18 @@ namespace GOFI.Plugins.TodoTXT {
             menu_items.append (clear_done_item);
         }
         
-        private void set_active_task (TXTTask? task) {
-            task_timer.active_task = task;
-            task_manager.active_task = task;
+        private void on_active_task_changed () {
+            task_manager.active_task = (TXTTask) active_task;
         }
         
         private void connect_signals () {
-            todo_list_view.task_selected.connect (set_active_task);
+            todo_list_view.task_selected.connect ( (task) => {
+                selected_task = task;
+            });
             todo_list_view.add_new_task.connect (task_manager.add_task_from_txt);
             
-            task_manager.active_task_completed.connect (() => {
-                TXTTask task;
-                
-                if (task_timer.running || 
-                    task_timer.active_task == task_manager.active_task)
-                {
-                    task_timer.remove_task ();
-                    task = todo_list_view.get_selected ();
-                    set_active_task(task);
-                }
-            });
             task_manager.active_task_invalid.connect (() => {
-                TXTTask task;
-                task_timer.remove_task ();
-                task = todo_list_view.get_selected ();
-                set_active_task(task);
+                active_task = todo_list_view.get_selected ();
             });
             clear_done_item.activate.connect ( () => {
                 task_manager.clear_done_store ();
@@ -168,6 +156,14 @@ namespace GOFI.Plugins.TodoTXT {
         private void bind_models () {
             todo_list_view.set_store (task_manager.todo_store);
             done_list_view.set_store (task_manager.done_store);
+        }
+        
+        public override void set_active_task_done () {
+            active_task.done = true;
+        }
+        
+        public override TodoTask? get_next () {
+            return this.selected_task;
         }
         
         public override Gtk.Widget get_primary_widget (out string page_name) {

@@ -85,11 +85,8 @@ namespace GOFI.Plugins.Classic {
             this.name = "Classic";
         }
         
-        public override void activate (TaskTimer timer) {
-            this.task_timer = timer;
-            
+        public override void activate () {
             task_manager = new TaskManager(settings);
-            this.task_timer.active_task_done.connect (task_manager.mark_task_done);
             
             setup_widgets ();
             setup_menu ();
@@ -97,6 +94,8 @@ namespace GOFI.Plugins.Classic {
         }
         
         public override void deactivate () {
+            active_task = null;
+            selected_task = null;
             clear_done_item = null;
             todo_selection = null;
             todo_list = null;
@@ -108,9 +107,11 @@ namespace GOFI.Plugins.Classic {
             todo_list = new TaskList (this.task_manager.todo_store, true);
             done_list = new TaskList (this.task_manager.done_store, false);
             todo_selection = todo_list.task_view.get_selection ();
-            var active_task = (TXTTask)task_timer.active_task;
-            if (active_task != null)
-                todo_selection.select_path (active_task.reference.get_path ());
+            if (active_task != null) {
+                todo_selection.select_path (
+                    ((TXTTask)active_task).reference.get_path ()
+                );
+            }
             
             /* 
              * If either the selection or the data itself changes, it is 
@@ -168,8 +169,7 @@ namespace GOFI.Plugins.Classic {
             
             var task = new TXTTask(tree_row_ref_to_task(reference), false, reference);
             
-            this.task_timer.active_task = task;
-            this.task_manager.set_timer_task ((TXTTask) task_timer.active_task);
+            this.selected_task = task;
         }
         
         private void connect_signals () {
@@ -179,9 +179,6 @@ namespace GOFI.Plugins.Classic {
             clear_done_item.activate.connect ((e) => {
                 task_manager.clear_done_store ();
             });
-            task_manager.timer_task_completed.connect ( () => {
-                this.task_timer.remove_task ();
-            });
             task_manager.refreshed.connect (on_refresh);
         }
         
@@ -189,15 +186,21 @@ namespace GOFI.Plugins.Classic {
          * Fix the TXTTask used by task_timer if necessary
          */
         private void on_refresh () {
-            if (this.task_timer.running) {
-                if (task_manager.fix_task ()) {
-                    return;
-                } else {
-                    stdout.printf ("Unable to restore running task!\n");
-                    this.task_timer.remove_task ();
-                }
+            if (task_manager.fix_task ()) {
+                return;
+            } else {
+                stdout.printf ("Unable to restore running task!\n");
+                this.active_task = this.selected_task;
             }
-            todo_selection_changed ();
+        }
+        
+        public override void set_active_task_done () {
+            active_task.done = true;
+            task_manager.mark_task_done (active_task);
+        }
+        
+        public override TodoTask? get_next () {
+            return this.selected_task;
         }
         
         public override Gtk.Widget get_primary_widget (out string page_name) {

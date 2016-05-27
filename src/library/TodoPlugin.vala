@@ -109,15 +109,26 @@ namespace GOFI {
             }
         }
         
+        public string module_name {
+            public get {
+                return plugin_info.get_module_name ();
+            }
+        }
+        
+        public TodoTask? selected_task {
+            public get;
+            protected set;
+        }
+        
+        public TodoTask? active_task {
+            public get;
+            public set;
+        }
+        
         public Peas.PluginInfo plugin_info {
             public get;
             construct set;
         }
-        
-        /**
-         * TaskTimer for controlling the TimerView in MainLayout.
-         */
-        protected TaskTimer task_timer;
         
         /**
          * Signal that is emited when there are no tasks left.
@@ -139,7 +150,7 @@ namespace GOFI {
         /**
          * ...
          */
-        public abstract void activate (TaskTimer timer);
+        public abstract void activate ();
         
         /**
          * A function called when this TodoPlugin is about to get removed from 
@@ -147,12 +158,19 @@ namespace GOFI {
          */
         public abstract void deactivate ();
         
+        public abstract void set_active_task_done ();
+        
         /**
          * List of menu items to be added to the application menu.
          */
         public virtual GLib.List<unowned Gtk.MenuItem> get_menu_items () {
             return new GLib.List<unowned Gtk.MenuItem> ();
         }
+        
+        /**
+         * ...
+         */
+        public abstract TodoTask? get_next ();
         
         /**
          * Primary widget showing all tasks that need to be done.

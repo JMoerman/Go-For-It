@@ -79,7 +79,15 @@ namespace GOFI.Application {
             setup_notifications ();
             // Enable Notifications for the App
             Notify.init (Constants.APP_NAME);
-            set_task_list (plugin_manager.get_last_list ());
+            load_last_opened ();
+        }
+        
+        private void load_last_opened () {
+            var list = plugin_manager.get_last_opened_list ();
+            
+            if (list != null) {
+                set_task_list (list);
+            }
         }
         
         public override bool delete_event (Gdk.EventAny event) {
@@ -158,6 +166,7 @@ namespace GOFI.Application {
             main_layout.removing_list.connect ( () => {
                 switch_stack ();
             });
+            selector.list_selected.connect (set_task_list);
             
             if (!use_header_bar) {
                 layout.add(hb_replacement);
@@ -219,11 +228,13 @@ namespace GOFI.Application {
                 main_layout.get_switcher().visible = false;
                 main_layout_shown = false;
                 switch_img.set_from_icon_name ("go-next", Gtk.IconSize.LARGE_TOOLBAR);
+                settings.last_list = {};
             } else if (main_layout.list_valid) {
                 stack.set_visible_child (main_layout);
                 main_layout_shown = true;
                 main_layout.get_switcher().visible = true;
                 switch_img.set_from_icon_name ("go-previous", Gtk.IconSize.LARGE_TOOLBAR);
+                settings.last_list = {task_list.module_name, task_list.name};
             }
         }
         
@@ -302,9 +313,9 @@ namespace GOFI.Application {
         }
         
         private void task_timer_activated (TodoTask? task,
-                                           bool break_active) {
-            
-            if (task == null) {
+                                           bool break_active)
+        {
+            if (task == null && task_timer.running) {
                 warning ("Timer running without task!");
                 return;
             }

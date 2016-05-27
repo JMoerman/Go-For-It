@@ -59,6 +59,7 @@ namespace GOFI.Application {
             
             this.orientation = Gtk.Orientation.VERTICAL;
             initial_setup ();
+            task_timer.active_task_done.connect (on_task_done);
         }
         
         /**
@@ -123,14 +124,41 @@ namespace GOFI.Application {
         public void set_task_list (TaskList task_list) {
             if (this.task_list == null) {
                 this.task_list = task_list;
-                task_list.cleared.connect ( () => {
-                   timer_view.show_no_task (); 
-                });
+                this.task_list.activate ();
+                task_list.cleared.connect (timer_view.show_no_task);
+                task_list.notify["active-task"].connect(on_active_task_changed);
+                task_list.notify["selected-task"].connect(on_selected_task_changed);
                 add_widgets ();
+                this.show_all ();
                 
                 menu_items = task_list.get_menu_items ();
+                list_valid = true;
             } else {
                 warning ("Previous list was not removed!");
+            }
+        }
+        
+        private void on_task_done () {
+            task_list.set_active_task_done ();
+            get_next_task ();
+        }
+        
+        private void get_next_task () {
+            TodoTask? task = task_list.get_next ();
+            
+            task_timer.active_task = task;
+            task_list.active_task = task;
+        }
+        
+        private void on_active_task_changed () {
+            task_timer.active_task = task_list.active_task;
+        }
+        
+        private void on_selected_task_changed () {
+            // Don't change task, while timer is running
+            if (!task_timer.running) {
+                task_timer.active_task = task_list.selected_task;
+                task_list.active_task = task_list.selected_task;
             }
         }
         
@@ -138,8 +166,12 @@ namespace GOFI.Application {
          * Restores this to its state from before set_task_list was called.
          */
         public void remove_task_list () {
+            list_valid = false;
             if (task_list != null) {
                 task_list.deactivate ();
+                task_list.cleared.disconnect (timer_view.show_no_task);
+                task_list.notify["active-task"].disconnect(on_active_task_changed);
+                task_list.notify["selected-task"].disconnect(on_selected_task_changed);
             }
             foreach (Gtk.Widget widget in activity_stack.get_children()) {
                 activity_stack.remove (widget);
