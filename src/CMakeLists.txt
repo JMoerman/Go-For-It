@@ -36,6 +36,7 @@ vala_precompile (VALA_C ${LIBNAME}
 PACKAGES
     gtk+-3.0
     libnotify
+    posix
 OPTIONS
     ${VALAC_OPTIONS}
 GENERATE_VAPI

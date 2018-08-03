@@ -71,11 +71,7 @@ class TaskManager {
 
         refresh_queued = false;
 
-        if (this.todo_txt_location != null) {
-            load_task_stores (this.todo_txt_location);
-        } else {
-            load_task_stores (settings.todo_txt_location);
-        }
+        load_task_stores (this.todo_txt_location);
         connect_store_signals ();
 
         // Write default tasks
