@@ -1,3 +1,13 @@
+com.github.jmoerman.go-for-it (1.6.7) xenial; urgency=low
+
+  * Added minimal support for creation and completion dates as well as the priori
+    ty of a task.
+  * The creation and completion dates are stored for new tasks.
+  * Fixed: Dragging a selected task could cause the timer to state that all 
+    tasks are finished.
+
+ -- Jonathan Moerman <jonathanmoerman@gmal.com>  Fri, 10 Okt 2018 13:30:00 +0100
+
 com.github.jmoerman.go-for-it (1.6.3) xenial; urgency=low
 
   * The CMake script now checks if intltool-merge is present.
