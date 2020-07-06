@@ -83,4 +83,10 @@ namespace GOFI {
             }
         }
     }
+
+    enum ColorScheme {
+        DEFAULT,
+        LIGHT,
+        DARK;
+    }
 }
