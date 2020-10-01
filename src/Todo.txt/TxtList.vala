@@ -19,7 +19,7 @@ class GOFI.TXT.TxtList : GOFI.TaskList, Object {
     private TaskListWidget todo_list;
     private TaskListWidget done_list;
 
-    private Gtk.Box menu_box;
+    private TodoListMenuAction[] menu_actions;
 
     public ListSettings list_settings {
         public get;
@@ -123,8 +123,8 @@ class GOFI.TXT.TxtList : GOFI.TaskList, Object {
         return done_list;
     }
 
-    public unowned Gtk.Widget? get_menu () {
-        return menu_box;
+    public unowned TodoListMenuAction[] get_menu_actions () {
+        return menu_actions;
     }
 
     public void clear_done_list () {
@@ -163,6 +163,14 @@ class GOFI.TXT.TxtList : GOFI.TaskList, Object {
         todo_list.entry_focus ();
     }
 
+    public void handle_action (string action) {
+        if (action == TaskList.ACTION_CLEAR) {
+            clear_done_list();
+        } else if (action == TaskList.ACTION_SORT) {
+            sort_tasks();
+        }
+    }
+
     /**
      * Called when this todo.txt list has been selected by the user.
      * This function should be used to initialize the widgets and other objects.
@@ -171,18 +179,15 @@ class GOFI.TXT.TxtList : GOFI.TaskList, Object {
         task_manager = new TaskManager (list_settings);
         todo_list = new TaskListWidget (this.task_manager.todo_store, true);
         done_list = new TaskListWidget (this.task_manager.done_store, false);
-        var clear_done_button = new Gtk.ModelButton ();
-        clear_done_button.text = _("Clear Done List");
-        clear_done_button.clicked.connect (clear_done_list);
 
-        var sort_tasks_button = new Gtk.ModelButton ();
-        sort_tasks_button.text = _("Sort tasks");
-        sort_tasks_button.clicked.connect (sort_tasks);
-
-        menu_box = new Gtk.Box (Gtk.Orientation.VERTICAL, 0);
-        menu_box.add (sort_tasks_button);
-        menu_box.add (clear_done_button);
-        menu_box.show_all ();
+        menu_actions = {
+            TodoListMenuAction() {
+                name=_("Clear Done List"), action=TaskList.ACTION_CLEAR
+            },
+            TodoListMenuAction() {
+                name=_("Sort tasks"), action=TaskList.ACTION_SORT
+            }
+        };
 
         /* Action and Signal Handling */
         todo_list.add_new_task.connect (task_manager.add_new_task);
@@ -203,6 +208,6 @@ class GOFI.TXT.TxtList : GOFI.TaskList, Object {
         todo_list = null;
         done_list = null;
         task_manager = null;
-        menu_box = null;
+        menu_actions = null;
     }
 }

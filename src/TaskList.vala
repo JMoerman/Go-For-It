@@ -15,7 +15,15 @@
 * with Go For It!. If not, see http://www.gnu.org/licenses/.
 */
 
+public struct TodoListMenuAction{
+    string name;
+    string action;
+}
+
 public interface GOFI.TaskList : Object{
+
+    public const string ACTION_SORT = "sort";
+    public const string ACTION_CLEAR = "clear";
 
     /**
      * @param sched schedule of task and break durations
@@ -71,7 +79,8 @@ public interface GOFI.TaskList : Object{
      */
     public abstract unowned Gtk.Widget get_secondary_page (out string? page_name);
 
-    public abstract unowned Gtk.Widget? get_menu ();
+    public abstract unowned TodoListMenuAction[] get_menu_actions ();
+    public abstract unowned void handle_action (string action);
 
     /**
      * Returns the schedule of task and break times specific to this list.

@@ -41,15 +41,15 @@ class GOFI.MainWindow : Gtk.ApplicationWindow {
     private Gtk.Image switch_img;
 
     // Application Menu
-    private Gtk.Popover menu_popover;
-    private Gtk.Box menu_container;
-    private Gtk.Box list_menu_container;
+    private GLib.Menu menu_model;
+    private GLib.Menu list_menu_model;
 
     private Gtk.Settings gtk_settings;
 
-    private Gtk.Widget? list_menu;
+    private TaskList? current_list;
 
     public const string ACTION_PREFIX = "win";
+    public const string ACTION_TASKS_PREFIX = "tasks";
     public const string ACTION_ABOUT = "about";
     public const string ACTION_CONTRIBUTE = "contribute";
     public const string ACTION_FILTER = "filter";
@@ -71,7 +71,9 @@ class GOFI.MainWindow : Gtk.ApplicationWindow {
         { ACTION_NEW, action_create_new },
         { ACTION_TIMER, action_toggle_timer },
         { ACTION_SWITCH_PAGE_LEFT, action_switch_page_left },
-        { ACTION_SWITCH_PAGE_RIGHT, action_switch_page_right }
+        { ACTION_SWITCH_PAGE_RIGHT, action_switch_page_right },
+        { ACTION_TASKS_PREFIX+TaskList.ACTION_CLEAR, action_tasks_clear },
+        { ACTION_TASKS_PREFIX+TaskList.ACTION_SORT, action_tasks_sort },
     };
 
     /**
@@ -143,7 +145,7 @@ class GOFI.MainWindow : Gtk.ApplicationWindow {
 
     private void load_initial (TodoListInfo? initial_list) {
         if (initial_list == null) {
-            list_menu_container.hide ();
+            list_menu_model.remove_all ();
         } else {
             on_list_chosen (initial_list);
         }
@@ -227,13 +229,22 @@ class GOFI.MainWindow : Gtk.ApplicationWindow {
         switch_top_stack (false);
     }
 
+    private void load_current_list_menu () {
+        var menu_items = current_list.get_menu_actions ();
+        foreach (var menu_item in menu_items) {
+            list_menu_model.append (
+                menu_item.name,
+                ACTION_PREFIX + "." + ACTION_TASKS_PREFIX + menu_item.action
+            );
+        }
+    }
+
     private void load_list (TaskList list) {
         task_page.show_task_list (list);
-        if (list_menu != null) {
-            list_menu_container.remove (list_menu);
+        if (current_list != null) {
+            list_menu_model.remove_all ();
         }
-        list_menu = list.get_menu ();
-        list_menu_container.pack_start (list_menu);
+        current_list = list;
     }
 
     private void setup_actions (Gtk.Application app) {
@@ -301,6 +312,18 @@ class GOFI.MainWindow : Gtk.ApplicationWindow {
         }
     }
 
+    private void action_tasks_clear () {
+        if (current_list != null) {
+            current_list.handle_action(TaskList.ACTION_CLEAR);
+        }
+    }
+
+    private void action_tasks_sort () {
+        if (current_list != null) {
+            current_list.handle_action(TaskList.ACTION_SORT);
+        }
+    }
+
     private void setup_stack () {
         top_stack = new Gtk.Stack ();
         top_stack.add (selection_page);
@@ -311,16 +334,13 @@ class GOFI.MainWindow : Gtk.ApplicationWindow {
     private void setup_top_bar () {
         // Butons and their corresponding images
         var menu_img = GOFI.Utils.load_image_fallback (
-            settings.toolbar_icon_size, "open-menu", "open-menu-symbolic",
+            settings.toolbar_icon_size, "open-menu-symbolic", "open-menu",
             "open-menu-fallback");
         menu_btn = new Gtk.MenuButton ();
         menu_btn.hexpand = false;
         menu_btn.image = menu_img;
         menu_btn.tooltip_text = _("Menu");
-
-        menu_popover = new Gtk.Popover (menu_btn);
-        menu_popover.add (menu_container);
-        menu_btn.popover = menu_popover;
+        menu_btn.menu_model = menu_model;
 
         switch_img = new Gtk.Image.from_icon_name ("go-next", settings.toolbar_icon_size);
         switch_btn = new Gtk.ToolButton (switch_img, null);
@@ -354,8 +374,7 @@ class GOFI.MainWindow : Gtk.ApplicationWindow {
             switch_btn.tooltip_text = switch_btn_list_text;
             settings.list_last_loaded = null;
             task_page.show_switcher (false);
-            list_menu_container.hide ();
-            list_menu_container.hide ();
+            list_menu_model.remove_all ();
         } else if (task_page.ready) {
             var current_list_info = task_page.shown_list.list_info;
             top_stack.set_visible_child (task_page);
@@ -368,7 +387,7 @@ class GOFI.MainWindow : Gtk.ApplicationWindow {
                 settings.list_last_loaded = null;
             }
             task_page.show_switcher (true);
-            list_menu_container.show ();
+            load_current_list_menu ();
         }
     }
 
@@ -411,35 +430,29 @@ class GOFI.MainWindow : Gtk.ApplicationWindow {
 
     private void setup_menu () {
         /* Initialization */
-        menu_container = new Gtk.Box (Gtk.Orientation.VERTICAL, 0);
-        list_menu_container = new Gtk.Box (Gtk.Orientation.VERTICAL, 0);
-        var config_item = new Gtk.ModelButton ();
+        menu_model = new GLib.Menu ();
 
-        list_menu_container.pack_end (
-            new Gtk.Separator (Gtk.Orientation.HORIZONTAL)
+        list_menu_model = new GLib.Menu ();
+        var app_menu_model = new GLib.Menu ();
+
+        menu_model.append_section (null, list_menu_model);
+        menu_model.append_section (null, app_menu_model);
+
+        app_menu_model.append (
+            _("Settings"), ACTION_PREFIX + "." + ACTION_SETTINGS
         );
 
-        menu_container.add (list_menu_container);
-
-        config_item.text = _("Settings");
-        config_item.action_name = ACTION_PREFIX + "." + ACTION_SETTINGS;
-        menu_container.add (config_item);
-
 #if !NO_CONTRIBUTE_DIALOG
-        var contribute_item = new Gtk.ModelButton ();
-        contribute_item.text = _("Contribute / Donate");
-        contribute_item.action_name = ACTION_PREFIX + "." + ACTION_CONTRIBUTE;
-        menu_container.add (contribute_item);
+        app_menu_model.append (
+            _("Contribute / Donate"), ACTION_PREFIX + "." + ACTION_CONTRIBUTE
+        );
 #endif
 
 #if SHOW_ABOUT
-        var about_item = new Gtk.ModelButton ();
-        about_item.text = _("About");
-        about_item.action_name = ACTION_PREFIX + "." + ACTION_ABOUT;
-        menu_container.add (about_item);
+        app_menu_model.append (
+            _("About"), ACTION_PREFIX + "." + ACTION_ABOUT
+        );
 #endif
-
-        menu_container.show_all ();
     }
 
     private void show_about_dialog () {
