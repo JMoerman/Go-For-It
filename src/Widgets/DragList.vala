@@ -31,6 +31,8 @@ public class GOFI.DragList : Gtk.Bin {
     private DragListRow? hover_row_top;
     private DragListRow? hover_row_bottom;
     private DragListRow? selected_row;
+    private DragListHoverSpacer spacer;
+    private Gtk.Allocation hover_alloc;
     internal DragListRow? drag_row;
     private bool should_scroll = false;
     private bool scrolling = false;
@@ -38,12 +40,13 @@ public class GOFI.DragList : Gtk.Bin {
 
     private bool ranges_set = false;
     private IntRange input_range;
-    private IntRange drag_row_range;
     private IntRange current_hover_range;
 
     private const int SCROLL_STEP_SIZE = 8;
     private const int SCROLL_DISTANCE = 30;
     private const int SCROLL_DELAY = 50;
+
+    private const int DND_MARGIN = 20;
 
     // To block recursively emitting and calling signals
     private bool internal_signal;
@@ -138,6 +141,8 @@ public class GOFI.DragList : Gtk.Bin {
         listbox = new Gtk.ListBox ();
         listbox.set_selection_mode (Gtk.SelectionMode.BROWSE);
         listbox.set_activate_on_single_click (false);
+        spacer = new DragListHoverSpacer ();
+        spacer.parent = this;
         selected_row = null;
         Gtk.drag_dest_set (
             listbox, Gtk.DestDefaults.ALL, dlb_entries, Gdk.DragAction.MOVE
@@ -148,6 +153,13 @@ public class GOFI.DragList : Gtk.Bin {
 
         add (listbox);
         connect_signals ();
+
+        this.draw.connect ((context) => {
+            if (hover_alloc.height != 0) {
+                spacer.draw (context);
+            }
+            return false;
+        });
     }
 
     private void connect_signals () {
@@ -418,7 +430,8 @@ public class GOFI.DragList : Gtk.Bin {
      * @param index the index of the row
      */
     public unowned DragListRow? get_row_at_index (int index) {
-        return (DragListRow)listbox.get_row_at_index (index);
+        var row = listbox.get_row_at_index (index);
+        return (DragListRow)row;
     }
 
     /**
@@ -458,9 +471,6 @@ public class GOFI.DragList : Gtk.Bin {
     /**
      * Used to clamp the drag input to the area filled by the current rows to
      * make highlighting easier.
-     *
-     * Also sets drag_row_range to the y coordinates that would cause no change
-     * when a row is dropped at those positions.
      */
     private void set_ranges () {
         if (ranges_set) {
@@ -468,7 +478,6 @@ public class GOFI.DragList : Gtk.Bin {
         }
         input_range = {min: 0, max: -1};
         current_hover_range = {min: 0, max: -1};
-        drag_row_range = {min: 0, max: -1};
 
         int last_index = (int)listbox.get_children ().length () - 1;
         DragListRow first = get_row_at_index (0);
@@ -480,32 +489,7 @@ public class GOFI.DragList : Gtk.Bin {
         last.get_allocation (out alloc);
         input_range.max = alloc.y + alloc.height - 1;
 
-        set_drag_row_range ();
         ranges_set = true;
-    }
-
-    private void set_drag_row_range () {
-        if (drag_row == null) {
-            return;
-        }
-
-        int drag_row_index = drag_row.get_index ();
-        Gtk.Allocation alloc;
-        drag_row.get_allocation (out alloc);
-
-        if (drag_row_index >= 1) {
-            drag_row_range.min = get_widget_middle (
-                listbox.get_row_at_index (drag_row_index - 1)
-            );
-        } else {
-            drag_row_range.min = alloc.y;
-        }
-        var next_row = listbox.get_row_at_index (drag_row_index + 1);
-        if (next_row != null) {
-            drag_row_range.max = get_widget_middle (next_row);
-        } else {
-            drag_row_range.max = alloc.y + alloc.height;
-        }
     }
 
     private int get_widget_middle (Gtk.Widget widget) {
@@ -521,9 +505,7 @@ public class GOFI.DragList : Gtk.Bin {
         set_ranges ();
         y = input_range.clamp (y);
         if (!current_hover_range.contains (y)) {
-            remove_hover_style ();
             set_hover_rows (y);
-            add_hover_style ();
         }
 
         check_scroll (y);
@@ -541,66 +523,114 @@ public class GOFI.DragList : Gtk.Bin {
      * to the rows the dragrow would be inserted between.
      */
     private void set_hover_rows (int y) {
-        if (drag_row_range.contains (y)) {
-            set_hover_rows_deadzone ();
-        } else {
-            set_hover_rows_from_y (y);
-        }
+        set_hover_rows_from_y (y);
     }
 
-    private void set_hover_rows_deadzone () {
-        hover_row_bottom = null;
-        hover_row_top = null;
-        current_hover_range = drag_row_range;
+    private DragListRow? get_visible_row_above (int index) {
+        DragListRow row = null;
+        do {
+            row = get_row_at_index (index);
+            index--;
+        } while (row != null && row.visible != true);
+
+        if (row != null && row.visible) {
+            return row;
+        }
+        return null;
+    }
+
+    private DragListRow? get_visible_row_below (int index) {
+        DragListRow row = null;
+        do {
+            row = get_row_at_index (index);
+            index++;
+        } while (row != null && row.visible != true);
+
+        if (row != null && row.visible) {
+            return row;
+        }
+        return null;
     }
 
     private void set_hover_rows_from_y (int y) {
-        var row = (DragListRow)listbox.get_row_at_y (y);
+        int offset = 0;
+        if (y > hover_alloc.y) {
+            offset = hover_alloc.height;
+        }
+
+        var old_bottom = hover_row_bottom;
+        var old_top = hover_row_top;
+
+        var row = (DragListRow)listbox.get_row_at_y (y + offset);
         int hover_row_middle = get_widget_middle (row);
 
-        if (y < hover_row_middle) {
-            hover_row_bottom = row;
-            hover_row_top = get_row_at_index (row.get_index () - 1);
-            current_hover_range.max = hover_row_middle;
-            if (hover_row_top != null) {
-                current_hover_range.min = get_widget_middle (hover_row_top);
-            } else {
+        if (y + offset < hover_row_middle) {
+            var row_above = get_visible_row_above (row.get_index () - 1);
+            current_hover_range.max = hover_row_middle - offset;
+            if (row_above == null) {
+                hover_row_bottom = row;
+                hover_row_top = null;
+
                 current_hover_range.min = input_range.min;
+            } else {
+                hover_row_bottom = null;
+                hover_row_top = row_above;
+
+                current_hover_range.min = get_widget_middle (hover_row_top) - offset;
             }
         } else {
+            var row_below = get_visible_row_below (row.get_index () + 1);
             hover_row_top = row;
-            hover_row_bottom = get_row_at_index (row.get_index () + 1);
-            current_hover_range.min = hover_row_middle;
-            if (hover_row_bottom != null) {
-                current_hover_range.max = get_widget_middle (hover_row_bottom);
+            hover_row_bottom = null;
+            current_hover_range.min = hover_row_middle - offset;
+            if (row_below != null) {
+                current_hover_range.max = get_widget_middle (row_below) - offset;
             } else {
                 current_hover_range.max = input_range.max;
             }
         }
+        Gtk.Allocation margin_row_alloc;
+        if (hover_row_top != null) {
+            hover_row_top.get_allocation (out margin_row_alloc);
+            hover_alloc.x = margin_row_alloc.x;
+            hover_alloc.y = margin_row_alloc.y + margin_row_alloc.height - offset;
+            hover_alloc.width = margin_row_alloc.width;
+            hover_alloc.height = DND_MARGIN;
+            hover_row_top.margin_bottom = DND_MARGIN;
+        } else {
+            hover_row_bottom.get_allocation (out margin_row_alloc);
+            hover_alloc.x = margin_row_alloc.x;
+            hover_alloc.y = margin_row_alloc.y - DND_MARGIN - offset;
+            hover_alloc.width = margin_row_alloc.width;
+            hover_alloc.height = DND_MARGIN;
+            hover_row_bottom.margin_top = DND_MARGIN;
+        }
+        spacer.size_allocate (hover_alloc);
+        if (old_bottom != null) {
+            old_bottom.margin_top = 0;
+        }
+        if (old_top != null) {
+            old_top.margin_bottom = 0;
+        }
     }
 
-    private void remove_hover_style () {
+    internal void reset_hover_alloc () {
+        hover_alloc.x = 0;
+        hover_alloc.y = 0;
+        hover_alloc.width = 0;
+        hover_alloc.height = 0;
         if (hover_row_top != null) {
-            hover_row_top.get_style_context ().remove_class ("drag-hover-top");
+            hover_row_top.margin_bottom = 0;
         }
         if (hover_row_bottom != null) {
-            hover_row_bottom.get_style_context ().remove_class ("drag-hover-bottom");
-        }
-    }
-
-    private void add_hover_style () {
-        if (hover_row_top != null) {
-            hover_row_top.get_style_context ().add_class ("drag-hover-top");
-        }
-        if (hover_row_bottom != null) {
-            hover_row_bottom.get_style_context ().add_class ("drag-hover-bottom");
+            hover_row_bottom.margin_top = 0;
         }
     }
 
     private void on_list_drag_leave (Gdk.DragContext context, uint time_) {
         should_scroll = false;
         ranges_set = false;
-        remove_hover_style ();
+        reset_hover_alloc ();
     }
 
     private void check_scroll (int y) {
@@ -645,7 +675,7 @@ public class GOFI.DragList : Gtk.Bin {
         DragListRow row;
 
         int index = -1;
-        remove_hover_style ();
+        reset_hover_alloc ();
         if (hover_row_bottom != null) {
             index = hover_row_bottom.get_index ();
         } else if (hover_row_top != null) {
@@ -719,6 +749,7 @@ public class GOFI.DragListRow : Gtk.ListBoxRow {
             handle, Gdk.ModifierType.BUTTON1_MASK, dlb_entries, Gdk.DragAction.MOVE
         );
         handle.drag_begin.connect (handle_drag_begin);
+        handle.drag_end.connect (handle_drag_end);
         handle.drag_data_get.connect (handle_drag_data_get);
     }
 
@@ -766,17 +797,24 @@ public class GOFI.DragListRow : Gtk.ListBoxRow {
         );
         cr = new Cairo.Context (surface);
 
-        draglist = get_drag_list_box ();
-        if (draglist != null)
-            draglist.drag_row = this;
-
         get_style_context ().add_class ("drag-icon");
         draw (cr);
         get_style_context ().remove_class ("drag-icon");
 
+        draglist = get_drag_list_box ();
+        if (draglist != null) {
+            draglist.drag_row = this;
+            draglist.reset_hover_alloc ();
+            this.hide ();
+        }
+
         handle.translate_coordinates (this, 0, 0, out x, out y);
         surface.set_device_offset (-x, -y);
         Gtk.drag_set_icon_surface (context, surface);
+    }
+
+    private void handle_drag_end () {
+        this.show ();
     }
 
     private void handle_drag_data_get (
@@ -788,5 +826,11 @@ public class GOFI.DragListRow : Gtk.ListBoxRow {
         selection_data.set (
             Gdk.Atom.intern_static_string ("DRAG_LIST_ROW"), 32, data
         );
+    }
+}
+
+private class DragListHoverSpacer : Gtk.Widget {
+    public DragListHoverSpacer () {
+        get_style_context ().add_class ("hover-spacer");
     }
 }
