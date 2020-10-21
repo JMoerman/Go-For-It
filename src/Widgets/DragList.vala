@@ -732,7 +732,7 @@ public class GOFI.DragListRow : Gtk.ListBoxRow {
 
     public override void get_preferred_height_for_width (int width, out int minimum_height, out int natural_height) {
         base.get_preferred_height_for_width (width, out minimum_height, out natural_height);
-        if (drag_margin != NO_MARGIN) {
+        if (drag_margin != DragListRowMargin.NO_MARGIN) {
             minimum_height += DRAG_MARGIN_SIZE;
             natural_height += DRAG_MARGIN_SIZE;
         }
