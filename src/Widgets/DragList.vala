@@ -61,6 +61,12 @@ public class GOFI.DragList : Gtk.Bin {
         }
     }
 
+    public int dnd_drop_height {
+        get;
+        set;
+        default = 20;
+    }
+
     /**
      * Activates the currently selected row.
      */
@@ -569,18 +575,18 @@ public class GOFI.DragList : Gtk.Bin {
 
         // Apply margins
         if (hover_row_bottom != null) {
-            hover_row_bottom.drag_margin = DragListRowMargin.MARGIN_TOP;
+            hover_row_bottom.margin_top = dnd_drop_height;
         } else if (hover_row_top != null) {
-            hover_row_top.drag_margin = DragListRowMargin.MARGIN_BOTTOM;
+            hover_row_top.margin_bottom = dnd_drop_height;
         }
     }
 
     internal void reset_hover_margins () {
         if (hover_row_top != null) {
-            hover_row_top.drag_margin = DragListRowMargin.NO_MARGIN;
+            hover_row_top.margin_bottom = 0;
         }
         if (hover_row_bottom != null) {
-            hover_row_bottom.drag_margin = DragListRowMargin.NO_MARGIN;
+            hover_row_bottom.margin_top = 0;
         }
     }
 
@@ -680,12 +686,6 @@ namespace GOFI {
         public inline bool contains (int val) {return val >= min && val <= max;}
         public inline int clamp (int val) {return val.clamp (min, max);}
     }
-
-    private enum DragListRowMargin {
-        NO_MARGIN,
-        MARGIN_TOP,
-        MARGIN_BOTTOM;
-    }
 }
 
 
@@ -695,18 +695,6 @@ public class GOFI.DragListRow : Gtk.ListBoxRow {
     private Gtk.Image image;
     private Gtk.Widget start_widget;
     private Gtk.Widget center_widget;
-
-    internal DragListRowMargin drag_margin {
-        get {
-            return _drag_margin;
-        }
-        set {
-            _drag_margin = value;
-            this.queue_resize ();
-        }
-    }
-    private DragListRowMargin _drag_margin = DragListRowMargin.NO_MARGIN;
-    internal const int DRAG_MARGIN_SIZE = 20;
 
     internal int marginless_height;
 
@@ -730,26 +718,7 @@ public class GOFI.DragListRow : Gtk.ListBoxRow {
         handle.drag_data_get.connect (handle_drag_data_get);
     }
 
-    public override void get_preferred_height_for_width (int width, out int minimum_height, out int natural_height) {
-        base.get_preferred_height_for_width (width, out minimum_height, out natural_height);
-        if (drag_margin != DragListRowMargin.NO_MARGIN) {
-            minimum_height += DRAG_MARGIN_SIZE;
-            natural_height += DRAG_MARGIN_SIZE;
-        }
-    }
-
     public override void size_allocate (Gtk.Allocation allocation) {
-        switch (_drag_margin) {
-            case DragListRowMargin.MARGIN_TOP:
-                allocation.y += DRAG_MARGIN_SIZE;
-                allocation.height -= DRAG_MARGIN_SIZE;
-                break;
-            case DragListRowMargin.MARGIN_BOTTOM:
-                allocation.height -= DRAG_MARGIN_SIZE;
-                break;
-            default:
-                break;
-        }
         marginless_height = allocation.height;
         base.size_allocate (allocation);
     }
