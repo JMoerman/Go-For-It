@@ -13,4 +13,4 @@
 	dh $@
 
 override_dh_auto_configure:
-	dh_auto_configure -- -DNO_CONTRIBUTE_DIALOG:BOOL="1" -DSHOW_ABOUT:BOOL="0" -DUSE_GRANITE:BOOL="1"
+	dh_auto_configure -- -DNO_CONTRIBUTE_DIALOG:BOOL="1" -DSHOW_ABOUT:BOOL="0" -DUSE_GRANITE:BOOL="1" -DDEFAULT_PLUGINS:STRING="['launcherindicator']"
