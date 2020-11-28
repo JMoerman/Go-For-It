@@ -28,7 +28,7 @@ class GOFI.TaskListPage : Gtk.Grid {
     private TaskTimer task_timer;
 
     /* Various GTK Widgets */
-    private Gtk.Stack activity_stack;
+    private Hdy.Leaflet activity_leaflet;
     private ViewSwitcher activity_switcher;
     private Gtk.Stack switcher_stack;
 
@@ -77,7 +77,8 @@ class GOFI.TaskListPage : Gtk.Grid {
     }
 
     public void propagate_filter_action () {
-        var visible_child = activity_stack.get_visible_child ();
+        // var visible_child = activity_stack.get_visible_child ();
+        var visible_child = activity_leaflet.get_visible_child ();
         unowned ObjectClass? oc = null;
         if (visible_child == first_page) {
             oc = first_page.get_class ();
@@ -92,7 +93,8 @@ class GOFI.TaskListPage : Gtk.Grid {
 
     [Signal (action = true)]
     public virtual signal void mark_task_done () {
-        var visible_child = activity_stack.get_visible_child ();
+        // var visible_child = activity_stack.get_visible_child ();
+        var visible_child = activity_leaflet.get_visible_child ();
         if (visible_child == first_page) {
             var selected_task = _shown_list.selected_task;
             if (selected_task != null) {
@@ -130,7 +132,7 @@ class GOFI.TaskListPage : Gtk.Grid {
      */
     private void initial_setup () {
         /* Instantiation of available widgets */
-        activity_stack = new Gtk.Stack ();
+        activity_leaflet = new Hdy.Leaflet ();
         switcher_stack = new Gtk.Stack ();
         activity_switcher = new ViewSwitcher ();
         timer_view = new TimerView (task_timer);
@@ -143,9 +145,9 @@ class GOFI.TaskListPage : Gtk.Grid {
         activity_switcher.append ("primary", _("To-Do"), "go-to-list-symbolic");
         activity_switcher.append ("timer", _("Timer"), GOFI.ICON_NAME);
         activity_switcher.append ("secondary", _("Done"), "go-to-done");
-        activity_stack.set_transition_type (
-            Gtk.StackTransitionType.SLIDE_LEFT_RIGHT
-        );
+        activity_leaflet.transition_type = Hdy.LeafletTransitionType.SLIDE;
+        activity_leaflet.can_swipe_back = true;
+        activity_leaflet.can_swipe_forward = true;
         switcher_stack.set_transition_type (
             Gtk.StackTransitionType.SLIDE_UP_DOWN
         );
@@ -154,7 +156,7 @@ class GOFI.TaskListPage : Gtk.Grid {
 
         activity_switcher.notify["selected-item"].connect (() => {
             var selected = activity_switcher.selected_item;
-            activity_stack.set_visible_child_name (selected);
+            activity_leaflet.visible_child_name = selected;
             if (selected == "timer") {
                 timer_view.set_focus ();
             }
@@ -165,7 +167,7 @@ class GOFI.TaskListPage : Gtk.Grid {
 
         switcher_stack.add_named (activity_switcher, "switcher");
         switcher_stack.add_named (activity_label, "label");
-        this.add (activity_stack);
+        this.add (activity_leaflet);
     }
 
     public Gtk.Widget get_switcher () {
@@ -231,10 +233,13 @@ class GOFI.TaskListPage : Gtk.Grid {
            second_page_name = _("Done");
         }
 
-        // Add widgets to the activity stack
-        activity_stack.add_titled (first_page, "primary", first_page_name);
-        activity_stack.add_titled (timer_view, "timer", _("Timer"));
-        activity_stack.add_titled (last_page, "secondary", second_page_name);
+        // Add widgets to the activity leaflet
+        activity_leaflet.add_with_properties (first_page, "name", "primary", "navigatable", true, null);
+        activity_leaflet.add_with_properties (new Gtk.Separator (Gtk.Orientation.VERTICAL), "navigatable", false, null);
+        activity_leaflet.add_with_properties (timer_view, "name", "timer", "navigatable", true, null);
+        timer_view.hexpand = false;
+        activity_leaflet.add_with_properties (new Gtk.Separator (Gtk.Orientation.VERTICAL), "navigatable", false, null);
+        activity_leaflet.add_with_properties (last_page, "name", "secondary", "navigatable", true, null);
 
         if (task_timer.running) {
             // Otherwise no task will be displayed in the timer view
@@ -244,13 +249,13 @@ class GOFI.TaskListPage : Gtk.Grid {
             timer_view.show ();
 
             activity_switcher.selected_item = "timer";
-            activity_stack.visible_child = timer_view;
+            activity_leaflet.visible_child = timer_view;
         }
         else {
             first_page.show ();
 
             activity_switcher.selected_item = "primary";
-            activity_stack.visible_child = first_page;
+            activity_leaflet.visible_child = first_page;
         }
 
         connect_first_page_signals ();
@@ -381,8 +386,8 @@ class GOFI.TaskListPage : Gtk.Grid {
         if (_shown_list != null) {
             _shown_list.notify["selected-task"].disconnect (on_selected_task_changed);
         }
-        foreach (Gtk.Widget widget in activity_stack.get_children ()) {
-            activity_stack.remove (widget);
+        foreach (Gtk.Widget widget in activity_leaflet.get_children ()) {
+            activity_leaflet.remove (widget);
         }
         if (_shown_list != _active_list) {
             _shown_list.unload ();
@@ -441,8 +446,8 @@ class GOFI.TaskListPage : Gtk.Grid {
             _shown_list.notify["selected-task"].disconnect (on_selected_task_changed);
             _active_list.timer_values_changed.disconnect (update_timer_values);
         }
-        foreach (Gtk.Widget widget in activity_stack.get_children ()) {
-            activity_stack.remove (widget);
+        foreach (Gtk.Widget widget in activity_leaflet.get_children ()) {
+            activity_leaflet.remove (widget);
         }
 
         disconnect_first_page_signals ();

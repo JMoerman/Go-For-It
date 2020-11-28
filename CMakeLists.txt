@@ -47,9 +47,10 @@ pkg_check_modules (CORE_DEPS REQUIRED
     gtk+-3.0>=3.14.0
     glib-2.0>=2.40
     libcanberra
+    libhandy-1
 )
 
-set (CORE_DEPS_VALA_PACKAGES gtk+-3.0 libcanberra)
+set (CORE_DEPS_VALA_PACKAGES gtk+-3.0 libcanberra libhandy-1)
 
 option (ENABLE_PLUGINS "Compile with plugin support" ON)
 option (BUILD_PLUGINS "Compile plugins" ON)
