@@ -32,7 +32,7 @@ class GOFI.MainWindow : Gtk.ApplicationWindow {
     private Gtk.HeaderBar header_bar;
 
     // Stack and pages
-    private Gtk.Stack top_stack;
+    private Hdy.Leaflet layout_leaflet;
     private SelectionPage selection_page;
     private TaskListPage task_page;
     private Gtk.MenuButton menu_btn;
@@ -151,7 +151,7 @@ class GOFI.MainWindow : Gtk.ApplicationWindow {
 
     public override void show_all () {
         base.show_all ();
-        if (top_stack.visible_child != task_page) {
+        if (layout_leaflet.visible_child != task_page) {
             task_page.show_switcher (false);
         }
     }
@@ -218,7 +218,7 @@ class GOFI.MainWindow : Gtk.ApplicationWindow {
         setup_stack ();
         setup_top_bar ();
 
-        main_layout.add (top_stack);
+        main_layout.add (layout_leaflet);
 
         // Add main_layout to the window
         this.add (main_layout);
@@ -286,13 +286,13 @@ class GOFI.MainWindow : Gtk.ApplicationWindow {
     public virtual signal void filter_fallback_action () {
         // If the user presses ctrl+f and the task list is shown but not
         // focussed we need to manually activate the key binding
-        if (top_stack.visible_child == task_page) {
+        if (layout_leaflet.visible_child == task_page) {
             task_page.propagate_filter_action ();
         }
     }
 
     private void action_create_new () {
-        if (top_stack.visible_child == task_page) {
+        if (layout_leaflet.visible_child == task_page) {
             task_page.action_add_task ();
         } else {
             selection_page.show_list_creation_dialog ();
@@ -306,7 +306,7 @@ class GOFI.MainWindow : Gtk.ApplicationWindow {
     }
 
     private void action_switch_page_left () {
-        if (top_stack.visible_child != task_page || !task_page.ready) {
+        if (layout_leaflet.visible_child != task_page || !task_page.ready) {
             return;
         }
         if (task_page.switch_page_left ()) {
@@ -318,7 +318,7 @@ class GOFI.MainWindow : Gtk.ApplicationWindow {
         if (!task_page.ready) {
             return;
         }
-        if (top_stack.visible_child != task_page) {
+        if (layout_leaflet.visible_child != task_page) {
             switch_top_stack (false);
         } else {
             task_page.switch_page_right ();
@@ -326,10 +326,11 @@ class GOFI.MainWindow : Gtk.ApplicationWindow {
     }
 
     private void setup_stack () {
-        top_stack = new Gtk.Stack ();
-        top_stack.add (selection_page);
-        top_stack.add (task_page);
-        top_stack.set_visible_child (selection_page);
+        layout_leaflet = new Hdy.Leaflet ();
+        layout_leaflet.add (selection_page);
+        layout_leaflet.add (new Gtk.Separator (Gtk.Orientation.VERTICAL));
+        layout_leaflet.add (task_page);
+        layout_leaflet.set_visible_child (selection_page);
     }
 
     private void setup_top_bar () {
@@ -365,7 +366,7 @@ class GOFI.MainWindow : Gtk.ApplicationWindow {
     }
 
     private void toggle_top_stack () {
-        switch_top_stack (top_stack.visible_child == task_page);
+        switch_top_stack (layout_leaflet.visible_child == task_page);
     }
 
     private void switch_top_stack (bool show_select) {
@@ -375,7 +376,7 @@ class GOFI.MainWindow : Gtk.ApplicationWindow {
                 selection_page.select_row (shown_list.list_info);
             }
 
-            top_stack.set_visible_child (selection_page);
+            layout_leaflet.set_visible_child (selection_page);
 
             var next_icon = GOFI.Utils.get_image_fallback ("go-next-symbolic", "go-next");
             switch_img.set_from_icon_name (next_icon, settings.toolbar_icon_size);
@@ -387,7 +388,7 @@ class GOFI.MainWindow : Gtk.ApplicationWindow {
             filter_item.sensitive = false;
         } else if (task_page.ready) {
             var current_list_info = task_page.shown_list.list_info;
-            top_stack.set_visible_child (task_page);
+            layout_leaflet.set_visible_child (task_page);
             var prev_icon = GOFI.Utils.get_image_fallback ("go-previous-symbolic", "go-previous");
             switch_img.set_from_icon_name (prev_icon, settings.toolbar_icon_size);
             switch_btn.tooltip_text = switch_btn_overview_text;
