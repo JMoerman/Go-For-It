@@ -134,6 +134,7 @@ class GOFI.SelectionPage : Gtk.Grid {
 
         var sc = kbsettings.get_shortcut (KeyBindingSettings.SCK_ADD_NEW);
         add_button.tooltip_markup = sc.get_accel_markup (_("Add list"));
+        add_button.margin = 5;
 
         this.add (add_button);
 
