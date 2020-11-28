@@ -9,8 +9,7 @@ Build-Depends: cmake (>= 2.8.9),
                libgtk-3-dev (>= 3.14),
                libpeas-dev,
                libcanberra-dev,
-               libgranite-dev,
-               libunity-dev
+               libgranite-dev
 Standards-Version: 3.9.5
 
 Package: com.github.jmoerman.go-for-it
