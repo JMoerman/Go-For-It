@@ -306,7 +306,7 @@ class GOFI.TaskListPage : Gtk.Grid {
         on_selected_task_changed ();
     }
 
-    private void update_timer_values (Schedule? sched, int reminder_t) {
+    private void update_timer_values (TimerSchedule? sched, int reminder_t) {
         if (sched != null && !sched.valid) {
             sched = null;
         }

@@ -98,7 +98,7 @@ public class GOFI.TaskTimer {
      * Setting a property to null or -1 will reset the value to the global settings
      * value.
      */
-    public Schedule? schedule {
+    public TimerSchedule? schedule {
         public get {
             return _schedule;
         }
@@ -127,7 +127,7 @@ public class GOFI.TaskTimer {
         }
     }
     private int _reminder_time;
-    private Schedule _schedule;
+    private TimerSchedule _schedule;
     private uint iteration;
 
     /* Signals */

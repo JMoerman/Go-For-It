@@ -108,7 +108,7 @@ private class GOFI.SettingsManager : Object {
         public set;
     }
 
-    public Schedule schedule {
+    public TimerSchedule schedule {
         get {
             return _schedule;
         }
@@ -118,7 +118,7 @@ private class GOFI.SettingsManager : Object {
             timer_duration_changed ();
         }
     }
-    Schedule _schedule;
+    TimerSchedule _schedule;
 
     public bool resume_tasks_after_break {
         get;
@@ -262,7 +262,7 @@ private class GOFI.SettingsManager : Object {
     }
 
     private void init_with_backend (GLib.SettingsBackend? backend) {
-        _schedule = new Schedule ();
+        _schedule = new TimerSchedule ();
         if (backend != null) {
             _settings = new GLib.Settings.with_backend (ID_GENERAL, backend);
             timer_settings = new GLib.Settings.with_backend (ID_TIMER, backend);
@@ -473,7 +473,7 @@ class GOFI.KeyFileSettingsImport {
         if (key_file.has_key (GROUP_TIMER, "timer_mode")) {
             var timer_mode = TimerMode.from_string (key_file.get_value (GROUP_TIMER, "timer_mode"));
             if (timer_mode == TimerMode.CUSTOM && key_file.has_key (GROUP_TIMER, "schedule")) {
-                var schedule = new Schedule ();
+                var schedule = new TimerSchedule ();
                 var durations = key_file.get_integer_list (GROUP_TIMER, "schedule");
                 if (durations.length >= 2) {
                     schedule.import_raw (durations);

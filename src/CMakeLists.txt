@@ -39,7 +39,7 @@ vala_precompile (VALA_C ${LIBNAME}
     Utils.vala
     ListIdentifier.vala
     TodoListInfo.vala
-    Schedule.vala
+    TimerSchedule.vala
     TodoTask.vala
     TaskList.vala
     SequentialList.vala

@@ -27,7 +27,7 @@ class GOFI.TimerScheduleWidget : Gtk.Frame {
     Gtk.ListStore sched_model;
     public Gtk.Grid layout;
 
-    public signal void schedule_updated (Schedule new_schedule);
+    public signal void schedule_updated (TimerSchedule new_schedule);
 
     public TimerScheduleWidget () {
         layout = new Gtk.Grid ();
@@ -101,9 +101,9 @@ class GOFI.TimerScheduleWidget : Gtk.Frame {
         _generate_schedule ();
     }
 
-    public Schedule generate_schedule () {
+    public TimerSchedule generate_schedule () {
         Gtk.TreeIter iter;
-        Schedule sched = new Schedule ();
+        TimerSchedule sched = new TimerSchedule ();
         int task_duration, break_duration;
 
         if (!sched_model.get_iter_first (out iter)) {
@@ -152,7 +152,7 @@ class GOFI.TimerScheduleWidget : Gtk.Frame {
         update_tree_value (path, text, 1);
     }
 
-    public void load_schedule (Schedule sched) {
+    public void load_schedule (TimerSchedule sched) {
         Gtk.TreeIter iter;
 
         sched_model = new Gtk.ListStore (

@@ -415,13 +415,13 @@ class GOFI.TXT.LegacyTxtListImport {
         return list_settings;
     }
 
-    private Schedule? import_schedule (string list_group) {
-        Schedule? schedule = null;
+    private TimerSchedule? import_schedule (string list_group) {
+        TimerSchedule? schedule = null;
 
         try {
             var raw_sched_array = key_file.get_integer_list (list_group, "schedule");
             if (raw_sched_array.length >= 2 && raw_sched_array[0] > 0) {
-                schedule = new Schedule ();
+                schedule = new TimerSchedule ();
                 schedule.import_raw (raw_sched_array);
             }
         } catch (Error e) {
@@ -439,7 +439,7 @@ class GOFI.TXT.LegacyTxtListImport {
                         break_duration = 300;
                     }
 
-                    schedule = new Schedule ();
+                    schedule = new TimerSchedule ();
                     schedule.import_raw ({task_duration, break_duration});
                 }
             }

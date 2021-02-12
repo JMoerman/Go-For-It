@@ -65,7 +65,7 @@ class GOFI.TXT.ListSettings : Object, TodoListInfo {
         set;
     }
 
-    public Schedule? schedule {
+    public TimerSchedule? schedule {
         get {
             return _schedule;
         }
@@ -78,7 +78,7 @@ class GOFI.TXT.ListSettings : Object, TodoListInfo {
             save_schedule ();
         }
     }
-    Schedule? _schedule;
+    TimerSchedule? _schedule;
     public int reminder_time {
         get;
         set;
@@ -156,7 +156,7 @@ class GOFI.TXT.ListSettings : Object, TodoListInfo {
         copied.add_creation_dates = add_creation_dates;
         copied.activity_log_uri = activity_log_uri;
         if (schedule != null) {
-            copied.schedule = new Schedule ();
+            copied.schedule = new TimerSchedule ();
             copied.schedule.import_raw (this.schedule.export_raw ());
         }
         return copied;
@@ -172,7 +172,7 @@ class GOFI.TXT.ListSettings : Object, TodoListInfo {
         if (lsettings.schedule == null) {
             this.schedule = null;
         } else {
-            var sched = new Schedule ();
+            var sched = new TimerSchedule ();
             sched.import_raw (lsettings.schedule.export_raw ());
             this.schedule = sched;
         }
@@ -209,7 +209,7 @@ class GOFI.TXT.ListSettings : Object, TodoListInfo {
     }
 
     private void load_schedule () {
-        var sched = new Schedule ();
+        var sched = new TimerSchedule ();
         sched.load_variant (stored_settings.get_value (KEY_SCHEDULE));
         if (sched.valid) {
             _schedule = sched;
@@ -225,7 +225,7 @@ class GOFI.TXT.ListSettings : Object, TodoListInfo {
         if (_schedule != null) {
             to_save = _schedule.to_variant ();
         } else {
-            to_save = new Schedule ().to_variant ();
+            to_save = new TimerSchedule ().to_variant ();
         }
         stored_settings.set_value (KEY_SCHEDULE, to_save);
     }

@@ -21,7 +21,7 @@ public interface GOFI.TaskList : Object {
      * @param sched schedule of task and break durations
      * @param reminder_t when to show the reminder before the task ends in seconds
      */
-    public signal void timer_values_changed (Schedule? sched, int reminder_t);
+    public signal void timer_values_changed (TimerSchedule? sched, int reminder_t);
 
     /**
      * Returns the task that is currently selected in the widget returned by
@@ -83,7 +83,7 @@ public interface GOFI.TaskList : Object {
     /**
      * Returns the schedule of task and break times specific to this list.
      */
-    public abstract Schedule? get_schedule ();
+    public abstract TimerSchedule? get_schedule ();
 
     /**
      * Returns the duration (in seconds) of the break the user should take

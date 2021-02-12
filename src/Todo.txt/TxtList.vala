@@ -155,7 +155,7 @@ class GOFI.TXT.TxtList : GOFI.TaskList, Object {
     /**
      * Returns the schedule of task and break times specific to this list.
      */
-    public Schedule? get_schedule () {
+    public TimerSchedule? get_schedule () {
         return list_settings.schedule;
     }
 

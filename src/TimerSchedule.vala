@@ -15,7 +15,7 @@
 * with Go For It!. If not, see http://www.gnu.org/licenses/.
 */
 
-public class GOFI.Schedule {
+public class GOFI.TimerSchedule {
     private int[] durations;
     public uint length {
         get {
@@ -33,7 +33,7 @@ public class GOFI.Schedule {
         }
     }
 
-    public Schedule () {
+    public TimerSchedule () {
         durations = {};
         length = 0;
     }
