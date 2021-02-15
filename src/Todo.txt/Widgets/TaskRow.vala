@@ -55,6 +55,7 @@ class GOFI.TXT.TaskRow: DragListRow {
         status_label.halign = Gtk.Align.END;
         status_label.valign = Gtk.Align.BASELINE;
         status_label.use_markup = true;
+        status_label.no_show_all = true;
         update_status_label ();
 
         label_box = new DynOrientationBox (2, 0);
@@ -72,14 +73,6 @@ class GOFI.TXT.TaskRow: DragListRow {
 
         connect_signals ();
         show_all ();
-    }
-
-    public override void show_all () {
-        bool status_label_was_visible = status_label.visible;
-        base.show_all ();
-        if (!status_label_was_visible) {
-            status_label.hide ();
-        }
     }
 
     public void edit (bool wrestle_focus=false) {
