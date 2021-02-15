@@ -296,6 +296,11 @@ class GOFI.TimerView : Gtk.Grid {
         skip_btn.use_underline = true;
         run_btn.use_underline = true;
 
+        skip_btn.no_show_all = true;
+        run_btn.no_show_all = true;
+        done_btn.no_show_all = true;
+        task_duration_lbl.no_show_all = true;
+
         var sc = kbsettings.get_shortcut (KeyBindingSettings.SCK_MARK_TASK_DONE);
         done_btn.tooltip_markup = sc.get_accel_markup (_("Mark the task as complete"));
 
@@ -331,20 +336,6 @@ class GOFI.TimerView : Gtk.Grid {
         done_btn.visible = false;
         task_duration_lbl.label = "";
         task_duration_lbl.visible = false;
-    }
-
-    public override void show_all () {
-        base.show_all ();
-        if (timer.active_task == null) {
-            skip_btn.visible = false;
-            run_btn.visible = false;
-            done_btn.visible = false;
-        } else if (timer.break_active) {
-            done_btn.visible = false;
-        }
-        if (task_duration_lbl.label == "") {
-            task_duration_lbl.visible = false;
-        }
     }
 
     /**
