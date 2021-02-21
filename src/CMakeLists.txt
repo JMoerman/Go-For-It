@@ -72,6 +72,7 @@ vala_precompile (VALA_C ${LIBNAME}
     Dialogs/SettingsPages/ShortcutsPage.vala
     Dialogs/AboutDialog.vala
     Dialogs/ContributeDialog.vala
+    Dialogs/RecurrenceDialog.vala
 
     Todo.txt/Constants.vala
     Todo.txt/TxtTask.vala

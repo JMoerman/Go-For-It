@@ -21,10 +21,10 @@ set (EXEC_NAME ${APP_SYSTEM_NAME})
 set (APP_NAME "Go For It!")
 set (RELEASE_NAME "A stylish to-do list with built-in productivity timer")
 set (MAJOR_VERSION "1")
-set (MINOR_VERSION "9")
-set (MICRO_VERSION "1")
+set (MINOR_VERSION "10")
+set (MICRO_VERSION "0")
 set (VERSION "${MAJOR_VERSION}.${MINOR_VERSION}.${MICRO_VERSION}")
-set (VERSION_INFO "Release")
+set (VERSION_INFO "Development snapshot")
 set (ICON_NAME ${APP_ID})
 set (GETTEXT_PACKAGE ${APP_ID})
 set (APIVERSION 0)
@@ -50,9 +50,12 @@ pkg_check_modules (CORE_DEPS REQUIRED
     gtk+-3.0>=3.14.0
     glib-2.0>=2.40
     libcanberra
+    libical-glib
 )
 
-set (CORE_DEPS_VALA_PACKAGES gtk+-3.0 libcanberra)
+add_definitions(-DLIBICAL_GLIB_UNSTABLE_API=true)
+
+set (CORE_DEPS_VALA_PACKAGES gtk+-3.0 libcanberra libical-glib)
 
 option (ENABLE_PLUGINS "Compile with plugin support" ON)
 option (BUILD_PLUGINS "Compile plugins" ON)
