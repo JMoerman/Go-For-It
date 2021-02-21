@@ -249,5 +249,54 @@ namespace GOFI {
             }
             return false;
         }
+
+        // Based on description from:
+        // https://blogs.gnome.org/patrys/2008/09/29/how-to-determine-the-first-day-of-week/
+        public static GLib.DateWeekday get_week_start () {
+            string locale_stdout;
+            string locale_stderr;
+            int locale_status;
+
+            uint first_weekday = 2;
+            GLib.Date week_1stday_date = GLib.Date ();
+            week_1stday_date.set_dmy (30, 11, 1997);
+            try {
+                Process.spawn_command_line_sync (
+                    "locale first_weekday week-1stday", out locale_stdout, out locale_stderr, out locale_status
+                );
+                if (locale_status == 0) {
+                    string[] locale_output = locale_stdout.split ("\n",2);
+                    if (locale_output.length == 2 && locale_output[0][0] != '\0' && locale_output[1].length >= 8) {
+                        unowned string first_weekday_str = locale_output[0];
+                        unowned string week_1stday_str = locale_output[1];
+                        first_weekday = (uint) int.parse (first_weekday_str);
+                        int year = int.parse (week_1stday_str.slice (0, 4));
+                        int month = int.parse (week_1stday_str.slice (4, 6));
+                        int day = int.parse (week_1stday_str.slice (6, 8));
+
+                        if ( // Sanity check
+                            year != 1997 || month > 12 || day > 31 ||
+                            month <= 0 || day <= 0 || first_weekday == 0 ||
+                            !GLib.Date.valid_dmy ((DateDay) day, (DateMonth) month, (DateYear) year)
+                        ) {
+                            warning ("Invalid locale output: \"%s\", stderr: \"%s\"", locale_stdout, locale_stderr);
+                            first_weekday = 2;
+                        } else {
+                            stdout.printf ("%u %u %u\n", year, month, day);
+                            week_1stday_date.set_dmy ((DateDay) day, (DateMonth) month, (DateYear) year);
+
+                        }
+                    } else {
+                        warning ("Invalid locale output: \"%s\", stderr: \"%s\"", locale_stdout, locale_stderr);
+                    }
+                } else {
+                    warning ("locale did not end with status 0: \"%i\", stderr: \"%s\"", locale_status, locale_stderr);
+                }
+            } catch (Error e) {
+                warning ("Failed to execute locale!");
+            }
+            week_1stday_date.add_days (first_weekday - 1);
+            return week_1stday_date.get_weekday ();
+        }
     }
 }
