@@ -92,6 +92,11 @@ class GOFI.TXT.TxtTask : TodoTask {
         public set;
     }
 
+    public DateTime? due_date {
+        public get;
+        public set;
+    }
+
     public uint8 priority {
         public get;
         public set;
@@ -108,6 +113,10 @@ class GOFI.TXT.TxtTask : TodoTask {
     }
     private TxtPart[] _parts;
 
+    public ICal.Recurrence? rrule {
+        get;
+        set;
+    }
 
     public signal void done_changed ();
 
@@ -218,14 +227,32 @@ class GOFI.TXT.TxtTask : TodoTask {
         for (p=unparsed[offset]; p != null; offset++, p=unparsed[offset]) {
             var t = tokenize_descr_part (p);
             if (t.part_type == TxtPartType.TAG) {
-                if (t.tag_name == "timer" && is_timer_value (t.content)) {
-                    timer_value = string_to_timer (t.content);
-                    continue;
-                }
-                uint new_duration = 0;
-                if (t.tag_name == "duration" && match_duration_value (t.content, out new_duration)) {
-                    duration = new_duration;
-                    continue;
+                switch (t.tag_name) {
+                    case "timer":
+                        if (is_timer_value (t.content)) {
+                            timer_value = string_to_timer (t.content);
+                            continue;
+                        }
+                        break;
+                    case "duration":
+                        uint new_duration = 0;
+                        if (match_duration_value (t.content, out new_duration)) {
+                            duration = new_duration;
+                            continue;
+                        }
+                        break;
+                    case "due":
+                        if (is_date (t.content)) {
+                            due_date = string_to_date (t.content);
+                            continue;
+                        }
+                        break;
+                    case "rrule":
+                        rrule = new ICal.Recurrence.from_string (t.content);
+                        if (rrule != null) {
+                            continue;
+                        }
+                        break;
                 }
             }
             parsed_parts += (owned) t;
@@ -250,36 +277,39 @@ class GOFI.TXT.TxtTask : TodoTask {
     }
 
     public string parts_to_description () {
-        var descr = "";
+        var descr_builder = new StringBuilder.sized (100);
         bool add_leading_space = false;
         foreach (unowned TxtPart p in _parts) {
             if (add_leading_space) {
-                descr += " ";
+                descr_builder.append_c (' ');
             }
             add_leading_space = true;
+
+            // Adding tag prefix
             switch (p.part_type) {
                 case TxtPartType.TAG:
-                    descr += p.tag_name + ":" + p.content;
+                    descr_builder.append (p.tag_name);
+                    descr_builder.append_c (':');
                     break;
                 case TxtPartType.PROJECT:
-                    descr += "+" + p.content;
+                    descr_builder.append_c ('+');
                     break;
                 case TxtPartType.CONTEXT:
-                    descr += "@" + p.content;
+                    descr_builder.append_c ('@');
                     break;
                 case TxtPartType.URI:
                     if (p.tag_name != null && p.tag_name != "") {
-                        descr += p.tag_name + ":" + p.content;
-                    } else {
-                        descr += p.content;
+                        descr_builder.append (p.tag_name);
+                        descr_builder.append_c (':');
                     }
                     break;
                 default:
-                    descr += p.content;
                     break;
             }
+
+            descr_builder.append (p.content);
         }
-        return descr;
+        return descr_builder.str;
     }
 
     private string duration_to_string () {
@@ -312,14 +342,46 @@ class GOFI.TXT.TxtTask : TodoTask {
     }
 
     public string to_txt (bool log_timer) {
-        string status_str = done ? "x " : "";
-        string prio_str = prio_to_string ();
-        string comp_str = (completion_date != null) ? date_to_string (completion_date) + " " : "";
-        string crea_str = (creation_date != null) ? date_to_string (creation_date) + " " : "";
-        string timer_str = (log_timer && timer_value != 0) ? " timer:" + timer_to_string (timer_value) : "";
-        string duration_str = duration != 0 ? " " + duration_to_string () : "";
+        var str_builder = new StringBuilder.sized (100);
+        if (done) {
+            str_builder.append ("x ");
+        }
 
-        return status_str + prio_str + comp_str + crea_str + description + timer_str + duration_str;
+        str_builder.append (prio_to_string ());
+
+        if (creation_date != null) {
+            str_builder.append (date_to_string (creation_date));
+            str_builder.append_c (' ');
+
+            if (completion_date != null) {
+                str_builder.append (date_to_string (completion_date));
+                str_builder.append_c (' ');
+            }
+        }
+
+        str_builder.append (description);
+
+        if (due_date != null) {
+            str_builder.append (" due:");
+            str_builder.append (date_to_string (due_date));
+        }
+
+        if (rrule != null) {
+            str_builder.append (" rrule:");
+            str_builder.append (rrule.to_string ());
+        }
+
+        if (log_timer && timer_value != 0) {
+            str_builder.append (" timer:");
+            str_builder.append (timer_to_string (timer_value));
+        }
+
+        if (duration != 0) {
+            str_builder.append_c (' ');
+            str_builder.append (duration_to_string ());
+        }
+
+        return str_builder.str;
     }
 
     public int cmp (TxtTask other) {
