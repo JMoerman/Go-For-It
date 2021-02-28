@@ -97,12 +97,16 @@ class GOFI.TXT.TxtTask : TodoTask {
         public set;
     }
 
+    public DateTime? show_date {
+        public get;
+        public set;
+    }
+
     public uint8 priority {
         public get;
         public set;
     }
     public const uint8 NO_PRIO=127;
-
 
     private void set_descr_parts (owned TxtPart[] parts) {
         _parts = (owned) parts;
@@ -113,9 +117,15 @@ class GOFI.TXT.TxtTask : TodoTask {
     }
     private TxtPart[] _parts;
 
-    public ICal.Recurrence? rrule {
+    public SimpleRecurrence? recur {
         get;
         set;
+    }
+
+    public RecurrenceMode recur_mode {
+        get;
+        set;
+        default = RecurrenceMode.NO_RECURRENCE;
     }
 
     public signal void done_changed ();
@@ -152,6 +162,18 @@ class GOFI.TXT.TxtTask : TodoTask {
             warning ("Task does not have a description: \"%s\"", descr);
             return;
         }
+    }
+
+    public TxtTask.from_template_task (TxtTask template) {
+        Object (
+            done: false,
+            due_date: template.due_date,
+            show_date: template.show_date,
+            recur: template.recur,
+            recur_mode: template.recur_mode,
+            duration: template.duration
+        );
+        set_descr_parts (parse_description (template.description.split (" "), 0));
     }
 
     private inline bool parse_done (string[] parts, ref uint index) {
@@ -247,9 +269,14 @@ class GOFI.TXT.TxtTask : TodoTask {
                             continue;
                         }
                         break;
-                    case "rrule":
-                        rrule = new ICal.Recurrence.from_string (t.content);
-                        if (rrule != null) {
+                    case "show":
+                        if (is_date (t.content)) {
+                            show_date = string_to_date (t.content);
+                            continue;
+                        }
+                        break;
+                    case "repeat":
+                        if (parse_recur_rule (t.content)) {
                             continue;
                         }
                         break;
@@ -259,6 +286,52 @@ class GOFI.TXT.TxtTask : TodoTask {
         }
 
         return parsed_parts;
+    }
+
+    private bool parse_recur_rule (string recur_rule) {
+        unowned string remaining = recur_rule;
+        var new_recur_mode = RecurrenceMode.PERIODICALLY;
+        ICal.RecurrenceFrequency recur_freq;
+        long interval;
+        switch (recur_rule[0]) {
+            case '+':
+                new_recur_mode = RecurrenceMode.PERIODICALLY_SKIP_OLD;
+                remaining = recur_rule.offset (1);
+                break;
+            case '.':
+                new_recur_mode = RecurrenceMode.ON_COMPLETION;
+                remaining = recur_rule.offset (1);
+                break;
+            case '\0':
+                return false;
+            default:
+                break;
+        }
+        if (long.try_parse (remaining, out interval, out remaining)) {
+            return false;
+        }
+        if (interval <= 0) {
+            return false;
+        }
+        switch (remaining) {
+            case "y":
+                recur_freq = ICal.RecurrenceFrequency.YEARLY_RECURRENCE;
+                break;
+            case "m":
+                recur_freq = ICal.RecurrenceFrequency.MONTHLY_RECURRENCE;
+                break;
+            case "w":
+                recur_freq = ICal.RecurrenceFrequency.WEEKLY_RECURRENCE;
+                break;
+            case "d":
+                recur_freq = ICal.RecurrenceFrequency.DAILY_RECURRENCE;
+                break;
+            default:
+                return false;
+        }
+        recur = new SimpleRecurrence (recur_freq, (short) interval);
+        recur_mode = new_recur_mode;
+        return true;
     }
 
     public void update_from_simple_txt (string descr) {
@@ -366,9 +439,38 @@ class GOFI.TXT.TxtTask : TodoTask {
             str_builder.append (date_to_string (due_date));
         }
 
-        if (rrule != null) {
-            str_builder.append (" rrule:");
-            str_builder.append (rrule.to_string ());
+        if (recur != null) {
+            str_builder.append (" repeat:");
+            switch (recur_mode) {
+                case RecurrenceMode.ON_COMPLETION:
+                    str_builder.append_c ('.');
+                    break;
+                case RecurrenceMode.PERIODICALLY_SKIP_OLD:
+                    str_builder.append_c ('+');
+                    break;
+                default:
+                    break;
+            }
+            str_builder.append (recur.interval.to_string ());
+            switch (recur.freq) {
+                case ICal.RecurrenceFrequency.YEARLY_RECURRENCE:
+                    str_builder.append_c ('y');
+                    break;
+                case ICal.RecurrenceFrequency.MONTHLY_RECURRENCE:
+                    str_builder.append_c ('m');
+                    break;
+                case ICal.RecurrenceFrequency.WEEKLY_RECURRENCE:
+                    str_builder.append_c ('w');
+                    break;
+                default:
+                    str_builder.append_c ('d');
+                    break;
+            }
+        }
+
+        if (show_date != null) {
+            str_builder.append (" show:");
+            str_builder.append (date_to_string (show_date));
         }
 
         if (log_timer && timer_value != 0) {
@@ -389,14 +491,30 @@ class GOFI.TXT.TxtTask : TodoTask {
             return 0;
         }
         if (this.priority == other.priority) {
-            var cmp_tmp = this.description.ascii_casecmp (other.description);
+            int cmp_tmp;
+
+            // Sort by due date
+            if (this.due_date != null) {
+                if (other.due_date != null) {
+                    cmp_tmp = this.due_date.compare (other.due_date);
+                }
+            } if (other.due_date != null) {
+                return 1;
+            }
+
+            // Sort by description, case insensitive
+            cmp_tmp = this.description.ascii_casecmp (other.description);
             if (cmp_tmp != 0) {
                 return cmp_tmp;
             }
+
+            // Sort by description, case sensitive
             cmp_tmp = GLib.strcmp (this.description, other.description);
             if (cmp_tmp != 0) {
                 return cmp_tmp;
             }
+
+            // Last option: sort by memory address
             if (((void*) this) > ((void*) other)) {
                 return 1;
             }

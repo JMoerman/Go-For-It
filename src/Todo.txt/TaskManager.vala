@@ -28,19 +28,22 @@ class GOFI.TXT.TaskManager {
     // The user's todo.txt related files
     private File todo_txt;
     private File done_txt;
+    private File waiting_txt;
     public TaskStore todo_store;
     public TaskStore done_store;
+    public TaskStore waiting_store;
     private bool read_only;
     private bool io_failed;
-    private bool single_file_mode;
 
     // refreshing
     private bool refresh_queued;
     private FileWatcher todo_watcher;
     private FileWatcher done_watcher;
+    private FileWatcher waiting_watcher;
 
     private uint todo_save_timeout_id;
     private uint done_save_timeout_id;
+    private uint waiting_save_timeout_id;
 
     private TxtTask active_task;
     private bool active_task_found;
@@ -58,30 +61,41 @@ class GOFI.TXT.TaskManager {
 
         // Initialize TaskStores
         todo_store = new TaskStore (false);
+        waiting_store = new TaskStore (false);
         done_store = new TaskStore (true);
 
         refresh_queued = false;
         todo_save_timeout_id = 0;
         done_save_timeout_id = 0;
+        waiting_save_timeout_id = 0;
 
         load_task_stores ();
         connect_store_signals ();
+
+        GLib.Timeout.add (300000, move_waiting_tasks);
 
         /* Signal processing */
 
         // these properties sometimes get updated multiple times without
         // actually changing, which could cause 1-6 extra reloads
         lsettings.notify["todo-uri"].connect (on_todo_uri_changed);
+        lsettings.notify["waiting-uri"].connect (on_waiting_uri_changed);
         lsettings.notify["done-uri"].connect (on_done_uri_changed);
     }
 
     public void prepare_free () {
         lsettings.notify["todo-uri"].disconnect (on_todo_uri_changed);
+        lsettings.notify["waiting-uri"].disconnect (on_waiting_uri_changed);
         lsettings.notify["done-uri"].disconnect (on_done_uri_changed);
     }
 
     private void on_todo_uri_changed () {
         if (lsettings.todo_uri != todo_txt.get_uri ()) {
+            load_task_stores ();
+        }
+    }
+    private void on_waiting_uri_changed () {
+        if (lsettings.waiting_uri != waiting_txt.get_uri ()) {
             load_task_stores ();
         }
     }
@@ -175,10 +189,13 @@ class GOFI.TXT.TaskManager {
     }
 
     private bool auto_refresh () {
+        // Have the writes stopped yet?
         if (todo_watcher.being_updated) {
             return true;
         }
-        if (done_watcher != null && done_watcher.being_updated) {
+        if ((done_watcher != null && done_watcher.being_updated) ||
+            (waiting_watcher != null && waiting_watcher.being_updated)
+        ) {
             return true;
         }
 
@@ -189,25 +206,63 @@ class GOFI.TXT.TaskManager {
         return false;
     }
 
+    private bool move_waiting_tasks () {
+        if (!refresh_queued) {
+            var now = new DateTime.now_local ();
+            uint n_items = waiting_store.get_n_items ();
+            (unowned TxtTask)[] to_move = {};
+            for (uint i = 0; i < n_items; i++) {
+                unowned TxtTask task = (TxtTask) waiting_store.get_item (i);
+                if (task.show_date.compare (now) >= 0) {
+                    to_move += task;
+                }
+            }
+            foreach (unowned TxtTask task in to_move) {
+                transfer_task (task, waiting_store, todo_store);
+            }
+        }
+
+        return Source.CONTINUE;
+    }
+
     private void connect_store_signals () {
         // Save data, as soon as something has changed
         todo_store.task_data_changed.connect (queue_todo_task_save);
+        waiting_store.task_data_changed.connect (queue_waiting_task_save);
         done_store.task_data_changed.connect (queue_done_task_save);
 
         // Move task from one list to another, if done or undone
         todo_store.task_done_changed.connect (task_done_handler);
+        waiting_store.task_done_changed.connect (task_done_handler);
         done_store.task_done_changed.connect (task_done_handler);
+
+        todo_store.task_show_date_changed.connect (ready_task_show_date_changed);
+        waiting_store.task_show_date_changed.connect (waiting_task_show_date_changed);
 
         // Remove tasks that are no longer valid (user has changed description to "")
         todo_store.task_became_invalid.connect (remove_invalid);
+        waiting_store.task_became_invalid.connect (remove_invalid);
         done_store.task_became_invalid.connect (remove_invalid);
+    }
+
+    private void ready_task_show_date_changed (TxtTask task) {
+        var now = new DateTime.now_local ();
+        if (task.show_date.compare (now) < 0) {
+            transfer_task (task, todo_store, waiting_store);
+        }
+    }
+
+    private void waiting_task_show_date_changed (TxtTask task) {
+        var now = new DateTime.now_local ();
+        if (task.show_date.compare (now) >= 0) {
+            transfer_task (task, waiting_store, todo_store);
+        }
     }
 
     private void load_task_stores () {
         todo_txt = File.new_for_uri (lsettings.todo_uri);
         done_txt = File.new_for_uri (lsettings.done_uri);
-
-        single_file_mode = todo_txt.equal (done_txt);
+        waiting_txt = File.new_for_uri (lsettings.waiting_uri);
 
         if (todo_txt.query_exists ()) {
             lsettings.add_default_todos = false;
@@ -224,7 +279,13 @@ class GOFI.TXT.TaskManager {
         todo_watcher = new FileWatcher (todo_txt);
         todo_watcher.changed.connect (on_file_changed);
 
-        if (single_file_mode) {
+        if (todo_txt.equal (waiting_txt)) {
+            waiting_watcher = null;
+        } else {
+            waiting_watcher = new FileWatcher (waiting_txt);
+            waiting_watcher.changed.connect (on_file_changed);
+        }
+        if (todo_txt.equal (done_txt) || waiting_txt.equal (done_txt)) {
             done_watcher = null;
         } else {
             done_watcher = new FileWatcher (done_txt);
@@ -244,14 +305,79 @@ class GOFI.TXT.TaskManager {
         }
     }
 
+    /**
+     * Removes recurrence information from task and schedules new task if
+     * necessary
+     */
+    private void task_schedule_new (TxtTask task) {
+        var recur_mode = task.recur_mode;
+
+        if (recur_mode <= RecurrenceMode.NO_RECURRENCE) {
+            return;
+        }
+        unowned SimpleRecurrence recur = task.recur;
+        if (recur == null) {
+            critical ("Invalid TxtTask state for task %p: recurrence rule is missing!", task);
+            return;
+        }
+        var new_task = new TxtTask.from_template_task (task);
+        task.recur_mode = RecurrenceMode.NO_RECURRENCE;
+        task.recur = null;
+        var task_due = new_task.due_date;
+        if (task_due == null) {
+            warning ("Encountered recurring todo.txt task without due date: %s", task.to_txt (false));
+            task_due = new GLib.DateTime.now_local ();
+        }
+        DateTime new_due;
+        DateTime now_date = new DateTime.now_local ();
+        switch (recur_mode) {
+            case RecurrenceMode.PERIODICALLY_SKIP_OLD:
+                var iter = new SimpleRecurrenceIterator (recur, task_due);
+                new_due = iter.next_skip_dates (now_date);
+                break;
+            case RecurrenceMode.ON_COMPLETION:
+                unowned DateTime completion_date = task.completion_date;
+                if (completion_date == null) {
+                    completion_date = now_date;
+                }
+                var iter = new SimpleRecurrenceIterator (recur, completion_date);
+                new_due = iter.next ();
+                break;
+            default:
+                var iter = new SimpleRecurrenceIterator (recur, task_due);
+                new_due = iter.next ();
+                break;
+        }
+        if (new_due == null) {
+            return;
+        }
+        new_task.due_date = new_due;
+        if (task.show_date != null) {
+            new_task.show_date.add (new_due.difference (task_due));
+            if (new_task.show_date.compare (now_date) <= 0) {
+                waiting_store.add_task (new_task);
+                return;
+            }
+        }
+        if (settings.new_tasks_on_top) {
+            todo_store.prepend_task (new_task);
+        } else {
+            todo_store.add_task (new_task);
+        }
+    }
+
     private void task_done_handler (TaskStore source, TxtTask task) {
         if (source == todo_store) {
             transfer_task (task, todo_store, done_store);
+            task_schedule_new (task);
             if (task == active_task) {
                 active_task_invalid ();
             }
         } else if (source == done_store) {
             transfer_task (task, done_store, todo_store);
+        } else if (source == waiting_store) {
+            transfer_task (task, waiting_store, done_store);
+            task_schedule_new (task);
         }
     }
 
@@ -264,11 +390,16 @@ class GOFI.TXT.TaskManager {
         // read_only flag, so that "clear ()" does not delete the files' content
         read_only = true;
         todo_store.clear ();
+        waiting_store.clear ();
         done_store.clear ();
         active_task_found = active_task == null;
-        read_task_file (this.todo_txt, false);
-        if (!single_file_mode) {
-            read_task_file (this.done_txt, true);
+        read_task_file (todo_txt, false);
+
+        if (!todo_txt.equal (waiting_txt)) {
+            read_task_file (waiting_txt, false);
+        }
+        if (!(todo_txt.equal (done_txt) || waiting_txt.equal (done_txt))) {
+            read_task_file (done_txt, true);
         }
 
         if (settings.add_default_todos && lsettings.add_default_todos) {
@@ -299,6 +430,10 @@ class GOFI.TXT.TaskManager {
             Source.remove (todo_save_timeout_id);
             save_todo_tasks ();
         }
+        if (waiting_save_timeout_id != 0) {
+            Source.remove (waiting_save_timeout_id);
+            save_waiting_tasks ();
+        }
         if (done_save_timeout_id != 0) {
             Source.remove (done_save_timeout_id);
             save_done_tasks ();
@@ -325,8 +460,29 @@ class GOFI.TXT.TaskManager {
         );
     }
 
+    private void queue_waiting_task_save () {
+        if (waiting_save_timeout_id != 0 || read_only) {
+            return;
+        }
+        if (todo_txt.equal (waiting_txt)) {
+            queue_todo_task_save ();
+            return;
+        }
+        waiting_save_timeout_id = GLib.Timeout.add (
+            100, save_waiting_tasks, GLib.Priority.DEFAULT_IDLE
+        );
+    }
+
     private void queue_done_task_save () {
         if (done_save_timeout_id != 0 || read_only) {
+            return;
+        }
+        if (waiting_txt.equal (done_txt)) {
+            queue_waiting_task_save ();
+            return;
+        }
+        if (todo_txt.equal (done_txt)) {
+            queue_todo_task_save ();
             return;
         }
         done_save_timeout_id = GLib.Timeout.add (
@@ -339,6 +495,14 @@ class GOFI.TXT.TaskManager {
             save_store (todo_store);
         }
         todo_save_timeout_id = 0;
+        return false;
+    }
+
+    private bool save_waiting_tasks () {
+        if (!read_only) {
+            save_store (waiting_store);
+        }
+        waiting_save_timeout_id = 0;
         return false;
     }
 
@@ -363,18 +527,53 @@ class GOFI.TXT.TaskManager {
     }
 
     private void save_store (TaskStore store) {
-        bool is_todo_store = store == todo_store;
-        File todo_file = is_todo_store ? todo_txt : done_txt;
-        if (single_file_mode) {
-            todo_watcher.watching = false;
-            write_task_file ({todo_store, done_store}, todo_file);
-            todo_watcher.watching = true;
+        File todo_file;
+        FileWatcher watcher = null;
+        TaskStore[] stores = {};
+
+        if (store == todo_store) {
+            todo_file = todo_txt;
+            watcher = todo_watcher;
+
+            if (todo_txt.equal (waiting_txt)) {
+                stores = {todo_store, waiting_store};
+            } else {
+                stores = {todo_store};
+            }
+            if (todo_txt.equal (done_txt)) {
+                stores += done_store;
+            }
+        } else if (store == done_store) {
+            todo_file = done_txt;
+            if (done_txt.equal (todo_txt)) {
+                stores = {todo_store};
+                watcher = todo_watcher;
+            }
+            if (done_txt.equal (waiting_txt)) {
+                stores += waiting_store;
+                if (watcher == null) {
+                    watcher = waiting_watcher;
+                }
+            } else if (watcher == null) {
+                watcher = done_watcher;
+            }
+            stores += done_store;
         } else {
-            FileWatcher watcher = is_todo_store ? todo_watcher : done_watcher;
-            watcher.watching = false;
-            write_task_file ({store}, todo_file);
-            watcher.watching = true;
+            todo_file = waiting_txt;
+            if (waiting_txt.equal (todo_txt)) {
+                stores = {todo_store, waiting_store};
+                watcher = todo_watcher;
+            } else {
+                stores = {waiting_store};
+                watcher = waiting_watcher;
+            }
+            if (waiting_txt.equal (done_txt)) {
+                stores += done_store;
+            }
         }
+        watcher.watching = false;
+        write_task_file (stores, todo_file);
+        watcher.watching = true;
     }
 
     // Create file with its parent directory if it doesn't currently exist
@@ -424,6 +623,7 @@ class GOFI.TXT.TaskManager {
             return;
         }
         message ("Reading todo.txt file: %s\n", file.get_uri ());
+        var now_time = new DateTime.now_local ();
 
         // Read data from todo.txt and done.txt files
         try {
@@ -435,7 +635,15 @@ class GOFI.TXT.TaskManager {
                 TxtTask? task = string_to_task (line, done_by_default);
                 if (task != null) {
                     if (task.done) {
+                        if (task.recur_mode > RecurrenceMode.NO_RECURRENCE) {
+                            task_schedule_new (task);
+                        }
                         done_store.add_task (task);
+                    } else if (
+                        task.show_date != null &&
+                        task.show_date.compare (now_time) > 0
+                    ) {
+                        waiting_store.add_task (task);
                     } else {
                         todo_store.add_task (task);
                     }

@@ -32,7 +32,7 @@ public class GOFI.TodoTask : GLib.Object {
             _description = value;
         }
     }
-    string _description;
+    string _description = "";
 
     public virtual bool valid {
         get {
@@ -46,6 +46,7 @@ public class GOFI.TodoTask : GLib.Object {
     public virtual uint timer_value {
         public get;
         public set;
+        default = 0;
     }
 
     public virtual TaskStatus status {
@@ -62,11 +63,13 @@ public class GOFI.TodoTask : GLib.Object {
     public uint duration {
         public get;
         public set;
+        default = 0;
     }
 
     public TodoTask (string line) {
+        Object ();
         _description = line;
-        timer_value = 0;
-        duration = 0;
     }
+
+    construct {}
 }

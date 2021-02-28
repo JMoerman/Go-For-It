@@ -142,7 +142,7 @@ class GOFI.ListManager : Object, DragListModel {
         return todolist_infos.get_item_type ();
     }
 
-    public Object? get_item (uint position) {
+    public unowned Object? get_item (uint position) {
         return todolist_infos.get_item (position);
     }
 

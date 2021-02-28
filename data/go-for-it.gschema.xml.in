@@ -264,6 +264,11 @@
       <summary>URI of to-do list</summary>
       <description>URI of the file containing to-do tasks that have yet to be completed.</description>
     </key>
+    <key name="waiting-list-uri" type="s">
+      <default>''</default>
+      <summary>URI of list containing inactive upcoming tasks</summary>
+      <description>URI of the file containing to-do tasks that need not be shown yet.</description>
+    </key>
     <key name="done-list-uri" type="s">
       <default>''</default>
       <summary>URI of "done" list</summary>

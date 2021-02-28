@@ -74,6 +74,10 @@ vala_precompile (VALA_C ${LIBNAME}
     Dialogs/ContributeDialog.vala
     Dialogs/RecurrenceDialog.vala
 
+    Recurrence/RecurrenceMode.vala
+    Recurrence/SimpleRecurrence.vala
+    Recurrence/SimpleRecurrenceIterator.vala
+
     Todo.txt/Constants.vala
     Todo.txt/TxtTask.vala
     Todo.txt/TxtUtils.vala

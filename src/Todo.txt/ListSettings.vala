@@ -24,6 +24,7 @@ class GOFI.TXT.ListSettings : Object, TodoListInfo {
     const string KEY_SCHEDULE = "schedule";
     const string KEY_REMINDER_TIME = "reminder-time";
     const string KEY_TODO_URI = "todo-list-uri";
+    const string KEY_WAITING_URI = "waiting-list-uri";
     const string KEY_DONE_URI = "done-list-uri";
     const string KEY_LOG_TIMER = "log-timer-in-txt";
     const string KEY_ADD_CREATION_DATES = "add-creation-dates";
@@ -52,6 +53,10 @@ class GOFI.TXT.ListSettings : Object, TodoListInfo {
     }
 
     public string todo_uri {
+        get;
+        set;
+    }
+    public string waiting_uri {
         get;
         set;
     }
@@ -189,16 +194,22 @@ class GOFI.TXT.ListSettings : Object, TodoListInfo {
     private void bind_stored () {
         var sbf = GLib.SettingsBindFlags.DEFAULT;
         stored_settings.bind (KEY_TODO_URI, this, "todo_uri", sbf);
+        stored_settings.bind (KEY_WAITING_URI, this, "waiting_uri", sbf);
         stored_settings.bind (KEY_DONE_URI, this, "done_uri", sbf);
         stored_settings.bind (KEY_REMINDER_TIME, this, "reminder_time", sbf);
         stored_settings.bind (KEY_LOG_TIMER, this, "log_timer_in_txt", sbf);
         stored_settings.bind (KEY_ADD_CREATION_DATES, this, "add_creation_dates", sbf);
         stored_settings.bind (KEY_NAME, this, "name", sbf);
         stored_settings.bind (KEY_LOG_URI, this, "activity_log_uri", sbf);
+
+        if (waiting_uri == "") {
+            waiting_uri = todo_uri;
+        }
     }
 
     public void unbind () {
         GLib.Settings.unbind (this, "todo_uri");
+        GLib.Settings.unbind (this, "waigin_uri");
         GLib.Settings.unbind (this, "done_uri");
         GLib.Settings.unbind (this, "reminder_time");
         GLib.Settings.unbind (this, "log_timer_in_txt");
