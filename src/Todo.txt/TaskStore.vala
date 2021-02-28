@@ -84,7 +84,7 @@ class GOFI.TXT.TaskStore : Object, DragListModel {
         return tasks.get_item_type ();
     }
 
-    public Object? get_item (uint position) {
+    public unowned Object? get_item (uint position) {
         return tasks.get_item (position);
     }
 

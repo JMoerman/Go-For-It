@@ -519,7 +519,7 @@ class DragListTest : TestCase {
             item_moved (old_position, new_position);
         }
 
-        public Object? get_item (uint position) {
+        public unowned Object? get_item (uint position) {
             if (position >= get_n_items ()) {
                 return null;
             }

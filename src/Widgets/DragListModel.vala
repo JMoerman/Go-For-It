@@ -38,7 +38,7 @@ public interface GOFI.DragListModel : Object {
     /**
      * Get the item at position.
      */
-    public abstract Object? get_item (uint position);
+    public abstract unowned Object? get_item (uint position);
     /**
      * Gets the type of the items in this.
      */

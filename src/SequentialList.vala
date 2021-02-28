@@ -113,7 +113,7 @@ class GOFI.SequentialList {
         items.push_nth (items.pop_nth (old_position), (int) new_position);
     }
 
-    public Object? get_item (uint position) {
+    public unowned Object? get_item (uint position) {
         assert (((int)position) >= 0);
         if (position < items.length) {
             move_iter_link_to_index ((int)position);
