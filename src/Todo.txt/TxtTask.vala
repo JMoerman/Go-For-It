@@ -85,26 +85,31 @@ class GOFI.TXT.TxtTask : TodoTask {
     public DateTime? creation_date {
         public get;
         public set;
+        default = null;
     }
 
     public DateTime? completion_date {
         public get;
         public set;
+        default = null;
     }
 
     public DateTime? due_date {
         public get;
         public set;
+        default = null;
     }
 
     public DateTime? threshold_date {
         public get;
         public set;
+        default = null;
     }
 
     public uint8 priority {
         public get;
         public set;
+        default = NO_PRIO;
     }
     public const uint8 NO_PRIO=127;
 
@@ -120,6 +125,7 @@ class GOFI.TXT.TxtTask : TodoTask {
     public SimpleRecurrence? recur {
         get;
         set;
+        default = null;
     }
 
     public RecurrenceMode recur_mode {
@@ -140,9 +146,10 @@ class GOFI.TXT.TxtTask : TodoTask {
     }
 
     public TxtTask.from_simple_txt (string descr, bool done) {
-        base ("");
-        creation_date = new GLib.DateTime.now_local ();
-        completion_date = null;
+        Object (
+            done: false,
+            creation_date: new GLib.DateTime.now_local (),
+        );
         update_from_simple_txt (descr);
     }
 
@@ -171,7 +178,8 @@ class GOFI.TXT.TxtTask : TodoTask {
             threshold_date: template.threshold_date,
             recur: template.recur,
             recur_mode: template.recur_mode,
-            duration: template.duration
+            duration: template.duration,
+            priority: template.priority
         );
         set_descr_parts (parse_description (template.description.split (" "), 0));
     }
