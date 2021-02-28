@@ -240,16 +240,16 @@ class GOFI.TXT.TaskManager {
     }
 
     private void task_auto_reschedule (DateTime now, TxtTask task) {
-        if (
-            task.recur_mode == RecurrenceMode.PERIODICALLY_AUTO_RESCHEDULE &&
-            task.due_date.compare (now) >= 0
-        ) {
+        if (task.recur_mode != RecurrenceMode.PERIODICALLY_AUTO_RESCHEDULE) {
+            return;
+        }
+        DateTime? task_due = task.due_date;
+        if (task_due != null && task_due.compare (now) >= 0) {
             unowned SimpleRecurrence recur = task.recur;
             if (recur == null) {
                 critical ("Invalid TxtTask state for task %p: recurrence rule is missing!", task);
                 return;
             }
-            DateTime? task_due = task.due_date;
             var iter = new SimpleRecurrenceIterator (recur, task_due);
             var new_due = iter.next_skip_dates (now);
             if (new_due != null) {
