@@ -97,7 +97,7 @@ class GOFI.TXT.TxtTask : TodoTask {
         public set;
     }
 
-    public DateTime? show_date {
+    public DateTime? threshold_date {
         public get;
         public set;
     }
@@ -168,7 +168,7 @@ class GOFI.TXT.TxtTask : TodoTask {
         Object (
             done: false,
             due_date: template.due_date,
-            show_date: template.show_date,
+            threshold_date: template.threshold_date,
             recur: template.recur,
             recur_mode: template.recur_mode,
             duration: template.duration
@@ -265,17 +265,17 @@ class GOFI.TXT.TxtTask : TodoTask {
                         break;
                     case "due":
                         if (is_date (t.content)) {
-                            due_date = string_to_date (t.content);
+                            due_date = string_to_date (t.content, true);
                             continue;
                         }
                         break;
-                    case "show":
+                    case "t":
                         if (is_date (t.content)) {
-                            show_date = string_to_date (t.content);
+                            threshold_date = string_to_date (t.content);
                             continue;
                         }
                         break;
-                    case "repeat":
+                    case "rec":
                         if (parse_recur_rule (t.content)) {
                             continue;
                         }
@@ -290,17 +290,27 @@ class GOFI.TXT.TxtTask : TodoTask {
 
     private bool parse_recur_rule (string recur_rule) {
         unowned string remaining = recur_rule;
-        var new_recur_mode = RecurrenceMode.PERIODICALLY;
+        var new_recur_mode = RecurrenceMode.ON_COMPLETION;
         ICal.RecurrenceFrequency recur_freq;
         long interval;
         switch (recur_rule[0]) {
             case '+':
-                new_recur_mode = RecurrenceMode.PERIODICALLY_SKIP_OLD;
-                remaining = recur_rule.offset (1);
-                break;
-            case '.':
-                new_recur_mode = RecurrenceMode.ON_COMPLETION;
-                remaining = recur_rule.offset (1);
+                switch (recur_rule[1]) {
+                    case '+':
+                        new_recur_mode = RecurrenceMode.PERIODICALLY_SKIP_OLD;
+                        remaining = recur_rule.offset (2);
+                        break;
+                    case 's':
+                        new_recur_mode = RecurrenceMode.PERIODICALLY_AUTO_RESCHEDULE;
+                        remaining = recur_rule.offset (2);
+                        break;
+                    case '\0':
+                        return false;
+                    default:
+                        new_recur_mode = RecurrenceMode.PERIODICALLY;
+                        remaining = recur_rule.offset (1);
+                        break;
+                }
                 break;
             case '\0':
                 return false;
@@ -440,13 +450,16 @@ class GOFI.TXT.TxtTask : TodoTask {
         }
 
         if (recur != null) {
-            str_builder.append (" repeat:");
+            str_builder.append (" rec:");
             switch (recur_mode) {
-                case RecurrenceMode.ON_COMPLETION:
-                    str_builder.append_c ('.');
+                case RecurrenceMode.PERIODICALLY:
+                    str_builder.append_c ('+');
                     break;
                 case RecurrenceMode.PERIODICALLY_SKIP_OLD:
-                    str_builder.append_c ('+');
+                    str_builder.append ("++");
+                    break;
+                case RecurrenceMode.PERIODICALLY_AUTO_RESCHEDULE:
+                    str_builder.append ("+s");
                     break;
                 default:
                     break;
@@ -468,9 +481,9 @@ class GOFI.TXT.TxtTask : TodoTask {
             }
         }
 
-        if (show_date != null) {
-            str_builder.append (" show:");
-            str_builder.append (date_to_string (show_date));
+        if (threshold_date != null) {
+            str_builder.append (" t:");
+            str_builder.append (date_to_string (threshold_date));
         }
 
         if (log_timer && timer_value != 0) {

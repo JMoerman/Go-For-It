@@ -73,6 +73,7 @@ class GOFI.TXT.TaskManager {
         connect_store_signals ();
 
         GLib.Timeout.add (300000, move_waiting_tasks);
+        GLib.Timeout.add (300000, reschedule_overdue_tasks);
 
         /* Signal processing */
 
@@ -213,7 +214,7 @@ class GOFI.TXT.TaskManager {
             (unowned TxtTask)[] to_move = {};
             for (uint i = 0; i < n_items; i++) {
                 unowned TxtTask task = (TxtTask) waiting_store.get_item (i);
-                if (task.show_date.compare (now) >= 0) {
+                if (task.threshold_date.compare (now) >= 0) {
                     to_move += task;
                 }
             }
@@ -223,6 +224,44 @@ class GOFI.TXT.TaskManager {
         }
 
         return Source.CONTINUE;
+    }
+
+    private bool reschedule_overdue_tasks () {
+        if (!refresh_queued) {
+            var now = new DateTime.now_local ();
+            uint n_items = waiting_store.get_n_items ();
+            for (uint i = 0; i < n_items; i++) {
+                unowned TxtTask task = (TxtTask) waiting_store.get_item (i);
+                task_auto_reschedule (now, task);
+            }
+        }
+
+        return Source.CONTINUE;
+    }
+
+    private void task_auto_reschedule (DateTime now, TxtTask task) {
+        if (
+            task.recur_mode == RecurrenceMode.PERIODICALLY_AUTO_RESCHEDULE &&
+            task.due_date.compare (now) >= 0
+        ) {
+            unowned SimpleRecurrence recur = task.recur;
+            if (recur == null) {
+                critical ("Invalid TxtTask state for task %p: recurrence rule is missing!", task);
+                return;
+            }
+            DateTime? task_due = task.due_date;
+            var iter = new SimpleRecurrenceIterator (recur, task_due);
+            var new_due = iter.next_skip_dates (now);
+            if (new_due != null) {
+                task.due_date = new_due;
+                unowned DateTime? threshold_date = task.threshold_date;
+                if (threshold_date != null) {
+                    task.threshold_date = threshold_date.add (
+                        new_due.difference (task_due)
+                    );
+                }
+            }
+        }
     }
 
     private void connect_store_signals () {
@@ -236,8 +275,8 @@ class GOFI.TXT.TaskManager {
         waiting_store.task_done_changed.connect (task_done_handler);
         done_store.task_done_changed.connect (task_done_handler);
 
-        todo_store.task_show_date_changed.connect (ready_task_show_date_changed);
-        waiting_store.task_show_date_changed.connect (waiting_task_show_date_changed);
+        todo_store.task_threshold_date_changed.connect (ready_task_threshold_date_changed);
+        waiting_store.task_threshold_date_changed.connect (waiting_task_threshold_date_changed);
 
         // Remove tasks that are no longer valid (user has changed description to "")
         todo_store.task_became_invalid.connect (remove_invalid);
@@ -245,16 +284,16 @@ class GOFI.TXT.TaskManager {
         done_store.task_became_invalid.connect (remove_invalid);
     }
 
-    private void ready_task_show_date_changed (TxtTask task) {
+    private void ready_task_threshold_date_changed (TxtTask task) {
         var now = new DateTime.now_local ();
-        if (task.show_date.compare (now) < 0) {
+        if (task.threshold_date.compare (now) < 0) {
             transfer_task (task, todo_store, waiting_store);
         }
     }
 
-    private void waiting_task_show_date_changed (TxtTask task) {
+    private void waiting_task_threshold_date_changed (TxtTask task) {
         var now = new DateTime.now_local ();
-        if (task.show_date.compare (now) >= 0) {
+        if (task.threshold_date.compare (now) >= 0) {
             transfer_task (task, waiting_store, todo_store);
         }
     }
@@ -331,6 +370,7 @@ class GOFI.TXT.TaskManager {
         DateTime new_due;
         DateTime now_date = new DateTime.now_local ();
         switch (recur_mode) {
+            case RecurrenceMode.PERIODICALLY_AUTO_RESCHEDULE:
             case RecurrenceMode.PERIODICALLY_SKIP_OLD:
                 var iter = new SimpleRecurrenceIterator (recur, task_due);
                 new_due = iter.next_skip_dates (now_date);
@@ -352,9 +392,11 @@ class GOFI.TXT.TaskManager {
             return;
         }
         new_task.due_date = new_due;
-        if (task.show_date != null) {
-            new_task.show_date.add (new_due.difference (task_due));
-            if (new_task.show_date.compare (now_date) <= 0) {
+        if (task.threshold_date != null) {
+            new_task.threshold_date = new_task.threshold_date.add (
+                new_due.difference (task_due)
+            );
+            if (new_task.threshold_date.compare (now_date) <= 0) {
                 waiting_store.add_task (new_task);
                 return;
             }
@@ -631,8 +673,11 @@ class GOFI.TXT.TaskManager {
             var stream_in = new DataInputStream (file.read ());
             string line;
 
+            var now = new DateTime.now_local ();
+
             while ((line = stream_in.read_line (null)) != null) {
                 TxtTask? task = string_to_task (line, done_by_default);
+
                 if (task != null) {
                     if (task.done) {
                         if (task.recur_mode > RecurrenceMode.NO_RECURRENCE) {
@@ -640,11 +685,13 @@ class GOFI.TXT.TaskManager {
                         }
                         done_store.add_task (task);
                     } else if (
-                        task.show_date != null &&
-                        task.show_date.compare (now_time) > 0
+                        task.threshold_date != null &&
+                        task.threshold_date.compare (now_time) > 0
                     ) {
+                        task_auto_reschedule (now, task);
                         waiting_store.add_task (task);
                     } else {
+                        task_auto_reschedule (now, task);
                         todo_store.add_task (task);
                     }
                 }

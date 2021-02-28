@@ -88,13 +88,21 @@ namespace GOFI.TXT.TxtUtils {
         return false;
     }
 
-    public static DateTime string_to_date (string date_txt) {
+    public static DateTime string_to_date (string date_txt, bool end_of_day = false) {
         string[] date_parts = date_txt.split ("-", 3);
+        int hours = 0;
+        int minutes = 0;
+        int seconds = 0;
+        if (end_of_day) {
+            hours = 23;
+            minutes = 59;
+            seconds = 59;
+        }
         return new DateTime.local (
             int.parse (date_parts[0]),
             int.parse (date_parts[1]),
             int.parse (date_parts[2]),
-            0, 0, 0
+            hours, minutes, seconds
         );
     }
 
