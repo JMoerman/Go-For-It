@@ -389,6 +389,9 @@ class GOFI.TXT.TaskManager {
                 }
                 var iter = new SimpleRecurrenceIterator (recur, completion_date);
                 new_due = iter.next ();
+                int year, month, day;
+                new_due.get_ymd (out year, out month, out day);
+                new_due = new DateTime.local (year, month, day, 23, 59, 59.0);
                 break;
             default:
                 var iter = new SimpleRecurrenceIterator (recur, task_due);
@@ -403,7 +406,7 @@ class GOFI.TXT.TaskManager {
             new_task.threshold_date = new_task.threshold_date.add (
                 new_due.difference (task_due)
             );
-            if (new_task.threshold_date.compare (now_date) <= 0) {
+            if (new_task.threshold_date.compare (now_date) >= 0) {
                 waiting_store.add_task (new_task);
                 return;
             }
@@ -701,7 +704,7 @@ class GOFI.TXT.TaskManager {
                     } else {
                         task_auto_reschedule (now, task);
                         if (task.threshold_date != null &&
-                            task.threshold_date.compare (now_time) > 0
+                            task.threshold_date.compare (now_time) >= 0
                         ) {
                             waiting_store.add_task (task);
                         } else {
