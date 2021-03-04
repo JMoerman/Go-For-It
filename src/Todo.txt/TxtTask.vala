@@ -148,7 +148,7 @@ class GOFI.TXT.TxtTask : TodoTask {
     public TxtTask.from_simple_txt (string descr, bool done) {
         Object (
             done: false,
-            creation_date: new GLib.DateTime.now_local (),
+            creation_date: new GLib.DateTime.now_local ()
         );
         update_from_simple_txt (descr);
     }
