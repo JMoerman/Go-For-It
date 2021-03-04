@@ -71,6 +71,7 @@ class GOFI.TXT.TaskManager {
 
         load_task_stores ();
         connect_store_signals ();
+        post_load_task_schedule ();
 
         GLib.Timeout.add (300000, move_waiting_tasks);
         GLib.Timeout.add (300000, reschedule_overdue_tasks);
@@ -92,17 +93,17 @@ class GOFI.TXT.TaskManager {
 
     private void on_todo_uri_changed () {
         if (lsettings.todo_uri != todo_txt.get_uri ()) {
-            load_task_stores ();
+            load_tasks_stores_and_reschedule ();
         }
     }
     private void on_waiting_uri_changed () {
         if (lsettings.waiting_uri != waiting_txt.get_uri ()) {
-            load_task_stores ();
+            load_tasks_stores_and_reschedule ();
         }
     }
     private void on_done_uri_changed () {
         if (lsettings.done_uri != done_txt.get_uri ()) {
-            load_task_stores ();
+            load_tasks_stores_and_reschedule ();
         }
     }
 
@@ -186,6 +187,7 @@ class GOFI.TXT.TaskManager {
         stdout.printf ("Refreshing\n");
         refreshing ();
         load_tasks ();
+        post_load_task_schedule ();
         refreshed ();
     }
 
@@ -229,9 +231,9 @@ class GOFI.TXT.TaskManager {
     private bool reschedule_overdue_tasks () {
         if (!refresh_queued) {
             var now = new DateTime.now_local ();
-            uint n_items = waiting_store.get_n_items ();
+            uint n_items = todo_store.get_n_items ();
             for (uint i = 0; i < n_items; i++) {
-                unowned TxtTask task = (TxtTask) waiting_store.get_item (i);
+                unowned TxtTask task = (TxtTask) todo_store.get_item (i);
                 task_auto_reschedule (now, task);
             }
         }
@@ -348,7 +350,7 @@ class GOFI.TXT.TaskManager {
      * Removes recurrence information from task and schedules new task if
      * necessary
      */
-    private void task_schedule_new (TxtTask task) {
+    private void task_schedule_new (TxtTask task, DateTime? date = null) {
         var recur_mode = task.recur_mode;
 
         if (recur_mode <= RecurrenceMode.NO_RECURRENCE) {
@@ -368,7 +370,12 @@ class GOFI.TXT.TaskManager {
             task_due = new GLib.DateTime.now_local ();
         }
         DateTime new_due;
-        DateTime now_date = new DateTime.now_local ();
+        DateTime now_date;
+        if (date == null) {
+            now_date = new DateTime.now_local ();
+        } else {
+            now_date = date;
+        }
         switch (recur_mode) {
             case RecurrenceMode.PERIODICALLY_AUTO_RESCHEDULE:
             case RecurrenceMode.PERIODICALLY_SKIP_OLD:
@@ -401,11 +408,7 @@ class GOFI.TXT.TaskManager {
                 return;
             }
         }
-        if (settings.new_tasks_on_top) {
-            todo_store.prepend_task (new_task);
-        } else {
-            todo_store.add_task (new_task);
-        }
+        todo_store.add_task (new_task);
     }
 
     private void task_done_handler (TaskStore source, TxtTask task) {
@@ -453,6 +456,20 @@ class GOFI.TXT.TaskManager {
         if (!active_task_found) {
             active_task_invalid ();
         }
+    }
+
+    private void post_load_task_schedule () {
+        var now = new DateTime.now_local ();
+        uint n_items = done_store.get_n_items ();
+        for (uint i = 0; i < n_items; i++) {
+            unowned TxtTask task = (TxtTask) done_store.get_item (i);
+            task_schedule_new (task, now);
+        }
+    }
+
+    private void load_tasks_stores_and_reschedule () {
+        load_task_stores ();
+        post_load_task_schedule ();
     }
 
     private void add_default_todos () {
@@ -680,19 +697,16 @@ class GOFI.TXT.TaskManager {
 
                 if (task != null) {
                     if (task.done) {
-                        if (task.recur_mode > RecurrenceMode.NO_RECURRENCE) {
-                            task_schedule_new (task);
-                        }
                         done_store.add_task (task);
-                    } else if (
-                        task.threshold_date != null &&
-                        task.threshold_date.compare (now_time) > 0
-                    ) {
-                        task_auto_reschedule (now, task);
-                        waiting_store.add_task (task);
                     } else {
                         task_auto_reschedule (now, task);
-                        todo_store.add_task (task);
+                        if (task.threshold_date != null &&
+                            task.threshold_date.compare (now_time) > 0
+                        ) {
+                            waiting_store.add_task (task);
+                        } else {
+                            todo_store.add_task (task);
+                        }
                     }
                 }
             }
