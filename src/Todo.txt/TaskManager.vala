@@ -85,11 +85,6 @@ class GOFI.TXT.TaskManager {
         lsettings.notify["done-uri"].connect (on_done_uri_changed);
     }
 
-    // I kept messing up comparisons
-    private static inline bool date_time_before (DateTime a, DateTime b) {
-        return (a.compare (b) < 0);
-    }
-
     public void prepare_free () {
         lsettings.notify["todo-uri"].disconnect (on_todo_uri_changed);
         lsettings.notify["waiting-uri"].disconnect (on_waiting_uri_changed);
@@ -214,6 +209,14 @@ class GOFI.TXT.TaskManager {
         return false;
     }
 
+    // I kept messing up comparisons
+    private static inline bool date_before (GOFI.Date a, DateTime b) {
+        return (a.dt_compare_date (b) < 0);
+    }
+    private static inline bool date_after (GOFI.Date a, DateTime b) {
+        return (a.dt_compare_date (b) > 0);
+    }
+
     private bool move_waiting_tasks () {
         if (!refresh_queued) {
             var now = new DateTime.now_local ();
@@ -221,7 +224,7 @@ class GOFI.TXT.TaskManager {
             TxtTask[] to_move = {};
             for (uint i = 0; i < n_items; i++) {
                 unowned TxtTask task = (TxtTask) waiting_store.get_item (i);
-                if (date_time_before (now, task.threshold_date)) {
+                if (!date_after (task.threshold_date, now)) {
                     to_move += task;
                 }
             }
@@ -250,22 +253,23 @@ class GOFI.TXT.TaskManager {
         if (task.recur_mode != RecurrenceMode.PERIODICALLY_AUTO_RESCHEDULE) {
             return;
         }
-        DateTime? task_due = task.due_date;
-        if (task_due != null && date_time_before (task_due, now)) {
+        Date? task_due = task.due_date;
+        if (task_due != null && date_before (task_due, now)) {
+            var due_dt = task_due.dt;
             unowned SimpleRecurrence recur = task.recur;
             if (recur == null) {
                 critical ("Invalid TxtTask state for task %p: recurrence rule is missing!", task);
                 return;
             }
-            var iter = new SimpleRecurrenceIterator (recur, task_due);
+            var iter = new SimpleRecurrenceIterator (recur, due_dt);
             var new_due = iter.next_skip_dates (now);
             if (new_due != null) {
-                task.due_date = new_due;
-                unowned DateTime? threshold_date = task.threshold_date;
+                task.due_date = new Date (new_due);
+                unowned Date? threshold_date = task.threshold_date;
                 if (threshold_date != null) {
-                    task.threshold_date = threshold_date.add (
-                        new_due.difference (task_due)
-                    );
+                    task.threshold_date = new Date(threshold_date.dt.add (
+                        new_due.difference (due_dt)
+                    ));
                 }
             }
         }
@@ -293,14 +297,14 @@ class GOFI.TXT.TaskManager {
 
     private void ready_task_threshold_date_changed (TxtTask task) {
         var now = new DateTime.now_local ();
-        if (date_time_before (now, task.threshold_date)) {
+        if (date_after (task.threshold_date, now)) {
             transfer_task (task, todo_store, waiting_store);
         }
     }
 
     private void waiting_task_threshold_date_changed (TxtTask task) {
         var now = new DateTime.now_local ();
-        if (!date_time_before (now, task.threshold_date)) {
+        if (!date_after (task.threshold_date, now)) {
             transfer_task (task, waiting_store, todo_store);
         }
     }
@@ -355,7 +359,7 @@ class GOFI.TXT.TaskManager {
      * Removes recurrence information from task and schedules new task if
      * necessary
      */
-    private void task_schedule_new (TxtTask task, DateTime? date = null) {
+    private void task_schedule_new (TxtTask task, DateTime? dt = null) {
         var recur_mode = task.recur_mode;
 
         if (recur_mode <= RecurrenceMode.NO_RECURRENCE) {
@@ -372,49 +376,52 @@ class GOFI.TXT.TaskManager {
         var task_due = new_task.due_date;
         if (task_due == null) {
             warning ("Encountered recurring todo.txt task without due date: %s", task.to_txt (false));
-            task_due = new GLib.DateTime.now_local ();
+            task_due = new Date (new GLib.DateTime.now_local ());
         }
-        DateTime new_due;
-        DateTime now_date;
-        if (date == null) {
-            now_date = new DateTime.now_local ();
+        DateTime? new_due_dt;
+        DateTime now_dt;
+        if (dt == null) {
+            now_dt = new DateTime.now_local ();
         } else {
-            now_date = date;
+            now_dt = dt;
         }
         switch (recur_mode) {
             case RecurrenceMode.PERIODICALLY_AUTO_RESCHEDULE:
             case RecurrenceMode.PERIODICALLY_SKIP_OLD:
-                var iter = new SimpleRecurrenceIterator (recur, task_due);
-                new_due = iter.next_skip_dates (now_date);
+                var iter = new SimpleRecurrenceIterator (recur, task_due.dt);
+                new_due_dt = iter.next_skip_dates (now_dt);
                 break;
             case RecurrenceMode.ON_COMPLETION:
-                unowned DateTime completion_date = task.completion_date;
-                if (completion_date == null) {
-                    completion_date = now_date;
+                unowned DateTime completion_date;
+                if (task.completion_date != null) {
+                    completion_date = task.completion_date.dt;
+                } else {
+                    completion_date = now_dt;
                 }
                 var iter = new SimpleRecurrenceIterator (recur, completion_date);
-                new_due = iter.next ();
-                int year, month, day;
-                new_due.get_ymd (out year, out month, out day);
-                new_due = new DateTime.local (year, month, day, 23, 59, 59.0);
+                new_due_dt = iter.next ();
                 break;
             default:
-                var iter = new SimpleRecurrenceIterator (recur, task_due);
-                new_due = iter.next ();
+                var iter = new SimpleRecurrenceIterator (recur, task_due.dt);
+                new_due_dt = iter.next ();
                 break;
         }
-        if (new_due == null) {
+        if (new_due_dt == null) {
             return;
         }
         if (lsettings.add_creation_dates) {
-            new_task.creation_date = new GLib.DateTime.now_local ();
+            new_task.creation_date = new Date (new GLib.DateTime.now_local ());
         }
-        new_task.due_date = new_due;
+        var new_due_date = new Date (new_due_dt);
+        new_task.due_date = new_due_date;
+        var threshold_date = task.threshold_date;
         if (task.threshold_date != null) {
-            new_task.threshold_date = new_task.threshold_date.add (
-                new_due.difference (task_due)
+            var threshold_dt = threshold_date.dt.add_days (
+                task_due.days_between (new_due_date)
             );
-            if (date_time_before (now_date, new_task.treshhold_date)) {
+            threshold_date = new Date (threshold_dt);
+            new_task.threshold_date = threshold_date;
+            if (date_after (threshold_date, dt)) {
                 waiting_store.add_task (new_task);
                 return;
             }
@@ -712,7 +719,7 @@ class GOFI.TXT.TaskManager {
                     } else {
                         task_auto_reschedule (now, task);
                         if (task.threshold_date != null &&
-                            date_time_before (now_time, task.threshold_date)
+                            date_after (task.threshold_date, now_time)
                         ) {
                             waiting_store.add_task (task);
                         } else {

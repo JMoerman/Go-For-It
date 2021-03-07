@@ -71,7 +71,7 @@ class GOFI.TXT.TxtTask : TodoTask {
         public set {
             if (_done != value) {
                 if (value && creation_date != null) {
-                    completion_date = new GLib.DateTime.now_local ();
+                    completion_date = new Date (new GLib.DateTime.now_local ());
                 } else {
                     completion_date = null;
                 }
@@ -82,25 +82,25 @@ class GOFI.TXT.TxtTask : TodoTask {
     }
     private bool _done;
 
-    public DateTime? creation_date {
+    public GOFI.Date? creation_date {
         public get;
         public set;
         default = null;
     }
 
-    public DateTime? completion_date {
+    public GOFI.Date? completion_date {
         public get;
         public set;
         default = null;
     }
 
-    public DateTime? due_date {
+    public GOFI.Date? due_date {
         public get;
         public set;
         default = null;
     }
 
-    public DateTime? threshold_date {
+    public GOFI.Date? threshold_date {
         public get;
         public set;
         default = null;
@@ -148,7 +148,7 @@ class GOFI.TXT.TxtTask : TodoTask {
     public TxtTask.from_simple_txt (string descr, bool done) {
         Object (
             done: false,
-            creation_date: new GLib.DateTime.now_local ()
+            creation_date: new Date (new GLib.DateTime.now_local ())
         );
         update_from_simple_txt (descr);
     }
@@ -201,7 +201,7 @@ class GOFI.TXT.TxtTask : TodoTask {
         }
     }
 
-    private inline DateTime? try_parse_date (string[] parts, ref uint index) {
+    private inline GOFI.Date? try_parse_date (string[] parts, ref uint index) {
         uint _index = index;
         if (parts[_index] != null && is_date (parts[_index])) {
             index++;
@@ -211,8 +211,8 @@ class GOFI.TXT.TxtTask : TodoTask {
     }
 
     private inline void parse_dates (string[] parts, ref uint index) {
-        DateTime? date1 = try_parse_date (parts, ref index);
-        DateTime? date2 = null;
+        GOFI.Date? date1 = try_parse_date (parts, ref index);
+        GOFI.Date? date2 = null;
 
         if (date1 != null && _done && (date2 = try_parse_date (parts, ref index)) != null) {
             creation_date = date2;
@@ -273,7 +273,7 @@ class GOFI.TXT.TxtTask : TodoTask {
                         break;
                     case "due":
                         if (is_date (t.content)) {
-                            due_date = string_to_date (t.content, true);
+                            due_date = string_to_date (t.content);
                             continue;
                         }
                         break;
@@ -441,11 +441,11 @@ class GOFI.TXT.TxtTask : TodoTask {
         str_builder.append (prio_to_string ());
 
         if (creation_date != null) {
-            str_builder.append (date_to_string (creation_date));
+            str_builder.append (dt_to_string (creation_date.dt));
             str_builder.append_c (' ');
 
             if (completion_date != null) {
-                str_builder.append (date_to_string (completion_date));
+                str_builder.append (dt_to_string (completion_date.dt));
                 str_builder.append_c (' ');
             }
         }
@@ -454,7 +454,7 @@ class GOFI.TXT.TxtTask : TodoTask {
 
         if (due_date != null) {
             str_builder.append (" due:");
-            str_builder.append (date_to_string (due_date));
+            str_builder.append (dt_to_string (due_date.dt));
         }
 
         if (recur != null) {
@@ -491,7 +491,7 @@ class GOFI.TXT.TxtTask : TodoTask {
 
         if (threshold_date != null) {
             str_builder.append (" t:");
-            str_builder.append (date_to_string (threshold_date));
+            str_builder.append (dt_to_string (threshold_date.dt));
         }
 
         if (log_timer && timer_value != 0) {
