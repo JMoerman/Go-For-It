@@ -421,7 +421,7 @@ class GOFI.TXT.TaskManager {
             );
             threshold_date = new Date (threshold_dt);
             new_task.threshold_date = threshold_date;
-            if (date_after (threshold_date, dt)) {
+            if (date_after (threshold_date, now_dt)) {
                 waiting_store.add_task (new_task);
                 return;
             }
