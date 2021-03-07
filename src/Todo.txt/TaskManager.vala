@@ -246,7 +246,7 @@ class GOFI.TXT.TaskManager {
             return;
         }
         DateTime? task_due = task.due_date;
-        if (task_due != null && task_due.compare (now) >= 0) {
+        if (task_due != null && task_due.compare (now) < 0) {
             unowned SimpleRecurrence recur = task.recur;
             if (recur == null) {
                 critical ("Invalid TxtTask state for task %p: recurrence rule is missing!", task);
