@@ -85,6 +85,11 @@ class GOFI.TXT.TaskManager {
         lsettings.notify["done-uri"].connect (on_done_uri_changed);
     }
 
+    // I kept messing up comparisons
+    private static inline bool date_time_before (DateTime a, DateTime b) {
+        return (a.compare (b) < 0);
+    }
+
     public void prepare_free () {
         lsettings.notify["todo-uri"].disconnect (on_todo_uri_changed);
         lsettings.notify["waiting-uri"].disconnect (on_waiting_uri_changed);
@@ -213,14 +218,14 @@ class GOFI.TXT.TaskManager {
         if (!refresh_queued) {
             var now = new DateTime.now_local ();
             uint n_items = waiting_store.get_n_items ();
-            (unowned TxtTask)[] to_move = {};
+            TxtTask[] to_move = {};
             for (uint i = 0; i < n_items; i++) {
                 unowned TxtTask task = (TxtTask) waiting_store.get_item (i);
-                if (task.threshold_date.compare (now) >= 0) {
+                if (date_time_before (now, task.threshold_date)) {
                     to_move += task;
                 }
             }
-            foreach (unowned TxtTask task in to_move) {
+            foreach (TxtTask task in to_move) {
                 transfer_task (task, waiting_store, todo_store);
             }
         }
@@ -246,7 +251,7 @@ class GOFI.TXT.TaskManager {
             return;
         }
         DateTime? task_due = task.due_date;
-        if (task_due != null && task_due.compare (now) < 0) {
+        if (task_due != null && date_time_before (task_due, now)) {
             unowned SimpleRecurrence recur = task.recur;
             if (recur == null) {
                 critical ("Invalid TxtTask state for task %p: recurrence rule is missing!", task);
@@ -288,14 +293,14 @@ class GOFI.TXT.TaskManager {
 
     private void ready_task_threshold_date_changed (TxtTask task) {
         var now = new DateTime.now_local ();
-        if (task.threshold_date.compare (now) < 0) {
+        if (date_time_before (now, task.threshold_date)) {
             transfer_task (task, todo_store, waiting_store);
         }
     }
 
     private void waiting_task_threshold_date_changed (TxtTask task) {
         var now = new DateTime.now_local ();
-        if (task.threshold_date.compare (now) >= 0) {
+        if (!date_time_before (now, task.threshold_date)) {
             transfer_task (task, waiting_store, todo_store);
         }
     }
@@ -409,7 +414,7 @@ class GOFI.TXT.TaskManager {
             new_task.threshold_date = new_task.threshold_date.add (
                 new_due.difference (task_due)
             );
-            if (new_task.threshold_date.compare (now_date) >= 0) {
+            if (date_time_before (now_date, new_task.treshhold_date)) {
                 waiting_store.add_task (new_task);
                 return;
             }
@@ -707,7 +712,7 @@ class GOFI.TXT.TaskManager {
                     } else {
                         task_auto_reschedule (now, task);
                         if (task.threshold_date != null &&
-                            task.threshold_date.compare (now_time) >= 0
+                            date_time_before (now_time, task.threshold_date)
                         ) {
                             waiting_store.add_task (task);
                         } else {
