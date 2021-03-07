@@ -401,6 +401,9 @@ class GOFI.TXT.TaskManager {
         if (new_due == null) {
             return;
         }
+        if (lsettings.add_creation_dates) {
+            new_task.creation_date = new GLib.DateTime.now_local ();
+        }
         new_task.due_date = new_due;
         if (task.threshold_date != null) {
             new_task.threshold_date = new_task.threshold_date.add (
