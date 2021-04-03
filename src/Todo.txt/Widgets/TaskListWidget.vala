@@ -1,4 +1,4 @@
-/* Copyright 2014-2019 Go For It! developers
+/* Copyright 2014-2021 Go For It! developers
 *
 * This file is part of Go For It!.
 *
@@ -22,11 +22,6 @@ class GOFI.TXT.TaskListWidget : Gtk.Grid {
     /* GTK Widgets */
     private Gtk.ScrolledWindow scroll_view;
     private DragList task_view;
-    private Gtk.Grid add_new_grid;
-    private Gtk.SearchBar search_bar;
-    private Gtk.Entry add_new_txt;
-    private Gtk.SearchEntry filter_entry;
-    private Filter filter;
     private Gtk.Label placeholder;
 
     /* Data Model */
@@ -43,11 +38,6 @@ class GOFI.TXT.TaskListWidget : Gtk.Grid {
     public signal void selection_changed (TxtTask selected_task);
 
     [Signal (action = true)]
-    public virtual signal void toggle_filtering () {
-        is_filtering = !is_filtering;
-    }
-
-    [Signal (action = true)]
     public virtual signal void sort_tasks () {
         model.sort ();
     }
@@ -60,35 +50,18 @@ class GOFI.TXT.TaskListWidget : Gtk.Grid {
         }
     }
 
-    public bool is_filtering {
-        public get {
-            return search_bar.search_mode_enabled;
-        }
-        public set {
-            search_bar.set_search_mode (value);
-        }
-    }
-
     /**
      * Constructor of the TaskListWidget class.
-     * @param add_new whether or not to show a textfield for adding new entries
      */
-    public TaskListWidget (TaskStore model, bool add_new = false) {
+    public TaskListWidget (TaskStore model) {
         /* Settings of the widget itself */
         this.orientation = Gtk.Orientation.VERTICAL;
         this.expand = true;
         this.model = model;
 
         /* Setup the widget's children */
-        setup_filter ();
         setup_task_view ();
-        if (add_new) {
-            setup_add_new ();
-            placeholder_text = PLACEHOLDER_TEXT_TODO;
-        } else {
-            add_new_txt = null;
-            placeholder_text = PLACEHOLDER_TEXT_DONE;
-        }
+        placeholder_text = PLACEHOLDER_TEXT_TODO;
         add_placeholder ();
     }
 
@@ -142,8 +115,9 @@ class GOFI.TXT.TaskListWidget : Gtk.Grid {
     }
 
     private void on_row_link_clicked (string uri) {
-        is_filtering = true;
-        filter_entry.set_text (uri);
+        warning ("STUB!");
+        // is_filtering = true;
+        // filter_entry.set_text (uri);
     }
 
     private void on_deletion_requested (TaskRow row) {
@@ -172,7 +146,6 @@ class GOFI.TXT.TaskListWidget : Gtk.Grid {
         task_view.vadjustment = scroll_view.vadjustment;
         task_view.row_selected.connect (on_task_view_row_selected);
         task_view.row_activated.connect (on_task_view_row_activated);
-        task_view.set_filter_func (filter.filter);
 
         scroll_view.expand = true;
 
@@ -191,79 +164,5 @@ class GOFI.TXT.TaskListWidget : Gtk.Grid {
 
     private void on_task_view_row_activated (DragListRow? selected_row) {
        ((TaskRow) selected_row).edit (true);
-    }
-
-    /**
-     * Configures the container with the "add new task" text entry.
-     */
-    private void setup_add_new () {
-        add_new_grid = new Gtk.Grid ();
-        add_new_grid.orientation = Gtk.Orientation.HORIZONTAL;
-
-        add_new_txt = new Gtk.Entry ();
-        add_new_txt.hexpand = true;
-        add_new_txt.placeholder_text = _("Add new task") + "…";
-        add_new_txt.margin = 5;
-
-        add_new_txt.set_icon_from_icon_name (
-            Gtk.EntryIconPosition.SECONDARY, "list-add-symbolic");
-
-        /* Action and Signal Handling */
-        // Handle clicks on the icon
-        add_new_txt.icon_press.connect (on_add_new_txt_icon_press);
-        // Handle "activate" signals (Enter Key presses)
-        add_new_txt.activate.connect (on_entry_activate);
-
-        add_new_grid.add (add_new_txt);
-
-        var sc = kbsettings.get_shortcut (KeyBindingSettings.SCK_ADD_NEW);
-        add_new_grid.tooltip_markup = sc.get_accel_markup (_("Add new task"));
-
-        // Add to the main widget
-        this.add (add_new_grid);
-    }
-
-    private void on_add_new_txt_icon_press (Gtk.EntryIconPosition pos, Gdk.Event event) {
-        if (pos == Gtk.EntryIconPosition.SECONDARY) {
-            on_entry_activate ();
-        }
-    }
-
-    private void on_entry_activate () {
-        add_new_task (add_new_txt.text);
-        add_new_txt.text = "";
-        placeholder_text = PLACEHOLDER_TEXT_FINISHED;
-        placeholder.label = PLACEHOLDER_TEXT_FINISHED;
-    }
-
-    public void entry_focus () {
-        add_new_txt.grab_focus ();
-    }
-
-    private void on_search_bar_toggle () {
-        if (search_bar.search_mode_enabled) {
-            placeholder.label = FILTER_TEXT;
-        } else {
-            placeholder.label = placeholder_text;
-        }
-    }
-
-    private void setup_filter () {
-        search_bar = new Gtk.SearchBar ();
-        filter_entry = new Gtk.SearchEntry ();
-        filter = new Filter ();
-
-        filter_entry.search_changed.connect (on_filter_entry_search_changed);
-        search_bar.notify["search-mode-enabled"].connect (on_search_bar_toggle);
-
-        search_bar.add (filter_entry);
-        search_bar.set_show_close_button (true);
-
-        this.add (search_bar);
-    }
-
-    private void on_filter_entry_search_changed () {
-        filter.parse (filter_entry.text);
-        task_view.invalidate_filter ();
     }
 }

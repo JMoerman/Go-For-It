@@ -1,4 +1,4 @@
-/* Copyright 2014-2019 Go For It! developers
+/* Copyright 2014-2021 Go For It! developers
 *
 * This file is part of Go For It!.
 *
@@ -23,7 +23,7 @@ using GOFI.TXT.TxtUtils;
  * lists. Editing specific tasks (e.g. removing, renaming) is to be done
  * by addressing the corresponding TaskStore instance.
  */
-class GOFI.TXT.TaskManager {
+class GOFI.TXT.TaskManager : Object {
     private ListSettings lsettings;
     // The user's todo.txt related files
     private File todo_txt;
@@ -52,6 +52,12 @@ class GOFI.TXT.TaskManager {
     string read_error_message = _("Couldn't read the todo.txt file (%s):") + "\n\n%s\n\n";
     string write_error_message = _("Couldn't save the to-do list (%s):") + "\n\n%s\n\n";
 
+    public bool waiting_tasks_available {
+        get {
+            return waiting_store.get_n_items () > 0;
+        }
+    }
+
     public signal void active_task_invalid ();
     public signal void refreshing ();
     public signal void refreshed ();
@@ -77,6 +83,11 @@ class GOFI.TXT.TaskManager {
         GLib.Timeout.add (300000, reschedule_overdue_tasks);
 
         /* Signal processing */
+        waiting_store.items_changed.connect ((pos, removed, added) => {
+            if (removed != added) {
+                this.notify["waiting-tasks-available"];
+            }
+        });
 
         // these properties sometimes get updated multiple times without
         // actually changing, which could cause 1-6 extra reloads

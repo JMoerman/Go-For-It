@@ -16,7 +16,9 @@
 */
 class GOFI.TXT.TxtList : GOFI.TaskList, Object {
     private TaskManager task_manager;
-    private TaskListWidget todo_list;
+    private TaskListWidget ready_list;
+    private TaskListWidget waiting_list;
+    private Gtk.Grid todo_list;
     private TaskListWidget done_list;
 
     private Gtk.Box menu_box;
@@ -48,7 +50,7 @@ class GOFI.TXT.TxtList : GOFI.TaskList, Object {
             _active_task = (TxtTask) value;
             task_manager.set_active_task (_active_task);
             if (_active_task != null) {
-                todo_list.select_task (_active_task);
+                ready_list.select_task (_active_task);
             }
         }
     }
@@ -169,7 +171,8 @@ class GOFI.TXT.TxtList : GOFI.TaskList, Object {
     }
 
     public void add_task_shortcut () {
-        todo_list.entry_focus ();
+        warning ("STUB!");
+        // todo_list.entry_focus ();
     }
 
     /**
@@ -178,11 +181,29 @@ class GOFI.TXT.TxtList : GOFI.TaskList, Object {
      */
     public void load () {
         task_manager = new TaskManager (list_settings);
-        todo_list = new TaskListWidget (this.task_manager.todo_store, true);
-        done_list = new TaskListWidget (this.task_manager.done_store, false);
+        ready_list = new TaskListWidget (this.task_manager.todo_store);
+        waiting_list = new TaskListWidget (this.task_manager.waiting_store);
+        done_list = new TaskListWidget (this.task_manager.done_store);
         var clear_done_button = new Gtk.ModelButton ();
         clear_done_button.text = _("Clear Done List");
         clear_done_button.clicked.connect (clear_done_list);
+
+        var waiting_list_revealer = new Gtk.Revealer ();
+        waiting_list_revealer.vexpand = false;
+
+        var waiting_list_expander = new Gtk.Expander (_("Upcoming"));
+        waiting_list_revealer.add (waiting_list_expander);
+        waiting_list_expander.add (waiting_list);
+
+        todo_list = new Gtk.Grid ();
+        todo_list.orientation = Gtk.Orientation.VERTICAL;
+        todo_list.add (ready_list);
+        todo_list.add (waiting_list_revealer);
+
+        task_manager.notify["waiting-tasks-available"].connect (() => {
+            waiting_list_revealer.reveal_child = task_manager.waiting_tasks_available;
+        });
+        waiting_list_revealer.reveal_child = task_manager.waiting_tasks_available;
 
         var sort_tasks_button = new Gtk.ModelButton ();
         var sort_tasks_text = _("Sort Tasks");
@@ -206,11 +227,12 @@ class GOFI.TXT.TxtList : GOFI.TaskList, Object {
         menu_box.show_all ();
 
         /* Action and Signal Handling */
-        todo_list.add_new_task.connect (task_manager.add_new_task);
-        todo_list.selection_changed.connect (on_selection_changed);
+        warning ("FIXME: todo_list");
+        // todo_list.add_new_task.connect (task_manager.add_new_task);
+        ready_list.selection_changed.connect (on_selection_changed);
         task_manager.active_task_invalid.connect (on_active_task_invalid);
 
-        selected_task = todo_list.get_selected_task ();
+        selected_task = ready_list.get_selected_task ();
         active_task = selected_task;
     }
 
