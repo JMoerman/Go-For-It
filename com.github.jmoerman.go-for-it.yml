@@ -16,6 +16,8 @@ finish-args:
   - --filesystem=home
   # Notification access
   - --talk-name=org.freedesktop.Notifications
+  # needed for prefers-color-scheme
+  - --system-talk-name=org.freedesktop.Accounts
 
   # LauncherEntry indicator plugin
   - --talk-name=com.canonical.Unity.LauncherEntry
@@ -44,6 +46,9 @@ modules:
     config-opts:
       - -DGLOBAL_PLUGIN_ICONS:BOOL=ON
       - -DDEFAULT_PLUGINS:STRING=['launcherindicator']
+      - -DNO_CONTRIBUTE_DIALOG:BOOL=ON
+      - -DSHOW_ABOUT:BOOL=OFF
+      - -DUSE_GRANITE:BOOL=ON
     sources:
       - type: git
         url: 'https://github.com/JMoerman/Go-For-It.git'
