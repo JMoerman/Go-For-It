@@ -1,0 +1,53 @@
+id: com.github.jmoerman.go-for-it
+runtime: io.elementary.Platform
+runtime-version: '6'
+sdk: io.elementary.Sdk
+command: com.github.jmoerman.go-for-it
+finish-args:
+  # X11 + XShm access
+  - --share=ipc
+  - --socket=x11
+  - --socket=fallback-x11
+  # Wayland access
+  - --socket=wayland
+  # Notification sounds
+  - --socket=pulseaudio
+  # Access user files
+  - --filesystem=home
+  # Notification access
+  - --talk-name=org.freedesktop.Notifications
+
+  # LauncherEntry indicator plugin
+  - --talk-name=com.canonical.Unity.LauncherEntry
+cleanup:
+  - '*.a'
+  - '*.h'
+  - '*.la'
+  - /include
+  - /lib/pkgconfig
+modules:
+  - name: libpeas
+    buildsystem: meson
+    config-opts:
+      - "-Dlua51=false"
+      - "-Dvapi=true"
+      - "-Ddemos=false"
+      - "-Dglade_catalog=false"
+    sources:
+      - type: archive
+        url: https://download.gnome.org/sources/libpeas/1.28/libpeas-1.28.0.tar.xz
+        sha256: 42d91993b46ed50f16add6d9577ecc22beb8e2dffa7101e2232c2b63733b8b15
+  - "shared-modules/libcanberra/libcanberra.json"
+  - name: go-for-it
+    buildsystem: cmake-ninja
+    builddir: true
+    config-opts:
+      - -DGLOBAL_PLUGIN_ICONS:BOOL=ON
+      - -DDEFAULT_PLUGINS:STRING=['launcherindicator']
+    sources:
+      - type: git
+        url: 'https://github.com/JMoerman/Go-For-It.git'
+        tag: 1.9.3
+        commit: b2d6c236e0441f070b3f3cb9b63ea539207efc84
+    post-install:
+      - install -Dm644 -t /app/share/licenses/com.github.jmoerman.go-for-it ../COPYING
