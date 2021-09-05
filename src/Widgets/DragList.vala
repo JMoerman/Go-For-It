@@ -56,11 +56,29 @@ public class GOFI.DragList : Gtk.Box {
      * Adjustment used for scrolling.
      */
     public Gtk.Adjustment vadjustment {
-        public get {
+        get {
             return listbox.get_adjustment ();
         }
-        public set {
+        set {
             listbox.set_adjustment (value);
+        }
+    }
+
+    public Gtk.SelectionMode selection_mode {
+        get {
+            return listbox.selection_mode;
+        }
+        set {
+            listbox.selection_mode = value;
+        }
+    }
+
+    public bool activate_on_single_click {
+        get {
+            return listbox.activate_on_single_click;
+        }
+        set {
+            listbox.activate_on_single_click = value;
         }
     }
 
@@ -261,9 +279,7 @@ public class GOFI.DragList : Gtk.Box {
         bool need_to_select_closest = false;
         bool need_to_set_focus = false;
         block_row_selected = true;
-        if (removed > 0 && added == 0) {
-            DragListRow selected_row = get_selected_row ();
-            assert (selected_row != null);
+        if (removed > 0 && added == 0 && selected_row != null) {
             uint selected_index = selected_row.get_index ();
             if (index <= selected_index && index + removed > selected_index) {
                 need_to_select_closest = true;
@@ -380,7 +396,6 @@ public class GOFI.DragList : Gtk.Box {
         listbox.insert (row, position);
         if (listbox.get_selected_row () == null) {
             listbox.select_row (row);
-            assert (listbox.get_selected_row () == row);
         }
     }
 
