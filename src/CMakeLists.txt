@@ -56,7 +56,6 @@ vala_precompile (VALA_C ${LIBNAME}
     Services/Notifications.vala
     Widgets/TodoListInfoRow.vala
     Widgets/DragListModel.vala
-    Widgets/DragListRowBox.vala
     Widgets/DragList.vala
     Widgets/ViewSwitcher.vala
     Widgets/TimerScheduleWidget.vala
