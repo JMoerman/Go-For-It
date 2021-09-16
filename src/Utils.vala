@@ -211,22 +211,14 @@ namespace GOFI {
         }
 
         public static void popover_hide (Gtk.Popover popover) {
-#if HAS_GTK322
             popover.popdown ();
-#else
-            popover.hide ();
-#endif
         }
 
         public static void popover_show (Gtk.Popover popover) {
-#if HAS_GTK322
             popover.forall ((child) => {
                 child.show_all ();
             });
             popover.popup ();
-#else
-            popover.show_all ();
-#endif
         }
 
         public static string string_to_exclamation (string str) {

@@ -47,7 +47,7 @@ set (DOLLAR "$")
 find_package (PkgConfig)
 # check for the required dependencies
 pkg_check_modules (CORE_DEPS REQUIRED
-    gtk+-3.0>=3.14.0
+    gtk+-3.0>=3.22.0
     glib-2.0>=2.40
     libcanberra
     libical-glib

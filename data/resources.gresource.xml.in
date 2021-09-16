@@ -10,14 +10,10 @@
     <file>icons/24x24/actions/go-to-list-symbolic.svg</file>
     <file>icons/24x24/actions/open-menu-fallback.svg</file>
 
-    <file>style/widgets-minimal-3.20.css</file>
-    <file>style/widgets-minimal-3.10.css</file>
-    <file>style/safe-colors-3.20.css</file>
-    <file>style/safe-colors-3.10.css</file>
-    <file>style/light-3.20.css</file>
-    <file>style/light-3.10.css</file>
-    <file>style/dark-3.20.css</file>
-    <file>style/dark-3.10.css</file>
+    <file>style/widgets-minimal.css</file>
+    <file>style/safe-colors.css</file>
+    <file>style/light.css</file>
+    <file>style/dark.css</file>
 
     <file>style/palettes/theme-based.css</file>
     <file>style/palettes/dark.css</file>

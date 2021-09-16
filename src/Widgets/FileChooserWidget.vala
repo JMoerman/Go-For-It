@@ -77,18 +77,10 @@ public class FileChooserWidget : Gtk.Button {
 
     public virtual void on_button_clicked () {
         var window = this.get_toplevel () as Gtk.Window;
-#if HAS_GTK322
         var file_chooser = new Gtk.FileChooserNative (
             dialog_title, window, Gtk.FileChooserAction.SAVE,
             _("_Select"), null
         );
-#else
-        var file_chooser = new Gtk.FileChooserDialog (
-            dialog_title, window, Gtk.FileChooserAction.SAVE,
-            _("Cancel"), Gtk.ResponseType.CANCEL,
-            _("_Select"), Gtk.ResponseType.ACCEPT
-        );
-#endif
         file_chooser.select_multiple = false;
         file_chooser.do_overwrite_confirmation = false;
 

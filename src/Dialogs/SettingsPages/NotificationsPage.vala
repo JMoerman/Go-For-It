@@ -257,18 +257,10 @@ class GOFI.NotificationsPage : Gtk.Box {
     private GLib.File? get_custom_sound_file () {
         var window = this.get_toplevel () as Gtk.Window;
         var dialog_title = _("Select notification sound file");
-#if HAS_GTK322
         var file_chooser = new Gtk.FileChooserNative (
             dialog_title, window, Gtk.FileChooserAction.OPEN,
             _("_Select"), null
         );
-#else
-        var file_chooser = new Gtk.FileChooserDialog (
-            dialog_title, window, Gtk.FileChooserAction.OPEN,
-            _("Cancel"), Gtk.ResponseType.CANCEL,
-            _("_Select"), Gtk.ResponseType.ACCEPT
-        );
-#endif
         file_chooser.select_multiple = false;
         file_chooser.local_only = true;
 

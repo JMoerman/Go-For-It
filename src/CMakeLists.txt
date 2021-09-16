@@ -11,14 +11,6 @@ endif ()
 
 add_definitions(-DG_LOG_DOMAIN="${LIBNAME}")
 
-# checking if have a recent version of Gtk+-3.0
-pkg_check_modules( GTK3 gtk+-3.0 )
-if (${GTK3_VERSION} VERSION_GREATER 3.21)
-    set (VALAC_OPTIONS ${VALAC_OPTIONS} -D HAS_GTK322)
-else ()
-    message ("-- No recent Gtk+-3.0 found... Using pre 3.22 features.")
-endif ()
-
 set (VALA_PACKAGES ${DEPS_VALA_PACKAGES})
 
 if (USE_GRANITE)

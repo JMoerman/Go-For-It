@@ -652,14 +652,7 @@ class GOFI.MainWindow : Gtk.ApplicationWindow {
             }
         }
 
-        // Pick the stylesheet that is compatible with the user's Gtk version
-        if (Gtk.get_minor_version () >= 19) {
-            stylesheet = stylesheet + "-3.20.css";
-        } else {
-            stylesheet = stylesheet + "-3.10.css";
-        }
-
-        stylesheet_css.load_from_resource (@"$(GOFI.RESOURCE_PATH)/style/$(stylesheet)");
+        stylesheet_css.load_from_resource (@"$(GOFI.RESOURCE_PATH)/style/$(stylesheet).css");
     }
 
     /**

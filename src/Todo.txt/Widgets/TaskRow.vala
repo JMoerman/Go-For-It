@@ -496,12 +496,7 @@ class GOFI.TXT.TaskRow: DragListRow {
             hexpand = true;
             wrap = true;
             wrap_mode = Pango.WrapMode.WORD_CHAR;
-#if HAS_GTK322
             this.xalign = 0f;
-#else
-            // Workaround for: "undefined symbol: gtk_label_set_xalign"
-            ((Gtk.Misc) this).xalign = 0f;
-#endif
 
             connect_signals ();
             show_all ();
