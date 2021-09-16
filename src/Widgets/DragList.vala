@@ -781,25 +781,6 @@ public class GOFI.DragListRow : Gtk.ListBoxRow {
         Object ();
     }
 
-    public DragListRow.with_3_pos_box () {
-        Object ();
-
-        var 3_pos_box = new DragListRowBox (5);
-        layout = 3_pos_box;
-
-        layout.margin_start = 5;
-        layout.margin_end = 5;
-        layout.margin_top = 1;
-        layout.margin_bottom = 1;
-
-        3_pos_box.end_widget = get_handle_widget ();
-        handle.show ();
-
-        layout_revealer.add (layout);
-        layout.show ();
-        layout_revealer.reveal_child = true;
-    }
-
     public Gtk.Widget? get_contents () {
         return layout;
     }
