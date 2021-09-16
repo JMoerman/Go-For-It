@@ -62,6 +62,8 @@ vala_precompile (VALA_C ${LIBNAME}
     Widgets/TimerScheduleWidget.vala
     Widgets/TimerView.vala
     Widgets/FileChooserWidget.vala
+    Widgets/BaselineCenterBin.vala
+    Widgets/BaselineStack.vala
     Pages/TaskListPage.vala
     Pages/SelectionPage.vala
     Dialogs/FileConflictDialog.vala
@@ -71,9 +73,9 @@ vala_precompile (VALA_C ${LIBNAME}
     Dialogs/SettingsPages/BehaviorPage.vala
     Dialogs/SettingsPages/NotificationsPage.vala
     Dialogs/SettingsPages/ShortcutsPage.vala
+    Dialogs/SimpleRecurrenceDialog.vala
     Dialogs/AboutDialog.vala
     Dialogs/ContributeDialog.vala
-    Dialogs/RecurrenceDialog.vala
 
     Recurrence/RecurrenceMode.vala
     Recurrence/SimpleRecurrence.vala
@@ -91,6 +93,7 @@ vala_precompile (VALA_C ${LIBNAME}
     Todo.txt/Widgets/TaskListWidget.vala
     Todo.txt/Widgets/TaskRow.vala
     Todo.txt/Widgets/DynOrientationBox.vala
+    Todo.txt/Widgets/TextMeasurements.vala
     Todo.txt/Dialogs/TxtListEditDialog.vala
 
     MainWindow.vala

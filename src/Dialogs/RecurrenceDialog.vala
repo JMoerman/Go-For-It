@@ -71,9 +71,14 @@ class GOFI.RecurrenceDialog : Gtk.Dialog {
         set;
     }
 
+    GLib.DateTime? inconsistent_due_date {
+        get;
+        set;
+    }
+
     private const short ARRAY_MAX = ICal.RecurrenceArrayMaxValues.RECURRENCE_ARRAY_MAX;
 
-    bool had_inconstent_due_date {
+    bool had_inconsistent_due_date {
         get;
         private set;
     }
@@ -208,7 +213,7 @@ class GOFI.RecurrenceDialog : Gtk.Dialog {
             get_month_day (out month_day, out day_of_week, out day_position);
             var month = (short) due_date.get_month ();
             if (day_radio.active) {
-                if (had_inconstent_due_date || month_day < 0) {
+                if (had_inconsistent_due_date || month_day < 0) {
                     if (!monthly) {
                         rrule.set_by_month (0, month);
                         rrule.set_by_month (1, ARRAY_MAX);
@@ -342,9 +347,9 @@ class GOFI.RecurrenceDialog : Gtk.Dialog {
 
                     if (year != sched_y || month != sched_m || due_day != sched_d) {
                         fix_inconsistent_due_date (sched_y, sched_m, sched_d);
-                        had_inconstent_due_date = true;
+                        had_inconsistent_due_date = true;
                     } else {
-                        had_inconstent_due_date = false;
+                        had_inconsistent_due_date = false;
                     }
 
                     if (is_by_month_day) {
@@ -413,9 +418,9 @@ class GOFI.RecurrenceDialog : Gtk.Dialog {
 
                     if (year != sched_y || month != sched_m || due_day != sched_d) {
                         fix_inconsistent_due_date (sched_y, sched_m, sched_d);
-                        had_inconstent_due_date = true;
+                        had_inconsistent_due_date = true;
                     } else {
-                        had_inconstent_due_date = false;
+                        had_inconsistent_due_date = false;
                     }
 
                     if (is_by_month_day) {

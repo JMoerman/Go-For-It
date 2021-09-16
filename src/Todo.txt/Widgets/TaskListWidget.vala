@@ -18,14 +18,15 @@
 /**
  * A widget for displaying and manipulating task lists.
  */
-class GOFI.TXT.TaskListWidget : Gtk.Grid {
+class GOFI.TXT.TaskListWidget : Gtk.Bin {
     /* GTK Widgets */
-    private Gtk.ScrolledWindow scroll_view;
+    // private Gtk.ScrolledWindow scroll_view;
     private DragList task_view;
     private Gtk.Label placeholder;
 
     /* Data Model */
     private TaskStore model;
+    private TaskRow? active_row;
 
     private const string PLACEHOLDER_TEXT_TODO = _("You currently don't have any tasks.\nAdd some!");
     private const string FILTER_TEXT = _("No tasks found.");
@@ -33,8 +34,30 @@ class GOFI.TXT.TaskListWidget : Gtk.Grid {
     private const string PLACEHOLDER_TEXT_FINISHED = _("You finished all tasks, good job!");
     private string placeholder_text;
 
+    public Gtk.Adjustment? list_adjustment {
+        get {
+            return task_view.vadjustment;
+        }
+        set {
+            task_view.vadjustment = value;
+        }
+    }
+
+    public string empty_list_text {
+        get {
+            return _empty_list_text;
+        }
+        set {
+            // if (!filtering && show_placeholder) {
+            //     placeholder.text = value;
+            // }
+            _empty_list_text = value;
+        }
+        // default = FILTER_TEXT;
+    }
+    private string _empty_list_text;
+
     /* Signals */
-    public signal void add_new_task (string task);
     public signal void selection_changed (TxtTask selected_task);
 
     [Signal (action = true)]
@@ -44,10 +67,8 @@ class GOFI.TXT.TaskListWidget : Gtk.Grid {
 
     [Signal (action = true)]
     public virtual signal void task_edit_action () {
-        var selected_row = task_view.get_selected_row () as TaskRow;
-        if (selected_row != null) {
-            selected_row.edit (false);
-        }
+        task_view.activate_cursor_row ();
+        warning ("task_edit_action: STUB!");
     }
 
     /**
@@ -55,69 +76,51 @@ class GOFI.TXT.TaskListWidget : Gtk.Grid {
      */
     public TaskListWidget (TaskStore model) {
         /* Settings of the widget itself */
-        this.orientation = Gtk.Orientation.VERTICAL;
+        // this.orientation = Gtk.Orientation.VERTICAL;
         this.expand = true;
         this.model = model;
 
         /* Setup the widget's children */
         setup_task_view ();
+        _empty_list_text = FILTER_TEXT;
         placeholder_text = PLACEHOLDER_TEXT_TODO;
         add_placeholder ();
     }
 
     public TxtTask? get_selected_task () {
-        TaskRow selected_row = (TaskRow) task_view.get_selected_row ();
-        if (selected_row != null) {
-            return selected_row.task;
+        if (active_row != null) {
+            return active_row.task;
+        }
+        var first_item = (TxtTask) model.get_item (0);
+        if (first_item != null) {
+            return first_item;
         }
         return null;
     }
 
     public void select_task (TxtTask task) {
-        var pos = model.get_task_position (task);
-        var row = task_view.get_row_at_index ((int)pos);
-        task_view.select_row (row);
+        warning ("select_task: STUB!");
     }
 
     public void move_cursor (int amount) {
-        TaskRow selected_row = (TaskRow) task_view.get_selected_row ();
-        if (selected_row == null) {
-            return;
-        }
-
-        // move_cursor was likely called because of a shortcut key, in this case
-        // this key was meant for input for this row so we should ignore it.
-        if (selected_row.is_editing) {
-            return;
-        }
         task_view.move_cursor (Gtk.MovementStep.DISPLAY_LINES, amount);
+        warning ("move_cursor: STUB!");
     }
 
     public void move_selected_task (int amount) {
-        var row = task_view.get_selected_row ();
-        if (row == null) {
-            return;
-        }
-        var new_index = row.get_index ();
-        if (new_index < -amount) {
-            new_index = 0;
-        } else {
-            new_index += amount;
-        }
-        task_view.move_row (row, new_index);
+        warning ("move_selected_task called!");
     }
 
     private Gtk.Widget create_row (Object task) {
         TaskRow row = new TaskRow (((TxtTask) task));
         row.link_clicked.connect (on_row_link_clicked);
         row.deletion_requested.connect (on_deletion_requested);
+        row.task_selected.connect (on_task_view_row_selected);
         return row;
     }
 
     private void on_row_link_clicked (string uri) {
-        warning ("STUB!");
-        // is_filtering = true;
-        // filter_entry.set_text (uri);
+        warning ("on_row_link_clicked: STUB!");
     }
 
     private void on_deletion_requested (TaskRow row) {
@@ -139,19 +142,14 @@ class GOFI.TXT.TaskListWidget : Gtk.Grid {
      * Configures the list to display the task entries.
      */
     private void setup_task_view () {
-        this.scroll_view = new Gtk.ScrolledWindow (null, null);
         this.task_view = new DragList ();
 
         task_view.bind_model ((DragListModel)model, create_row);
-        task_view.vadjustment = scroll_view.vadjustment;
-        task_view.row_selected.connect (on_task_view_row_selected);
         task_view.row_activated.connect (on_task_view_row_activated);
+        task_view.activate_on_single_click = true;
+        task_view.selection_mode = Gtk.SelectionMode.NONE;
 
-        scroll_view.expand = true;
-
-        // Add to the main widget
-        scroll_view.add (task_view);
-        this.add (scroll_view);
+        this.add (task_view);
     }
 
     private void on_task_view_row_selected (DragListRow? selected_row) {
@@ -159,6 +157,7 @@ class GOFI.TXT.TaskListWidget : Gtk.Grid {
         if (selected_row != null) {
             task = ((TaskRow) selected_row).task;
         }
+        active_row = (TaskRow) selected_row;
         selection_changed (task);
     }
 

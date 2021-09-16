@@ -143,24 +143,32 @@ namespace GOFI.DialogUtils {
         }
     }
 
+    private Gtk.Label create_header_label (string label) {
+#if USE_GRANITE
+        return new Granite.HeaderLabel (label);
+#else
+        var lbl = new Gtk.Label ("<b>%s</b>".printf (label));
+        lbl.use_markup = true;
+        lbl.halign = Gtk.Align.START;
+        return lbl;
+#endif
+    }
+
     private Gtk.Widget create_section_box (string? sect_title, Gtk.Widget contents) {
         contents.margin = 10;
 
         var section_frame = new Gtk.Frame (null);
         section_frame.add (contents);
         section_frame.get_style_context ().add_class ("settings-frame");
+
 #if USE_GRANITE
         var section_box = new Gtk.Box (Gtk.Orientation.VERTICAL, 0);
-        if (sect_title != null) {
-            var sect_lbl = new Granite.HeaderLabel (sect_title);
 #else
         var section_box = new Gtk.Box (Gtk.Orientation.VERTICAL, SPACING_SETTINGS_ROW);
-        if (sect_title != null) {
-            var sect_lbl = new Gtk.Label ("<b>%s</b>".printf (sect_title));
-            sect_lbl.use_markup = true;
-            sect_lbl.halign = Gtk.Align.START;
 #endif
-            section_box.add (sect_lbl);
+
+        if (sect_title != null) {
+            section_box.add (create_header_label (sect_title));
         }
 
         section_box.add (section_frame);

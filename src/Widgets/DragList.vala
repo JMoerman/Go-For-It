@@ -390,7 +390,7 @@ public class GOFI.DragList : Gtk.Box {
 
         if (row == null) {
             row = new DragListRow ();
-            row.set_center_widget (widget);
+            row.add (widget);
         }
 
         listbox.insert (row, position);
@@ -757,44 +757,81 @@ namespace GOFI {
 
 public class GOFI.DragListRow : Gtk.ListBoxRow {
     private Gtk.EventBox handle;
-    private DragListRowBox layout;
+    private Gtk.Widget layout;
     private Gtk.Image image;
-    private Gtk.Widget start_widget;
-    private Gtk.Widget center_widget;
     private Gtk.Revealer layout_revealer;
 
     internal int marginless_height;
 
+    construct {
+        layout_revealer = new Gtk.Revealer ();
+        base.add (layout_revealer);
+        this.drag_begin.connect (handle_drag_begin);
+        this.drag_end.connect (handle_drag_end);
+        this.drag_data_get.connect (handle_drag_data_get);
+        Gtk.drag_source_set (
+            this, Gdk.ModifierType.BUTTON1_MASK, DLB_ENTRIES, Gdk.DragAction.MOVE
+        );
+
+        layout_revealer.show ();
+        layout_revealer.notify["child-revealed"].connect (on_layout_revealer_child_revealed);
+    }
+
     public DragListRow () {
-        layout = new DragListRowBox (5);
+        Object ();
+    }
+
+    public DragListRow.with_3_pos_box () {
+        Object ();
+
+        var 3_pos_box = new DragListRowBox (5);
+        layout = 3_pos_box;
+
         layout.margin_start = 5;
         layout.margin_end = 5;
         layout.margin_top = 1;
         layout.margin_bottom = 1;
-        layout_revealer = new Gtk.Revealer ();
-        layout_revealer.add (layout);
-        add (layout_revealer);
 
-        handle = new Gtk.EventBox ();
-        image = new Gtk.Image.from_icon_name ("drag-handle-symbolic", Gtk.IconSize.MENU);
-        image.tooltip_text = _("Click and drag to reorder rows");
-        handle.add (image);
-        layout.set_end_widget (handle);
-
-        Gtk.drag_source_set (
-            handle, Gdk.ModifierType.BUTTON1_MASK, DLB_ENTRIES, Gdk.DragAction.MOVE
-        );
-        handle.drag_begin.connect (handle_drag_begin);
-        handle.drag_end.connect (handle_drag_end);
-        handle.drag_data_get.connect (handle_drag_data_get);
-        handle.realize.connect_after (set_handle_hover_cursor);
-
-        layout.show ();
+        3_pos_box.end_widget = get_handle_widget ();
         handle.show ();
-        image.show ();
-        layout_revealer.show ();
+
+        layout_revealer.add (layout);
+        layout.show ();
         layout_revealer.reveal_child = true;
-        layout_revealer.notify["child-revealed"].connect (on_layout_revealer_child_revealed);
+    }
+
+    public Gtk.Widget? get_contents () {
+        return layout;
+    }
+
+    public override void add (Gtk.Widget widget) {
+        bool reveal_child = true;
+        if (layout != null) {
+            reveal_child = layout_revealer.reveal_child;
+            layout_revealer.remove (layout);
+        }
+        layout = widget;
+        layout_revealer.add (layout);
+        layout_revealer.reveal_child = reveal_child;
+    }
+
+    public Gtk.Widget get_handle_widget () {
+        if (handle == null) {
+            handle = new Gtk.EventBox ();
+            image = new Gtk.Image.from_icon_name ("drag-handle-symbolic", Gtk.IconSize.MENU);
+            image.tooltip_text = _("Click and drag to reorder rows");
+            handle.add (image);
+            Gtk.drag_source_set (
+                handle, Gdk.ModifierType.BUTTON1_MASK, DLB_ENTRIES, Gdk.DragAction.MOVE
+            );
+            handle.drag_begin.connect (handle_drag_begin);
+            handle.drag_end.connect (handle_drag_end);
+            handle.drag_data_get.connect (handle_drag_data_get);
+            handle.realize.connect_after (set_handle_hover_cursor);
+
+            image.show ();
+        }
+        return handle;
     }
 
     private void on_layout_revealer_child_revealed () {
@@ -820,26 +857,6 @@ public class GOFI.DragListRow : Gtk.ListBoxRow {
         base.size_allocate (allocation);
     }
 
-    public void set_start_widget (Gtk.Widget? widget) {
-        start_widget = widget;
-            layout.set_start_widget (start_widget);
-    }
-
-    public unowned Gtk.Widget? get_start_widget () {
-        return start_widget;
-    }
-
-    public void set_center_widget (Gtk.Widget? widget) {
-        center_widget = widget;
-        if (center_widget != null) {
-            layout.set_center_widget (center_widget);
-        }
-    }
-
-    public unowned Gtk.Widget? get_center_widget () {
-        return center_widget;
-    }
-
     /**
      * Gets the DragList parent of this.
      */
@@ -851,7 +868,7 @@ public class GOFI.DragListRow : Gtk.ListBoxRow {
         return null;
     }
 
-    private void handle_drag_begin (Gdk.DragContext context) {
+    private void handle_drag_begin (Gtk.Widget source, Gdk.DragContext context) {
         DragList draglist;
         Gtk.Allocation alloc;
         Cairo.Surface surface;
@@ -875,7 +892,7 @@ public class GOFI.DragListRow : Gtk.ListBoxRow {
             layout_revealer.reveal_child = false;
         }
 
-        handle.translate_coordinates (this, 0, 0, out x, out y);
+        source.translate_coordinates (this, 0, 0, out x, out y);
         surface.set_device_offset (-x, -y);
         Gtk.drag_set_icon_surface (context, surface);
     }

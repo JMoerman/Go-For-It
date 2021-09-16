@@ -71,6 +71,7 @@ public class GOFI.TaskTimer {
 
             if (_active_task != null) {
                 _active_task.notify["description"].disconnect (on_task_notify_description);
+                _active_task.status ^= TaskStatus.TIMER_SELECTED;
             }
             _active_task = value;
             if (_active_task != null) {
@@ -83,6 +84,7 @@ public class GOFI.TaskTimer {
                 task_time = 0;
                 task_duration_exceeded_sent_already = false;
             }
+            _active_task.status |= TaskStatus.TIMER_SELECTED;
 
             // Emit the corresponding notifier signal
             update_active_task ();

@@ -17,7 +17,8 @@
 
 public enum TaskStatus {
     NONE = 0,
-    TIMER_ACTIVE = 0x01
+    TIMER_ACTIVE = 0x01,
+    TIMER_SELECTED = 0x02
 }
 
 /**

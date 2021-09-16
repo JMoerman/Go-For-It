@@ -20,9 +20,9 @@
 // This container also aligns the start and end widgets above the baseline of
 // the center widget, if the space is available.
 class GOFI.DragListRowBox : Gtk.Container {
-    private Gtk.Widget start_widget;
-    private Gtk.Widget center_widget;
-    private Gtk.Widget end_widget;
+    private Gtk.Widget _start_widget;
+    private Gtk.Widget _center_widget;
+    private Gtk.Widget _end_widget;
     private int requested_edge_height;
 
     public int h_spacing {
@@ -35,6 +35,39 @@ class GOFI.DragListRowBox : Gtk.Container {
     }
     private int _h_spacing;
 
+    public Gtk.Widget? start_widget {
+        get {
+            return _start_widget;
+        }
+        set {
+            _remove (_start_widget);
+            _start_widget = value;
+            _set_child_parent (value);
+        }
+    }
+
+    public Gtk.Widget? center_widget {
+        get {
+            return _center_widget;
+        }
+        set {
+            _remove (_center_widget);
+            _center_widget = value;
+            _set_child_parent (value);
+        }
+    }
+
+    public Gtk.Widget? end_widget {
+        get {
+            return _end_widget;
+        }
+        set {
+            _remove (_end_widget);
+            _end_widget = value;
+            _set_child_parent (value);
+        }
+    }
+
     public DragListRowBox (int h_spacing = 0) {
         base.set_has_window (false);
         base.set_can_focus (true);
@@ -44,33 +77,15 @@ class GOFI.DragListRowBox : Gtk.Container {
 
         this.handle_border_width ();
 
-        this.start_widget = null;
-        this.center_widget = null;
-        this.end_widget = null;
+        this._start_widget = null;
+        this._center_widget = null;
+        this._end_widget = null;
     }
 
     public override void add (Gtk.Widget widget) {
-        if (center_widget == null) {
-            set_start_widget (widget);
+        if (_center_widget == null) {
+            center_widget = widget;
         }
-    }
-
-    public void set_start_widget (Gtk.Widget? widget) {
-        _remove (start_widget);
-        start_widget = widget;
-        _set_child_parent (widget);
-    }
-
-    public void set_center_widget (Gtk.Widget? widget) {
-        _remove (center_widget);
-        center_widget = widget;
-        _set_child_parent (widget);
-    }
-
-    public void set_end_widget (Gtk.Widget? widget) {
-        _remove (end_widget);
-        end_widget = widget;
-        _set_child_parent (widget);
     }
 
     private void _set_child_parent (Gtk.Widget? widget) {
@@ -92,12 +107,12 @@ class GOFI.DragListRowBox : Gtk.Container {
     }
 
     public override void remove (Gtk.Widget widget) {
-        if (end_widget == widget) {
-            end_widget = null;
-        } else if (center_widget == widget) {
-            center_widget = null;
-        } else if (start_widget == widget) {
-            start_widget = null;
+        if (_end_widget == widget) {
+            _end_widget = null;
+        } else if (_center_widget == widget) {
+            _center_widget = null;
+        } else if (_start_widget == widget) {
+            _start_widget = null;
         } else {
             return;
         }
@@ -105,14 +120,14 @@ class GOFI.DragListRowBox : Gtk.Container {
     }
 
     public override void forall_internal (bool include_internals, Gtk.Callback callback) {
-        if (start_widget != null) {
-            callback (start_widget);
+        if (_start_widget != null) {
+            callback (_start_widget);
         }
-        if (center_widget != null) {
-            callback (center_widget);
+        if (_center_widget != null) {
+            callback (_center_widget);
         }
-        if (end_widget != null) {
-            callback (end_widget);
+        if (_end_widget != null) {
+            callback (_end_widget);
         }
     }
 
@@ -128,8 +143,8 @@ class GOFI.DragListRowBox : Gtk.Container {
         get_edge_width (out edge_min);
         if (edge_min > 0) {
             if (
-                start_widget == null || !start_widget.visible ||
-                end_widget == null || !end_widget.visible
+                _start_widget == null || !_start_widget.visible ||
+                _end_widget == null || !_end_widget.visible
             ) {
                 edge_min += _h_spacing;
             } else {
@@ -137,8 +152,8 @@ class GOFI.DragListRowBox : Gtk.Container {
             }
         }
 
-        if (center_widget != null && center_widget.visible) {
-            center_widget.get_preferred_width (out center_min, out center_nat);
+        if (_center_widget != null && _center_widget.visible) {
+            _center_widget.get_preferred_width (out center_min, out center_nat);
         }
 
         minimum_width = center_min + edge_min;
@@ -158,12 +173,12 @@ class GOFI.DragListRowBox : Gtk.Container {
     private void get_edge_width (out int width) {
         width = 0;
 
-        if (start_widget != null && start_widget.visible) {
-            start_widget.get_preferred_width (out width, null);
+        if (_start_widget != null && _start_widget.visible) {
+            _start_widget.get_preferred_width (out width, null);
         }
-        if (end_widget != null && end_widget.visible) {
+        if (_end_widget != null && _end_widget.visible) {
             int end_min;
-            end_widget.get_preferred_width (out end_min, null);
+            _end_widget.get_preferred_width (out end_min, null);
 
             width = int.max (end_min, width);
         }
@@ -173,13 +188,13 @@ class GOFI.DragListRowBox : Gtk.Container {
         height = 0;
         nat_height = 0;
 
-        if (start_widget != null && start_widget.visible) {
-            start_widget.get_preferred_height_for_width (width, out height, out nat_height);
+        if (_start_widget != null && _start_widget.visible) {
+            _start_widget.get_preferred_height_for_width (width, out height, out nat_height);
         }
-        if (end_widget != null && end_widget.visible) {
+        if (_end_widget != null && _end_widget.visible) {
             int end_min;
             int end_nat;
-            end_widget.get_preferred_height_for_width (width, out end_min, out end_nat);
+            _end_widget.get_preferred_height_for_width (width, out end_min, out end_nat);
 
             height = int.max (end_min, height);
             nat_height = int.max (end_nat, nat_height);
@@ -197,15 +212,15 @@ class GOFI.DragListRowBox : Gtk.Container {
         Gtk.Widget right;
 
         if (get_direction () != Gtk.TextDirection.RTL) {
-            left = start_widget;
-            right = end_widget;
+            left = _start_widget;
+            right = _end_widget;
         } else {
-            left = end_widget;
-            right = start_widget;
+            left = _end_widget;
+            right = _start_widget;
         }
         int baseline = 0;
 
-        if (center_widget != null && center_widget.visible) {
+        if (_center_widget != null && _center_widget.visible) {
             Gtk.Allocation center_alloc = Gtk.Allocation ();
             if (left != null && left.visible) {
                 center_alloc.x = allocation.x + edge_width + _h_spacing;
@@ -217,7 +232,7 @@ class GOFI.DragListRowBox : Gtk.Container {
                 center_alloc.width -= _h_spacing + edge_width;
             }
             int min_height, nat_height, baseline_min;
-            center_widget.get_preferred_height_and_baseline_for_width (
+            _center_widget.get_preferred_height_and_baseline_for_width (
                 center_alloc.width, out min_height, out nat_height,
                 out baseline_min, out baseline
             );
@@ -225,7 +240,7 @@ class GOFI.DragListRowBox : Gtk.Container {
             center_alloc.height = child_height;
             if (nat_height < child_height) {
                 baseline = baseline_min;
-                if (!center_widget.vexpand) {
+                if (!_center_widget.vexpand) {
                     int offset = (child_height - nat_height) / 2;
                     center_alloc.y = allocation.y + offset;
                     center_alloc.height = nat_height;
@@ -235,7 +250,7 @@ class GOFI.DragListRowBox : Gtk.Container {
                 }
             }
 
-            center_widget.size_allocate (center_alloc);
+            _center_widget.size_allocate (center_alloc);
         }
 
         int edge_y = allocation.y;
@@ -280,16 +295,16 @@ class GOFI.DragListRowBox : Gtk.Container {
         natural_height = requested_edge_height;
         int edge_taken = 0;
 
-        if (start_widget != null && start_widget.visible) {
+        if (_start_widget != null && _start_widget.visible) {
             edge_taken += edge_width + _h_spacing;
         }
-        if (end_widget != null && end_widget.visible) {
+        if (_end_widget != null && _end_widget.visible) {
             edge_taken += edge_width + _h_spacing;
         }
 
-        if (center_widget != null && center_widget.visible) {
+        if (_center_widget != null && _center_widget.visible) {
             int center_min, center_nat;
-            center_widget.get_preferred_height_for_width (
+            _center_widget.get_preferred_height_for_width (
                 width - edge_taken,
                 out center_min, out center_nat
             );

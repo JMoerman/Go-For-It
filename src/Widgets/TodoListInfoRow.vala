@@ -68,7 +68,7 @@ class GOFI.TodoListInfoRow: DragListRow {
         center_box.pack_end (option_revealer, false);
         event_box.add (center_box);
 
-        set_center_widget (event_box);
+        this.add (event_box);
 
         connect_signals ();
         show_all ();

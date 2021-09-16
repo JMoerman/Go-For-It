@@ -24,6 +24,28 @@ class GOFI.TXT.TaskRow: DragListRow {
     private TaskMarkupLabel markup_label;
     private Gtk.Label status_label;
     private TaskEditEntry edit_entry;
+
+    private Gtk.Revealer bottom_bar_revealer;
+    private Gtk.Stack title_stack;
+
+    private Gtk.Button sched_button;
+    private Gtk.Label due_label;
+
+    private Gtk.Label threshold_label;
+
+    private Gtk.Image recur_indicator;
+
+    private Gtk.ToggleButton timer_button;
+    private Gtk.Image timer_image;
+
+    private Gtk.ToggleButton options_button;
+
+    private Gtk.Revealer due_revealer;
+    private Gtk.Revealer threshold_revealer;
+    private Gtk.Revealer recur_revealer;
+
+    private BaselineCenterBin check_bin;
+
     private bool editing;
     private bool focus_cooldown_active;
     private const string FILTER_PREFIX = "gofi:";
@@ -34,16 +56,37 @@ class GOFI.TXT.TaskRow: DragListRow {
         }
     }
 
+    public bool is_active {
+        set {
+            if (value) {
+                timer_image.set_from_icon_name (
+                    "media-playback-start-symbolic", Gtk.IconSize.BUTTON
+                );
+            } else {
+                timer_image.set_from_icon_name (
+                    "media-playback-pause-symbolic", Gtk.IconSize.BUTTON
+                );
+            }
+        }
+    }
+
     public TxtTask task {
         get;
         private set;
     }
 
+    public signal void task_selected ();
+    public signal void timer_started (bool start);
     public signal void link_clicked (string uri);
     public signal void deletion_requested ();
 
     public TaskRow (TxtTask task) {
         this.task = task;
+        check_bin = new BaselineCenterBin ();
+        TextMeasurementWidget.add_listener (check_bin);
+        check_bin.set_offset_func (TXT.TextMeasurementWidget.get_label_baseline_offset);
+
+        title_stack = new BaselineStack ();
 
         edit_entry = null;
         editing = false;
@@ -68,40 +111,171 @@ class GOFI.TXT.TaskRow: DragListRow {
         var sc = kbsettings.get_shortcut (KeyBindingSettings.SCK_MARK_TASK_DONE);
         check_button.tooltip_markup = sc.get_accel_markup (_("Mark the task as complete"));
 
-        set_start_widget (check_button);
-        set_center_widget (label_box);
+        title_stack.add_named (label_box, "label");
+
+        check_bin.add (check_button);
+
+        check_button.valign = Gtk.Align.START;
+        title_stack.valign = Gtk.Align.BASELINE;
+        check_bin.valign = Gtk.Align.BASELINE;
+
+        var layout_grid = new Gtk.Grid ();
+        layout_grid.orientation = Gtk.Orientation.VERTICAL;
+        layout_grid.attach (check_bin, 0, 0);
+        layout_grid.attach (title_stack, 1, 0);
+        layout_grid.column_spacing = 4;
+
+        due_label = new Gtk.Label (null);
+        threshold_label = new Gtk.Label (null);
+        recur_indicator = new Gtk.Image.from_icon_name (
+            "media-playlist-repeat-symbolic", Gtk.IconSize.BUTTON
+        );
+
+        timer_button = new Gtk.ToggleButton ();
+        timer_image = new Gtk.Image.from_icon_name (
+            "media-playback-start-symbolic", Gtk.IconSize.BUTTON
+        );
+        timer_button.add (timer_image);
+        timer_button.clicked.connect (() => task_selected ());
+
+        options_button = new Gtk.ToggleButton ();
+        options_button.add (new Gtk.Image.from_icon_name (
+            "view-more-symbolic", Gtk.IconSize.BUTTON
+        ));
+
+        edit_entry = new TaskEditEntry ("");
+        edit_entry.valign = Gtk.Align.BASELINE;
+        title_stack.add_named (edit_entry, "edit_entry");
+        title_stack.homogeneous = false;
+
+        var bottom_bar = new Gtk.Grid ();
+        bottom_bar.margin_top = 6;
+
+        bottom_bar_revealer = new Gtk.Revealer ();
+        bottom_bar_revealer.add (bottom_bar);
+        bottom_bar_revealer.reveal_child = false;
+
+        layout_grid.attach (bottom_bar_revealer, 1,1, 2, 1);
+
+        var sched_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
+
+        sched_button = new Gtk.Button ();
+        sched_button.hexpand = true;
+        sched_button.halign = Gtk.Align.START;
+        // bottom_bar.pack_start (sched_button);
+        bottom_bar.add (sched_button);
+        sched_button.add (sched_box);
+
+        sched_button.clicked.connect (on_sched_button_clicked);
+
+        bottom_bar.add (timer_button);
+        bottom_bar.add (options_button);
+        // bottom_bar.pack_end (timer_button);
+        // bottom_bar.pack_end (options_button);
+
+        due_revealer = new Gtk.Revealer ();
+        threshold_revealer = new Gtk.Revealer ();
+        recur_revealer = new Gtk.Revealer ();
+
+        due_revealer.add (due_label);
+        threshold_revealer.add (threshold_label);
+        recur_revealer.add (recur_indicator);
+
+        sched_box.add (threshold_revealer);
+        sched_box.add (due_revealer);
+        sched_box.add (recur_revealer);
+
+        update_schedule_labels (new DateTime.now_local ());
+
+        this.add (layout_grid);
 
         connect_signals ();
         show_all ();
     }
 
+    ~TaskRow () {
+        TextMeasurementWidget.remove_listener (check_bin);
+    }
+
+    private void on_global_baseline_offsets_changed () {
+        check_bin.queue_resize ();
+    }
+
+    private void on_sched_button_clicked () {
+        var dia = new SimpleRecurrenceDialog ();
+        dia.recur_mode = task.recur_mode;
+        dia.rec_obj = task.recur;
+
+        dia.threshold_date = task.threshold_date;
+        dia.due_date = task.due_date;
+        dia.show_all ();
+
+        dia.save_clicked.connect (on_schedule_dialog_save_clicked);
+    }
+
+    private void on_schedule_dialog_save_clicked (SimpleRecurrenceDialog dia) {
+        task.recur_mode = dia.recur_mode;
+        task.due_date = dia.due_date;
+        task.threshold_date= dia.threshold_date;
+        task.recur = dia.rec_obj;
+        dia.destroy ();
+    }
+
     public void edit (bool wrestle_focus=false) {
-        if (edit_entry != null) {
+        if (editing) {
             return;
         }
-        delete_button = new Gtk.Button.from_icon_name ("edit-delete", Gtk.IconSize.MENU);
-        delete_button.relief = Gtk.ReliefStyle.NONE;
-        delete_button.show_all ();
-        delete_button.clicked.connect (on_delete_button_clicked);
-        set_start_widget (delete_button);
-
-        edit_entry = new TaskEditEntry (task.to_simple_txt ());
-        set_center_widget (edit_entry);
-
+        bottom_bar_revealer.reveal_child = true;
+        edit_entry.text = task.to_simple_txt ();
         edit_entry.edit ();
-        edit_entry.string_changed.connect (on_edit_entry_string_changed);
-        edit_entry.editing_finished.connect (on_edit_entry_finished);
-        editing = true;
 
-        if (wrestle_focus) {
-            // Ugly hack: on Gtk 3.22 the row will steal focus from the entry in
-            // about 0.1s if the row has been activated using a double-click
-            // we want the entry to remain in focus until the user decides
-            // otherwise.
-            edit_entry.hold_focus = true;
-            GLib.Timeout.add (
-                200, release_focus_claim, GLib.Priority.DEFAULT_IDLE
-            );
+        title_stack.visible_child_name = "edit_entry";
+
+        editing = true;
+        check_bin.set_offset_func (TXT.TextMeasurementWidget.get_entry_baseline_offset);
+        warning ("stub");
+        return;
+    }
+
+    public void update_schedule_labels (DateTime now) {
+        var threshold_date = task.threshold_date;
+        var due_date = task.due_date;
+        if (due_date == null && threshold_date == null) {
+            due_label.label = "📅 " + _("Schedule");
+            due_revealer.reveal_child = true;
+            return;
+        }
+
+        string threshold_str = null;
+        if (threshold_date != null) {
+            bool show_year = threshold_date.dt.get_year () != now.get_year ();
+            var date_format =
+                Granite.DateTime.get_default_date_format (false, true, show_year);
+            threshold_str = threshold_date.dt.format (date_format);
+            threshold_label.label = "👁️ " + threshold_str;
+            threshold_revealer.reveal_child = true;
+        } else {
+            threshold_revealer.reveal_child = false;
+        }
+
+        string due_str = null;
+        if (due_date != null) {
+            bool show_year = due_date.dt.get_year () != now.get_year ();
+            var date_format =
+                Granite.DateTime.get_default_date_format (false, true, show_year);
+            due_str = due_date.dt.format (date_format);
+            due_label.label = "📅 " + due_str;
+            due_revealer.reveal_child = true;
+        } else {
+            due_revealer.reveal_child = false;
+        }
+
+        var recur_mode = task.recur_mode;
+
+        if (recur_mode != RecurrenceMode.NO_RECURRENCE) {
+            recur_revealer.reveal_child = true;
+        } else {
+            recur_revealer.reveal_child = false;
         }
     }
 
@@ -157,14 +331,15 @@ class GOFI.TXT.TaskRow: DragListRow {
             return;
         }
         var had_focus = edit_entry.has_focus;
-        set_center_widget (label_box);
-        set_start_widget (check_button);
+        title_stack.visible_child_name = "label";
+        // set_start_widget (check_button);
+        bottom_bar_revealer.reveal_child = false;
         delete_button = null;
-        edit_entry = null;
         editing = false;
         if (had_focus) {
             grab_focus ();
         }
+        check_bin.set_offset_func (TXT.TextMeasurementWidget.get_label_baseline_offset);
     }
 
     private bool on_row_key_release (Gdk.EventKey event) {
@@ -196,8 +371,11 @@ class GOFI.TXT.TaskRow: DragListRow {
         key_release_event.connect (on_row_key_release);
 
         task.done_changed.connect (on_task_done_changed);
-        task.notify["status"].connect (update_status_label);
+        task.notify["status"].connect (on_task_status_changed);
         task.notify["timer-value"].connect (update_status_label);
+
+        edit_entry.string_changed.connect (on_edit_entry_string_changed);
+        edit_entry.editing_finished.connect (on_edit_entry_finished);
     }
 
     private void on_check_toggled () {
@@ -206,6 +384,26 @@ class GOFI.TXT.TaskRow: DragListRow {
 
     private void on_task_done_changed () {
         destroy ();
+    }
+
+    private void on_task_status_changed () {
+        var status = task.status;
+        if ((status & TaskStatus.TIMER_SELECTED) != TaskStatus.NONE) {
+            if ((status & TaskStatus.TIMER_ACTIVE) != TaskStatus.NONE) {
+                timer_image.set_from_icon_name (
+                    "media-playback-pause-symbolic", Gtk.IconSize.BUTTON
+                );
+            } else {
+                timer_image.set_from_icon_name (
+                    "media-playback-start-symbolic", Gtk.IconSize.BUTTON
+                );
+            }
+        } else {
+            timer_image.set_from_icon_name (
+                "media-playback-start-symbolic", Gtk.IconSize.BUTTON
+            );
+        }
+        update_status_label ();
     }
 
     private bool on_activate_link (string uri) {
