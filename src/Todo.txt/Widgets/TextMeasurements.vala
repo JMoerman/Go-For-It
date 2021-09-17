@@ -139,6 +139,10 @@ class GOFI.TXT.TextMeasurementWidget : Gtk.Container {
         natural_height = 0;
     }
 
+    private inline int calculate_offset (int baseline, int height) {
+        return baseline - (height / 2) - (height & 1);
+    }
+
     public override void size_allocate (Gtk.Allocation allocation) {
         var child_allocation = allocation;
         int temp;
@@ -152,7 +156,7 @@ class GOFI.TXT.TextMeasurementWidget : Gtk.Container {
             out minimum_baseline, out natural_baseline
         );
 
-        label_offset = minimum_baseline - child_allocation.height / 2;
+        label_offset = calculate_offset (minimum_baseline, child_allocation.height);
         // label.size_allocate (child_allocation); // Doesn't seem to help
 
         entry.get_preferred_width (out child_allocation.width, out temp);
@@ -162,7 +166,7 @@ class GOFI.TXT.TextMeasurementWidget : Gtk.Container {
             out minimum_baseline, out natural_baseline
         );
 
-        entry_offset = minimum_baseline - child_allocation.height / 2;
+        entry_offset = calculate_offset (minimum_baseline, child_allocation.height);
 
         entry.size_allocate (child_allocation); // Seems to help
 
