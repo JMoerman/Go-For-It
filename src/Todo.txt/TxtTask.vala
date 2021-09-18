@@ -432,13 +432,8 @@ class GOFI.TXT.TxtTask : TodoTask {
     public string to_simple_txt () {
         StringBuilder str_builder = new StringBuilder.sized (80);
         append_priority (str_builder);
-        str_builder.append (description);
-        if (duration > 0) {
-            str_builder.append (" duration:");
-            append_duration (this.duration, str_builder);
-        }
 
-        return str_builder.str;
+        return str_builder.append (description).str;
     }
 
     private void append_priority (StringBuilder builder) {

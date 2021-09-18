@@ -46,6 +46,9 @@ class GOFI.TXT.TaskRow: DragListRow {
 
     private BaselineCenterBin check_bin;
 
+    private Gtk.ToggleButton timer_value_button;
+    private TaskTimerValuePopover? timer_popover;
+
     private bool editing;
     private bool focus_cooldown_active;
     private const string FILTER_PREFIX = "gofi:";
@@ -155,7 +158,15 @@ class GOFI.TXT.TaskRow: DragListRow {
         bottom_bar_revealer.add (bottom_bar);
         bottom_bar_revealer.reveal_child = false;
 
-        layout_grid.attach (bottom_bar_revealer, 1,1, 2, 1);
+        layout_grid.attach (bottom_bar_revealer, 1,1, 1, 1);
+
+        // timer section
+        var timer_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
+        timer_value_button = new Gtk.ToggleButton.with_label ("-");
+        update_timer_value_label ();
+        timer_box.add (timer_value_button);
+        bottom_bar.attach (timer_box, 0, 0);
+        timer_value_button.clicked.connect (on_timer_value_button_clicked);
 
         var sched_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
 
@@ -163,13 +174,18 @@ class GOFI.TXT.TaskRow: DragListRow {
         sched_button.hexpand = true;
         sched_button.halign = Gtk.Align.START;
         // bottom_bar.pack_start (sched_button);
-        bottom_bar.add (sched_button);
+        // bottom_bar.add (sched_button);
+        bottom_bar.attach (sched_button, 0, 1);
         sched_button.add (sched_box);
 
         sched_button.clicked.connect (on_sched_button_clicked);
 
-        bottom_bar.add (timer_button);
-        bottom_bar.add (options_button);
+        // bottom_bar.add (timer_button);
+        // bottom_bar.add (options_button);
+        if (!task.done) {
+            bottom_bar.attach (timer_button, 1, 0);
+        }
+        bottom_bar.attach (options_button, 1, 1);
         // bottom_bar.pack_end (timer_button);
         // bottom_bar.pack_end (options_button);
 
@@ -195,6 +211,43 @@ class GOFI.TXT.TaskRow: DragListRow {
 
     ~TaskRow () {
         TextMeasurementWidget.remove_listener (check_bin);
+    }
+
+    private void on_timer_value_button_clicked () {
+        if (timer_popover == null) {
+            timer_popover = new TaskTimerValuePopover (timer_value_button, task);
+            timer_popover.popup ();
+            timer_popover.hide.connect (on_popover_hidden);
+        } else {
+            timer_popover.popdown ();
+        }
+    }
+
+    private void on_popover_hidden () {
+        timer_value_button.active = false;
+
+        GLib.Idle.add (on_popover_animation_finished);
+    }
+
+    private bool on_popover_animation_finished () {
+        timer_popover.destroy ();
+        timer_popover = null;
+
+        return GLib.Source.REMOVE;
+    }
+
+    private void update_timer_value_label () {
+        var duration = task.duration;
+        var timer_value = task.timer_value;
+        string timer_str = Utils.seconds_to_separated_timer_string (timer_value);
+        if (duration > 0) {
+            timer_value_button.label = _("%1$s / %2$s").printf (
+                timer_str,
+                Utils.seconds_to_separated_timer_string (duration)
+            );
+        } else {
+            timer_value_button.label = timer_str;
+        }
     }
 
     private void on_global_baseline_offsets_changed () {
@@ -299,7 +352,7 @@ class GOFI.TXT.TaskRow: DragListRow {
      * this row or the entry has focus.
      */
     private bool on_focus_out () {
-        if (focus_cooldown_active | !editing) {
+        if (focus_cooldown_active || !editing || timer_popover != null) {
             return false;
         }
         focus_cooldown_active = true;
@@ -314,7 +367,7 @@ class GOFI.TXT.TaskRow: DragListRow {
         if (!editing) {
             return false;
         }
-        if (!has_focus && get_focus_child () == null) {
+        if (!has_focus && get_focus_child () == null && timer_popover == null) {
             stop_editing ();
             return false;
         }
@@ -332,7 +385,6 @@ class GOFI.TXT.TaskRow: DragListRow {
         }
         var had_focus = edit_entry.has_focus;
         title_stack.visible_child_name = "label";
-        // set_start_widget (check_button);
         bottom_bar_revealer.reveal_child = false;
         delete_button = null;
         editing = false;
@@ -372,10 +424,16 @@ class GOFI.TXT.TaskRow: DragListRow {
 
         task.done_changed.connect (on_task_done_changed);
         task.notify["status"].connect (on_task_status_changed);
-        task.notify["timer-value"].connect (update_status_label);
+        task.notify["timer-value"].connect (on_task_duration_changed);
+        task.notify["duration"].connect (on_task_duration_changed);
 
         edit_entry.string_changed.connect (on_edit_entry_string_changed);
         edit_entry.editing_finished.connect (on_edit_entry_finished);
+    }
+
+    private void on_task_duration_changed () {
+        update_status_label ();
+        update_timer_value_label ();
     }
 
     private void on_check_toggled () {
@@ -544,16 +602,13 @@ class GOFI.TXT.TaskRow: DragListRow {
             }
             if (duration > 0) {
                 var timer_value = task.timer_value;
-                if (timer_value > 0 && !done) {
-                    markup_string = "%s <i>(%u / %s)</i>".printf (
-                        markup_string, timer_value / 60,
-                        Utils.seconds_to_short_string (duration)
-                    );
-                } else {
-                    markup_string = "%s <i>(%s)</i>".printf (
-                        markup_string, Utils.seconds_to_short_string (duration)
-                    );
-                }
+                string timer_str = _("%1$s / %2$s").printf (
+                    Utils.seconds_to_separated_timer_string (timer_value),
+                    Utils.seconds_to_separated_timer_string (duration)
+                );
+                markup_string = "%s <i>(%s)</i>".printf (
+                    markup_string, timer_str
+                );
             }
             if (done) {
                 markup_string = "<s>" + markup_string + "</s>";
@@ -616,9 +671,168 @@ class GOFI.TXT.TaskRow: DragListRow {
         }
 
         private void connect_signals () {
-            task.notify["description"].connect (update);
-            task.notify["priority"].connect (update);
-            task.notify["timer-value"].connect (update);
+            task.notify.connect (on_task_notify);
         }
+
+        private void on_task_notify (ParamSpec pspec) {
+            switch (pspec.get_name ()) {
+                case "description":
+                case "priority":
+                case "timer-value":
+                case "duration":
+                    update ();
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+}
+
+class GOFI.TXT.TaskTimerValuePopover : Gtk.Popover {
+    private Gtk.Grid popover_layout;
+
+    private Gtk.SpinButton timer_h_spin;
+    private Gtk.SpinButton timer_m_spin;
+    private Gtk.SpinButton timer_s_spin;
+
+    private Gtk.SpinButton duration_h_spin;
+    private Gtk.SpinButton duration_m_spin;
+    private Gtk.SpinButton duration_s_spin;
+
+    private TodoTask task;
+    private bool updating;
+
+    public TaskTimerValuePopover (Gtk.Widget? relative_to, TodoTask task) {
+        Object (relative_to: relative_to);
+
+        this.task = task;
+        updating = false;
+
+        popover_layout = new Gtk.Grid ();
+        popover_layout.column_spacing = 6;
+        popover_layout.margin = 6;
+
+        timer_h_spin = new Gtk.SpinButton.with_range (0, 4800, 1);
+        timer_m_spin = new Gtk.SpinButton.with_range (0, 59, 1);
+        timer_s_spin = new Gtk.SpinButton.with_range (0, 59, 1);
+
+        timer_h_spin.orientation = Gtk.Orientation.VERTICAL;
+        timer_m_spin.orientation = Gtk.Orientation.VERTICAL;
+        timer_s_spin.orientation = Gtk.Orientation.VERTICAL;
+
+        duration_h_spin = new Gtk.SpinButton.with_range (0, 4800, 1);
+        duration_m_spin = new Gtk.SpinButton.with_range (0, 59, 1);
+        duration_s_spin = new Gtk.SpinButton.with_range (0, 59, 1);
+
+        duration_h_spin.orientation = Gtk.Orientation.VERTICAL;
+        duration_m_spin.orientation = Gtk.Orientation.VERTICAL;
+        duration_s_spin.orientation = Gtk.Orientation.VERTICAL;
+
+        set_spin_values ();
+
+        const int timer_spin_row = 1;
+        const int duration_spin_row = 3;
+
+        popover_layout.attach (new Granite.HeaderLabel ("Timer:"), 0, timer_spin_row - 1, 5, 1);
+        popover_layout.attach (timer_h_spin, 0, timer_spin_row);
+        popover_layout.attach (new Gtk.Label (":"), 1, timer_spin_row);
+        popover_layout.attach (timer_m_spin, 2, timer_spin_row);
+        popover_layout.attach (new Gtk.Label (":"), 3, timer_spin_row);
+        popover_layout.attach (timer_s_spin, 4, timer_spin_row);
+
+        popover_layout.attach (new Granite.HeaderLabel ("Duration:"), 0, duration_spin_row - 1, 5, 1);
+        popover_layout.attach (duration_h_spin, 0, duration_spin_row);
+        popover_layout.attach (new Gtk.Label (":"), 1, duration_spin_row);
+        popover_layout.attach (duration_m_spin, 2, duration_spin_row);
+        popover_layout.attach (new Gtk.Label (":"), 3, duration_spin_row);
+        popover_layout.attach (duration_s_spin, 4, duration_spin_row);
+
+        popover_layout.show_all ();
+
+        this.add (popover_layout);
+    }
+
+    private void set_spin_values () {
+        update_timer_spin_values ();
+        update_duration_spin_values ();
+        connect_timer_spin_signals ();
+        connect_duration_spin_signals ();
+    }
+
+    private void update_timer_spin_values () {
+        uint hours, minutes, seconds;
+
+        Utils.uint_to_time (task.timer_value, out hours, out minutes, out seconds);
+        timer_h_spin.value = (double) hours;
+        timer_m_spin.value = (double) minutes;
+        timer_s_spin.value = (double) seconds;
+    }
+
+    private void update_duration_spin_values () {
+        uint hours, minutes, seconds;
+
+        Utils.uint_to_time (task.duration, out hours, out minutes, out seconds);
+        duration_h_spin.value = (double) hours;
+        duration_m_spin.value = (double) minutes;
+        duration_s_spin.value = (double) seconds;
+    }
+
+    private void connect_timer_spin_signals () {
+        timer_h_spin.value_changed.connect (on_timer_spin_changed);
+        timer_m_spin.value_changed.connect (on_timer_spin_changed);
+        timer_s_spin.value_changed.connect (on_timer_spin_changed);
+        task.notify["timer-value"].connect (on_task_timer_value_changed);
+    }
+
+    private void connect_duration_spin_signals () {
+        duration_h_spin.value_changed.connect (on_duration_spin_changed);
+        duration_m_spin.value_changed.connect (on_duration_spin_changed);
+        duration_s_spin.value_changed.connect (on_duration_spin_changed);
+        task.notify["duration"].connect (on_task_duration_changed);
+    }
+
+    private void on_duration_spin_changed () {
+        if (updating) {
+            return;
+        }
+        updating = true;
+        task.duration = Utils.time_to_uint (
+            (uint) duration_h_spin.get_value_as_int (),
+            (uint) duration_m_spin.get_value_as_int (),
+            (uint) duration_s_spin.get_value_as_int ()
+        );
+        updating = false;
+    }
+
+    private void on_timer_spin_changed () {
+        if (updating) {
+            return;
+        }
+        updating = true;
+        task.timer_value = Utils.time_to_uint (
+            (uint) timer_h_spin.get_value_as_int (),
+            (uint) timer_m_spin.get_value_as_int (),
+            (uint) timer_s_spin.get_value_as_int ()
+        );
+        updating = false;
+    }
+
+    private void on_task_duration_changed () {
+        if (updating) {
+            return;
+        }
+        updating = true;
+        update_duration_spin_values ();
+        updating = false;
+    }
+
+    private void on_task_timer_value_changed () {
+        if (updating) {
+            return;
+        }
+        updating = true;
+        update_timer_spin_values ();
+        updating = false;
     }
 }
