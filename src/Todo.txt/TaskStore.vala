@@ -112,7 +112,14 @@ class GOFI.TXT.TaskStore : Object, DragListModel {
             case "show-date":
                 task_threshold_date_changed ((TxtTask) task);
                 break;
-            default:
+            case "duration":
+            case "timer-value":
+            case "description":
+            case "priority":
+            case "threshold-date":
+            case "due-date":
+            case "recur":
+            case "recur-mode":
                 on_task_data_changed ((TxtTask) task);
                 break;
         }
