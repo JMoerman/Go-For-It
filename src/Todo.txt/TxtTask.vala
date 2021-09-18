@@ -259,8 +259,9 @@ class GOFI.TXT.TxtTask : TodoTask {
             if (t.part_type == TxtPartType.TAG) {
                 switch (t.tag_name) {
                     case "timer":
-                        if (is_timer_value (t.content)) {
-                            timer_value = string_to_timer (t.content);
+                        uint new_timer_value = 0;
+                        if (match_duration_value (t.content, out new_timer_value)) {
+                            timer_value = new_timer_value;
                             continue;
                         }
                         break;
@@ -403,32 +404,49 @@ class GOFI.TXT.TxtTask : TodoTask {
         return descr_builder.str;
     }
 
-    private string duration_to_string () {
-        uint hours, minutes;
-        Utils.uint_to_time (duration, out hours, out minutes, null);
+    private void append_duration (uint duration, StringBuilder builder) {
+        uint hours, minutes, seconds;
+        bool append_hyphen = false;
+
+        Utils.uint_to_time (duration, out hours, out minutes, out seconds);
+
         if (hours > 0) {
-            if (minutes > 0) {
-                return "duration:%uh-%um".printf (hours, minutes);
+            builder.append_printf ("%uh", hours);
+            append_hyphen = true;
+        }
+        if (minutes > 0) {
+            if (append_hyphen) {
+                builder.append_c ('-');
             }
-            return "duration:%uh".printf (hours);
-        } else {
-            return "duration:%um".printf (minutes);
+            builder.append_printf ("%um", minutes);
+            append_hyphen = true;
+        }
+        if (seconds > 0) {
+            if (append_hyphen) {
+                builder.append_c ('-');
+            }
+            builder.append_printf ("%us", seconds);
         }
     }
 
     public string to_simple_txt () {
-        string prio_str = (priority != NO_PRIO) ? @"($((char) (priority + 65))) " : "";
-        string duration_str = duration != 0 ? " " + duration_to_string () : "";
+        StringBuilder str_builder = new StringBuilder.sized (80);
+        append_priority (str_builder);
+        str_builder.append (description);
+        if (duration > 0) {
+            str_builder.append (" duration:");
+            append_duration (this.duration, str_builder);
+        }
 
-        return prio_str + description + duration_str;
+        return str_builder.str;
     }
 
-    private string prio_to_string () {
+    private void append_priority (StringBuilder builder) {
         if (priority >= NO_PRIO) {
-            return "";
+            return;
         } else {
-            char prio_char = priority + 65;
-            return @"($prio_char) ";
+            builder.append_c ((char) priority + 65);
+            builder.append_c (' ');
         }
     }
 
@@ -438,7 +456,7 @@ class GOFI.TXT.TxtTask : TodoTask {
             str_builder.append ("x ");
         }
 
-        str_builder.append (prio_to_string ());
+        append_priority (str_builder);
 
         if (creation_date != null) {
             str_builder.append (dt_to_string (creation_date.dt));
@@ -500,8 +518,8 @@ class GOFI.TXT.TxtTask : TodoTask {
         }
 
         if (duration != 0) {
-            str_builder.append_c (' ');
-            str_builder.append (duration_to_string ());
+            str_builder.append (" duration:");
+            append_duration (duration, str_builder);
         }
 
         return str_builder.str;
