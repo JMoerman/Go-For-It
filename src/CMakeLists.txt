@@ -55,6 +55,8 @@ vala_precompile (VALA_C ${LIBNAME}
     Widgets/FileChooserWidget.vala
     Widgets/BaselineCenterBin.vala
     Widgets/BaselineStack.vala
+    Widgets/ConstrWidthBin.vala
+    Widgets/ExplanationWidget.vala
     Pages/TaskListPage.vala
     Pages/SelectionPage.vala
     Dialogs/FileConflictDialog.vala

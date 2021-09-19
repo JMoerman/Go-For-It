@@ -140,7 +140,7 @@ class GOFI.TXT.TextMeasurementWidget : Gtk.Container {
     }
 
     private inline int calculate_offset (int baseline, int height) {
-        return baseline - (height / 2) - (height & 1);
+        return baseline - (height / 2); // - (height & 1);
     }
 
     public override void size_allocate (Gtk.Allocation allocation) {

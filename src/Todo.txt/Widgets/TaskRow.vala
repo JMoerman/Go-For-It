@@ -38,8 +38,6 @@ class GOFI.TXT.TaskRow: DragListRow {
     private Gtk.ToggleButton timer_button;
     private Gtk.Image timer_image;
 
-    private Gtk.ToggleButton options_button;
-
     private Gtk.Revealer due_revealer;
     private Gtk.Revealer threshold_revealer;
     private Gtk.Revealer recur_revealer;
@@ -141,10 +139,12 @@ class GOFI.TXT.TaskRow: DragListRow {
         timer_button.add (timer_image);
         timer_button.clicked.connect (() => task_selected ());
 
-        options_button = new Gtk.ToggleButton ();
-        options_button.add (new Gtk.Image.from_icon_name (
-            "view-more-symbolic", Gtk.IconSize.BUTTON
-        ));
+        delete_button = new Gtk.Button.from_icon_name ("edit-delete-symbolic", Gtk.IconSize.MENU);
+        // delete_button.relief = Gtk.ReliefStyle.NONE;
+        delete_button.show_all ();
+        delete_button.clicked.connect (on_delete_button_clicked);
+
+        var creation_info_widget = get_creation_time_widget ();
 
         edit_entry = new TaskEditEntry ("");
         edit_entry.valign = Gtk.Align.BASELINE;
@@ -153,6 +153,7 @@ class GOFI.TXT.TaskRow: DragListRow {
 
         var bottom_bar = new Gtk.Grid ();
         bottom_bar.margin_top = 6;
+        bottom_bar.row_spacing = 6;
 
         bottom_bar_revealer = new Gtk.Revealer ();
         bottom_bar_revealer.add (bottom_bar);
@@ -160,12 +161,8 @@ class GOFI.TXT.TaskRow: DragListRow {
 
         layout_grid.attach (bottom_bar_revealer, 1,1, 1, 1);
 
-        // timer section
-        var timer_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
         timer_value_button = new Gtk.ToggleButton.with_label ("-");
         update_timer_value_label ();
-        timer_box.add (timer_value_button);
-        bottom_bar.attach (timer_box, 0, 0);
         timer_value_button.clicked.connect (on_timer_value_button_clicked);
 
         var sched_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
@@ -173,21 +170,29 @@ class GOFI.TXT.TaskRow: DragListRow {
         sched_button = new Gtk.Button ();
         sched_button.hexpand = true;
         sched_button.halign = Gtk.Align.START;
-        // bottom_bar.pack_start (sched_button);
-        // bottom_bar.add (sched_button);
-        bottom_bar.attach (sched_button, 0, 1);
+
         sched_button.add (sched_box);
 
         sched_button.clicked.connect (on_sched_button_clicked);
 
-        // bottom_bar.add (timer_button);
-        // bottom_bar.add (options_button);
+
         if (!task.done) {
-            bottom_bar.attach (timer_button, 1, 0);
+            var button_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
+            button_box.add (timer_value_button);
+            button_box.add (timer_button);
+            bottom_bar.attach (button_box, 0, 0, 3, 1);
+            button_box.get_style_context ().add_class ("linked");
+        } else {
+            bottom_bar.attach (timer_value_button, 0, 0, 3, 1);
         }
-        bottom_bar.attach (options_button, 1, 1);
-        // bottom_bar.pack_end (timer_button);
-        // bottom_bar.pack_end (options_button);
+        timer_value_button.hexpand = true;
+
+        bottom_bar.attach (sched_button, 0, 1);
+        if (creation_info_widget != null) {
+            bottom_bar.attach (creation_info_widget, 1, 1);
+        }
+        bottom_bar.attach (delete_button, 2, 1);
+
 
         due_revealer = new Gtk.Revealer ();
         threshold_revealer = new Gtk.Revealer ();
@@ -204,6 +209,9 @@ class GOFI.TXT.TaskRow: DragListRow {
         update_schedule_labels (new DateTime.now_local ());
 
         this.add (layout_grid);
+        layout_grid.margin = 5;
+        layout_grid.margin_bottom = 3;
+        layout_grid.margin_top = 3;
 
         connect_signals ();
         show_all ();
@@ -386,7 +394,6 @@ class GOFI.TXT.TaskRow: DragListRow {
         var had_focus = edit_entry.has_focus;
         title_stack.visible_child_name = "label";
         bottom_bar_revealer.reveal_child = false;
-        delete_button = null;
         editing = false;
         if (had_focus) {
             grab_focus ();
@@ -492,6 +499,34 @@ class GOFI.TXT.TaskRow: DragListRow {
         }
     }
 
+    public Gtk.Widget? get_creation_time_widget () {
+        GOFI.Date? completion_date = task.completion_date;
+        GOFI.Date? creation_date = task.creation_date;
+        if (creation_date == null) {
+            return null;
+        }
+        return new ExplanationWidget (
+            get_creation_time_info_str (creation_date, completion_date)
+        );
+    }
+
+    public string get_creation_time_info_str (GOFI.Date creation_date, GOFI.Date? completion_date) {
+        /// See https://valadoc.org/glib-2.0/GLib.DateTime.format.html for
+        // formatting of DateTime
+        string date_format = _("%Y-%m-%d");
+
+        if (task.done && completion_date != null) {
+            return _("Task completed at %1$s, created at %2$s").printf (
+                completion_date.dt.format (date_format),
+                creation_date.dt.format (date_format)
+            );
+        } else {
+            return _("Task created at %s").printf (
+                    creation_date.dt.format (date_format)
+            );
+        }
+    }
+
     class TaskEditEntry : Gtk.Entry {
         public signal void editing_finished ();
         public signal void string_changed ();
@@ -558,34 +593,6 @@ class GOFI.TXT.TaskRow: DragListRow {
 
             connect_signals ();
             show_all ();
-        }
-
-        public void update_tooltip () {
-            GOFI.Date? completion_date = task.completion_date;
-            GOFI.Date? creation_date = task.creation_date;
-
-            /// see https://valadoc.org/glib-2.0/GLib.DateTime.format.html for
-            // formatting of DateTime
-            string date_format = _("%Y-%m-%d");
-
-            if (task.done && completion_date != null) {
-                this.tooltip_text =
-                    _("Task completed at %1$s, created at %2$s").printf (
-                        completion_date.dt.format (date_format),
-                        creation_date.dt.format (date_format)
-                    );
-            } else if (creation_date != null) {
-                var timer_value = task.timer_value;
-                var new_tooltip_text = _("Task created at %s").printf (
-                        creation_date.dt.format (date_format)
-                );
-
-                if (timer_value >= 60) {
-                  var timer_value_str = Utils.seconds_to_pretty_string (timer_value);
-                  new_tooltip_text += "\n%s: %s".printf (_("Timer"), timer_value_str);
-                }
-                this.tooltip_text = new_tooltip_text;
-            }
         }
 
         private void gen_markup () {
@@ -667,7 +674,6 @@ class GOFI.TXT.TaskRow: DragListRow {
         private void update () {
             gen_markup ();
             set_markup (markup_string);
-            update_tooltip ();
         }
 
         private void connect_signals () {
