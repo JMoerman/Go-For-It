@@ -23,6 +23,7 @@ class GOFI.TXT.TaskRowLayout : Gtk.Container {
     private TaskMarkupLabel markup_label;
     private Gtk.Label status_label;
     private Gtk.Entry edit_entry;
+    private Gtk.Button close_edit_button;
 
     private Gtk.Stack title_stack;
     private Gtk.Stack misc_stack;
@@ -87,7 +88,7 @@ class GOFI.TXT.TaskRowLayout : Gtk.Container {
 
     public TaskRowLayout (TxtTask task) {
         base.set_has_window (true);
-        base.set_can_focus (true);
+        base.set_can_focus (false);
         base.set_redraw_on_allocate (false);
 
         this.handle_border_width ();
@@ -128,6 +129,13 @@ class GOFI.TXT.TaskRowLayout : Gtk.Container {
         status_label.valign = Gtk.Align.BASELINE;
 
         edit_entry = new Gtk.Entry ();
+        close_edit_button = new Gtk.Button.from_icon_name ("collapse-symbolic");
+        close_edit_button.get_style_context ().add_class ("flat");
+        var edit_grid = new Gtk.Grid ();
+        edit_grid.orientation = Gtk.Orientation.HORIZONTAL;
+        edit_grid.add (edit_entry);
+        edit_grid.add (close_edit_button);
+        edit_entry.hexpand = true;
 
         title_stack = new Gtk.Stack ();
         title_stack.homogeneous = false;
@@ -135,7 +143,7 @@ class GOFI.TXT.TaskRowLayout : Gtk.Container {
         title_stack.transition_type = Gtk.StackTransitionType.SLIDE_DOWN;
 
         title_stack.add_named (label_box, "label");
-        title_stack.add_named (edit_entry, "edit_entry");
+        title_stack.add_named (edit_grid, "edit_entry");
 
         _set_child_parent (title_stack);
         title_stack.show_all ();
@@ -335,13 +343,9 @@ class GOFI.TXT.TaskRowLayout : Gtk.Container {
         if (!editing) {
             return;
         }
-        var had_focus = edit_entry.has_focus;
         title_stack.visible_child_name = "label";
         misc_stack.visible_child_name = "inactive";
         editing = false;
-        if (had_focus) {
-            grab_focus ();
-        }
     }
 
     private void connect_signals () {
@@ -352,6 +356,7 @@ class GOFI.TXT.TaskRowLayout : Gtk.Container {
         markup_label.activate_link.connect (on_activate_link);
 
         key_release_event.connect (on_row_key_release);
+        edit_entry.key_release_event.connect (on_entry_key_release);
 
         task.done_changed.connect (on_task_done_changed);
         task.notify["status"].connect (on_task_status_changed);
@@ -361,6 +366,8 @@ class GOFI.TXT.TaskRowLayout : Gtk.Container {
         edit_entry.focus_out_event.connect (on_entry_focus_out);
         edit_entry.activate.connect (update_task_from_entry_string);
         edit_entry.changed.connect (on_entry_changed);
+
+        close_edit_button.clicked.connect (stop_editing);
     }
 
     private void on_task_duration_changed () {
@@ -455,6 +462,7 @@ class GOFI.TXT.TaskRowLayout : Gtk.Container {
     private void update_task_from_entry_string () {
         if (string_changed) {
             task.update_from_simple_txt (edit_entry.text.strip ());
+            string_changed = false;
         }
     }
 
@@ -474,12 +482,20 @@ class GOFI.TXT.TaskRowLayout : Gtk.Container {
                     return true;
                 }
                 break;
-            // case Gdk.Key.Escape:
-            //     if (editing) {
-            //         stop_editing ();
-            //         return true;
-            //     }
-            //     break;
+            default:
+                return false;
+        }
+        return false;
+    }
+
+    private bool on_entry_key_release (Gdk.EventKey event) {
+        switch (event.keyval) {
+            case Gdk.Key.Escape:
+                if (editing) {
+                    stop_editing ();
+                    return true;
+                }
+                break;
             default:
                 return false;
         }
