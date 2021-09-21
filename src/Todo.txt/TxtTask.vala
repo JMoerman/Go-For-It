@@ -440,8 +440,7 @@ class GOFI.TXT.TxtTask : TodoTask {
         if (priority >= NO_PRIO) {
             return;
         } else {
-            builder.append_c ((char) priority + 65);
-            builder.append_c (' ');
+            builder.append_printf ("(%c) ", (char) priority + 65);
         }
     }
 
