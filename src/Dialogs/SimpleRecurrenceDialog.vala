@@ -177,8 +177,9 @@ class GOFI.SimpleRecurrenceDialog : Gtk.Dialog {
 
     public signal void save_clicked ();
 
-    public SimpleRecurrenceDialog () {
+    public SimpleRecurrenceDialog (Gtk.Window? parent_window = null) {
         this.set_modal (true);
+        this.set_transient_for (parent_window);
 
         init_widgets ();
         place_widgets ();
@@ -266,16 +267,13 @@ class GOFI.SimpleRecurrenceDialog : Gtk.Dialog {
 
         var repeat_kind_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, H_SPACING);
         repeat_kind_box.add (repeat_switch);
-        // repeat_kind_box.add ();
         repeat_kind_box.add (frequency_cbox);
         repeat_switch.valign = Gtk.Align.CENTER;
         frequency_cbox.hexpand = true;
 
-        // var interval_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, H_SPACING);
-        // interval_box.add (interval_spin);
-        // interval_box.add (freq_unit_label);
         interval_spin.valign = Gtk.Align.CENTER;
         interval_spin.hexpand = true;
+        freq_unit_label.halign = Gtk.Align.START;
 
 #if USE_GRANITE
         var past_due_box = new Gtk.Box (Gtk.Orientation.VERTICAL, 0);

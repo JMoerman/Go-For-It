@@ -17,16 +17,15 @@
 
 using GOFI.TXT.TxtUtils;
 
-class GOFI.TXT.TaskRow: DragListRow {
+class GOFI.TXT.TaskRowLayout : Gtk.Container {
     private Gtk.CheckButton check_button;
     private Gtk.Button delete_button;
-    private DynOrientationBox label_box;
     private TaskMarkupLabel markup_label;
     private Gtk.Label status_label;
-    private TaskEditEntry edit_entry;
+    private Gtk.Entry edit_entry;
 
-    private Gtk.Revealer bottom_bar_revealer;
     private Gtk.Stack title_stack;
+    private Gtk.Stack misc_stack;
 
     private Gtk.Button sched_button;
     private Gtk.Label due_label;
@@ -42,14 +41,19 @@ class GOFI.TXT.TaskRow: DragListRow {
     private Gtk.Revealer threshold_revealer;
     private Gtk.Revealer recur_revealer;
 
-    private BaselineCenterBin check_bin;
-
     private Gtk.ToggleButton timer_value_button;
     private TaskTimerValuePopover? timer_popover;
 
     private bool editing;
-    private bool focus_cooldown_active;
+    private bool string_changed;
+
     private const string FILTER_PREFIX = "gofi:";
+
+    public int column_spacing {
+        get;
+        set;
+        default = 6;
+    }
 
     public bool is_editing {
         get {
@@ -81,102 +85,107 @@ class GOFI.TXT.TaskRow: DragListRow {
     public signal void link_clicked (string uri);
     public signal void deletion_requested ();
 
-    public TaskRow (TxtTask task) {
+    public TaskRowLayout (TxtTask task) {
+        base.set_has_window (true);
+        base.set_can_focus (true);
+        base.set_redraw_on_allocate (false);
+
+        this.handle_border_width ();
+
         this.task = task;
-        check_bin = new BaselineCenterBin ();
-        TextMeasurementWidget.add_listener (check_bin);
-        check_bin.set_offset_func (TXT.TextMeasurementWidget.get_label_baseline_offset);
 
-        title_stack = new BaselineStack ();
+        initialize_contents ();
+    }
 
-        edit_entry = null;
-        editing = false;
-        focus_cooldown_active = false;
-        markup_label = new TaskMarkupLabel (task);
-        markup_label.halign = Gtk.Align.START;
-        markup_label.valign = Gtk.Align.BASELINE;
-        status_label = new Gtk.Label (null);
-        status_label.halign = Gtk.Align.END;
-        status_label.valign = Gtk.Align.BASELINE;
-        status_label.use_markup = true;
-        status_label.no_show_all = true;
-        update_status_label ();
-
-        label_box = new DynOrientationBox (2, 0);
-        label_box.set_primary_widget (markup_label);
-        label_box.set_secondary_widget (status_label);
-        label_box.valign = Gtk.Align.BASELINE;
-
+    private void initialize_contents () {
         check_button = new Gtk.CheckButton ();
         check_button.active = task.done;
         var sc = kbsettings.get_shortcut (KeyBindingSettings.SCK_MARK_TASK_DONE);
         check_button.tooltip_markup = sc.get_accel_markup (_("Mark the task as complete"));
 
+        _set_child_parent (check_button);
+        check_button.show_all ();
+
+        initialize_title_area ();
+        initialize_misc_area ();
+        connect_signals ();
+    }
+
+    private void initialize_title_area () {
+        markup_label = new TaskMarkupLabel (task);
+        status_label = new Gtk.Label (null);
+        status_label.use_markup = true;
+        status_label.no_show_all = true;
+        update_status_label ();
+
+        var label_box = new DynOrientationBox (2, 0);
+        label_box.set_primary_widget (markup_label);
+        label_box.set_secondary_widget (status_label);
+        label_box.valign = Gtk.Align.BASELINE;
+        markup_label.halign = Gtk.Align.START;
+        markup_label.valign = Gtk.Align.BASELINE;
+        status_label.halign = Gtk.Align.END;
+        status_label.valign = Gtk.Align.BASELINE;
+
+        edit_entry = new Gtk.Entry ();
+
+        title_stack = new Gtk.Stack ();
+        title_stack.homogeneous = false;
+        title_stack.interpolate_size = true;
+        title_stack.transition_type = Gtk.StackTransitionType.SLIDE_DOWN;
+
         title_stack.add_named (label_box, "label");
+        title_stack.add_named (edit_entry, "edit_entry");
 
-        check_bin.add (check_button);
+        _set_child_parent (title_stack);
+        title_stack.show_all ();
+    }
 
-        check_button.valign = Gtk.Align.START;
-        title_stack.valign = Gtk.Align.BASELINE;
-        check_bin.valign = Gtk.Align.BASELINE;
+    private void initialize_misc_area () {
 
-        var layout_grid = new Gtk.Grid ();
-        layout_grid.orientation = Gtk.Orientation.VERTICAL;
-        layout_grid.attach (check_bin, 0, 0);
-        layout_grid.attach (title_stack, 1, 0);
-        layout_grid.column_spacing = 4;
+        timer_value_button = new Gtk.ToggleButton.with_label ("-");
+        update_timer_value_label ();
 
+        delete_button = new Gtk.Button.from_icon_name ("edit-delete-symbolic", Gtk.IconSize.MENU);
+
+        var creation_info_widget = get_creation_time_widget ();
+
+        sched_button = new Gtk.Button ();
         due_label = new Gtk.Label (null);
         threshold_label = new Gtk.Label (null);
         recur_indicator = new Gtk.Image.from_icon_name (
             "media-playlist-repeat-symbolic", Gtk.IconSize.BUTTON
         );
 
-        timer_button = new Gtk.ToggleButton ();
-        timer_image = new Gtk.Image.from_icon_name (
-            "media-playback-start-symbolic", Gtk.IconSize.BUTTON
-        );
-        timer_button.add (timer_image);
-        timer_button.clicked.connect (() => task_selected ());
+        due_revealer = new Gtk.Revealer ();
+        threshold_revealer = new Gtk.Revealer ();
+        recur_revealer = new Gtk.Revealer ();
 
-        delete_button = new Gtk.Button.from_icon_name ("edit-delete-symbolic", Gtk.IconSize.MENU);
-        // delete_button.relief = Gtk.ReliefStyle.NONE;
-        delete_button.show_all ();
-        delete_button.clicked.connect (on_delete_button_clicked);
+        due_revealer.add (due_label);
+        threshold_revealer.add (threshold_label);
+        recur_revealer.add (recur_indicator);
 
-        var creation_info_widget = get_creation_time_widget ();
+        update_schedule_labels (new DateTime.now_local ());
 
-        edit_entry = new TaskEditEntry ("");
-        edit_entry.valign = Gtk.Align.BASELINE;
-        title_stack.add_named (edit_entry, "edit_entry");
-        title_stack.homogeneous = false;
+        var sched_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
+        sched_box.add (threshold_revealer);
+        sched_box.add (due_revealer);
+        sched_box.add (recur_revealer);
+
+        sched_button.add (sched_box);
 
         var bottom_bar = new Gtk.Grid ();
         bottom_bar.margin_top = 6;
         bottom_bar.row_spacing = 6;
 
-        bottom_bar_revealer = new Gtk.Revealer ();
-        bottom_bar_revealer.add (bottom_bar);
-        bottom_bar_revealer.reveal_child = false;
-
-        layout_grid.attach (bottom_bar_revealer, 1,1, 1, 1);
-
-        timer_value_button = new Gtk.ToggleButton.with_label ("-");
-        update_timer_value_label ();
-        timer_value_button.clicked.connect (on_timer_value_button_clicked);
-
-        var sched_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
-
-        sched_button = new Gtk.Button ();
-        sched_button.hexpand = true;
-        sched_button.halign = Gtk.Align.START;
-
-        sched_button.add (sched_box);
-
-        sched_button.clicked.connect (on_sched_button_clicked);
-
-
         if (!task.done) {
+            timer_button = new Gtk.ToggleButton ();
+            timer_image = new Gtk.Image.from_icon_name (
+                "media-playback-start-symbolic", Gtk.IconSize.BUTTON
+            );
+            timer_button.add (timer_image);
+            timer_button.clicked.connect (() => task_selected ());
+
             var button_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
             button_box.add (timer_value_button);
             button_box.add (timer_button);
@@ -188,117 +197,53 @@ class GOFI.TXT.TaskRow: DragListRow {
         timer_value_button.hexpand = true;
 
         bottom_bar.attach (sched_button, 0, 1);
+        sched_button.hexpand = true;
+        sched_button.halign = Gtk.Align.START;
         if (creation_info_widget != null) {
             bottom_bar.attach (creation_info_widget, 1, 1);
         }
         bottom_bar.attach (delete_button, 2, 1);
 
+        misc_stack = new Gtk.Stack ();
+        misc_stack.vhomogeneous = false;
+        misc_stack.interpolate_size = true;
+        misc_stack.transition_type = Gtk.StackTransitionType.SLIDE_DOWN;
+        misc_stack.add_named (new Gtk.Grid (), "inactive");
+        misc_stack.add_named (bottom_bar, "active");
 
-        due_revealer = new Gtk.Revealer ();
-        threshold_revealer = new Gtk.Revealer ();
-        recur_revealer = new Gtk.Revealer ();
-
-        due_revealer.add (due_label);
-        threshold_revealer.add (threshold_label);
-        recur_revealer.add (recur_indicator);
-
-        sched_box.add (threshold_revealer);
-        sched_box.add (due_revealer);
-        sched_box.add (recur_revealer);
-
-        update_schedule_labels (new DateTime.now_local ());
-
-        this.add (layout_grid);
-        layout_grid.margin = 5;
-        layout_grid.margin_bottom = 3;
-        layout_grid.margin_top = 3;
-
-        connect_signals ();
-        show_all ();
+        _set_child_parent (misc_stack);
+        misc_stack.show_all ();
     }
 
-    ~TaskRow () {
-        TextMeasurementWidget.remove_listener (check_bin);
-    }
-
-    private void on_timer_value_button_clicked () {
-        if (timer_popover == null) {
-            timer_popover = new TaskTimerValuePopover (timer_value_button, task);
-            timer_popover.popup ();
-            timer_popover.hide.connect (on_popover_hidden);
-        } else {
-            timer_popover.popdown ();
+    private Gtk.Widget? get_creation_time_widget () {
+        GOFI.Date? completion_date = task.completion_date;
+        GOFI.Date? creation_date = task.creation_date;
+        if (creation_date == null) {
+            return null;
         }
+        return new ExplanationWidget (
+            get_creation_time_info_str (creation_date, completion_date)
+        );
     }
 
-    private void on_popover_hidden () {
-        timer_value_button.active = false;
+    private string get_creation_time_info_str (GOFI.Date creation_date, GOFI.Date? completion_date) {
+        /// See https://valadoc.org/glib-2.0/GLib.DateTime.format.html for
+        // formatting of DateTime
+        string date_format = _("%Y-%m-%d");
 
-        GLib.Idle.add (on_popover_animation_finished);
-    }
-
-    private bool on_popover_animation_finished () {
-        timer_popover.destroy ();
-        timer_popover = null;
-
-        return GLib.Source.REMOVE;
-    }
-
-    private void update_timer_value_label () {
-        var duration = task.duration;
-        var timer_value = task.timer_value;
-        string timer_str = Utils.seconds_to_separated_timer_string (timer_value);
-        if (duration > 0) {
-            timer_value_button.label = _("%1$s / %2$s").printf (
-                timer_str,
-                Utils.seconds_to_separated_timer_string (duration)
+        if (task.done && completion_date != null) {
+            return _("Task completed at %1$s, created at %2$s").printf (
+                completion_date.dt.format (date_format),
+                creation_date.dt.format (date_format)
             );
         } else {
-            timer_value_button.label = timer_str;
+            return _("Task created at %s").printf (
+                    creation_date.dt.format (date_format)
+            );
         }
     }
 
-    private void on_global_baseline_offsets_changed () {
-        check_bin.queue_resize ();
-    }
-
-    private void on_sched_button_clicked () {
-        var dia = new SimpleRecurrenceDialog ();
-        dia.recur_mode = task.recur_mode;
-        dia.rec_obj = task.recur;
-
-        dia.threshold_date = task.threshold_date;
-        dia.due_date = task.due_date;
-        dia.show_all ();
-
-        dia.save_clicked.connect (on_schedule_dialog_save_clicked);
-    }
-
-    private void on_schedule_dialog_save_clicked (SimpleRecurrenceDialog dia) {
-        task.recur_mode = dia.recur_mode;
-        task.due_date = dia.due_date;
-        task.threshold_date= dia.threshold_date;
-        task.recur = dia.rec_obj;
-        dia.destroy ();
-    }
-
-    public void edit (bool wrestle_focus=false) {
-        if (editing) {
-            return;
-        }
-        bottom_bar_revealer.reveal_child = true;
-        edit_entry.text = task.to_simple_txt ();
-        edit_entry.edit ();
-
-        title_stack.visible_child_name = "edit_entry";
-
-        editing = true;
-        check_bin.set_offset_func (TXT.TextMeasurementWidget.get_entry_baseline_offset);
-        warning ("stub");
-        return;
-    }
-
-    public void update_schedule_labels (DateTime now) {
+    private void update_schedule_labels (DateTime now) {
         var threshold_date = task.threshold_date;
         var due_date = task.due_date;
         if (due_date == null && threshold_date == null) {
@@ -340,51 +285,50 @@ class GOFI.TXT.TaskRow: DragListRow {
         }
     }
 
-    private void on_delete_button_clicked () {
-        deletion_requested ();
-    }
-
-    private void on_edit_entry_string_changed () {
-        task.update_from_simple_txt (edit_entry.text.strip ());
-    }
-
-    private void on_edit_entry_finished () {
-        stop_editing ();
-    }
-
-    /**
-     * Using a cooldown to work around a Gtk issue:
-     * The ListBoxRow will steal focus again after activating and in addition
-     * to that for a moment neither the row nor the entry may have focus.
-     * We give everything a moment to settle and stop editing as soon as neither
-     * this row or the entry has focus.
-     */
-    private bool on_focus_out () {
-        if (focus_cooldown_active || !editing || timer_popover != null) {
-            return false;
+    private void update_status_label () {
+        var timer_value = task.timer_value;
+        if (task.done && timer_value >= 60) {
+            var timer_value_str = Utils.seconds_to_pretty_string (timer_value);
+            status_label.label = "<i>%s</i>".printf (timer_value_str);
+            status_label.show ();
+        } else if ((task.status & TaskStatus.TIMER_ACTIVE) != 0) {
+            status_label.label = "⏰";
+            status_label.show ();
+        } else {
+            status_label.hide ();
         }
-        focus_cooldown_active = true;
-        GLib.Timeout.add (
-            50, focus_cooldown_end, GLib.Priority.DEFAULT_IDLE
-        );
-        return false;
     }
 
-    private bool focus_cooldown_end () {
-        focus_cooldown_active = false;
-        if (!editing) {
-            return false;
+    private void update_timer_value_label () {
+        var duration = task.duration;
+        var timer_value = task.timer_value;
+        string timer_str = Utils.seconds_to_separated_timer_string (timer_value);
+        if (duration > 0) {
+            timer_value_button.label = _("%1$s / %2$s").printf (
+                timer_str,
+                Utils.seconds_to_separated_timer_string (duration)
+            );
+        } else {
+            timer_value_button.label = timer_str;
         }
-        if (!has_focus && get_focus_child () == null && timer_popover == null) {
-            stop_editing ();
-            return false;
-        }
-        return GLib.Source.REMOVE;
     }
 
-    private bool release_focus_claim () {
-        edit_entry.hold_focus = false;
-        return false;
+    public void edit (bool wrestle_focus=false) {
+        if (editing) {
+            return;
+        }
+
+        edit_entry.text = task.to_simple_txt ();
+        string_changed = false;
+
+        title_stack.visible_child_name = "edit_entry";
+        misc_stack.visible_child_name = "active";
+
+        edit_entry.grab_focus ();
+
+        editing = true;
+        warning ("stub");
+        return;
     }
 
     public void stop_editing () {
@@ -393,40 +337,20 @@ class GOFI.TXT.TaskRow: DragListRow {
         }
         var had_focus = edit_entry.has_focus;
         title_stack.visible_child_name = "label";
-        bottom_bar_revealer.reveal_child = false;
+        misc_stack.visible_child_name = "inactive";
         editing = false;
         if (had_focus) {
             grab_focus ();
         }
-        check_bin.set_offset_func (TXT.TextMeasurementWidget.get_label_baseline_offset);
-    }
-
-    private bool on_row_key_release (Gdk.EventKey event) {
-        switch (event.keyval) {
-            case Gdk.Key.Delete:
-                if (!editing || !edit_entry.has_focus) {
-                    deletion_requested ();
-                    return true;
-                }
-                break;
-            case Gdk.Key.Escape:
-                if (editing) {
-                    stop_editing ();
-                    return true;
-                }
-                break;
-            default:
-                return false;
-        }
-        return false;
     }
 
     private void connect_signals () {
+        timer_value_button.clicked.connect (on_timer_value_button_clicked);
+        sched_button.clicked.connect (on_sched_button_clicked);
+        delete_button.clicked.connect (on_delete_button_clicked);
         check_button.toggled.connect (on_check_toggled);
         markup_label.activate_link.connect (on_activate_link);
 
-        set_focus_child.connect (on_set_focus_child);
-        focus_out_event.connect (on_focus_out);
         key_release_event.connect (on_row_key_release);
 
         task.done_changed.connect (on_task_done_changed);
@@ -434,8 +358,9 @@ class GOFI.TXT.TaskRow: DragListRow {
         task.notify["timer-value"].connect (on_task_duration_changed);
         task.notify["duration"].connect (on_task_duration_changed);
 
-        edit_entry.string_changed.connect (on_edit_entry_string_changed);
-        edit_entry.editing_finished.connect (on_edit_entry_finished);
+        edit_entry.focus_out_event.connect (on_entry_focus_out);
+        edit_entry.activate.connect (update_task_from_entry_string);
+        edit_entry.changed.connect (on_entry_changed);
     }
 
     private void on_task_duration_changed () {
@@ -479,219 +404,292 @@ class GOFI.TXT.TaskRow: DragListRow {
         return false;
     }
 
-    private void on_set_focus_child (Gtk.Widget? widget) {
-        if (widget == null && !has_focus) {
-            on_focus_out ();
-        }
-    }
-
-    private void update_status_label () {
-        var timer_value = task.timer_value;
-        if (task.done && timer_value >= 60) {
-            var timer_value_str = Utils.seconds_to_pretty_string (timer_value);
-            status_label.label = "<i>%s</i>".printf (timer_value_str);
-            status_label.show ();
-        } else if ((task.status & TaskStatus.TIMER_ACTIVE) != 0) {
-            status_label.label = "⏰";
-            status_label.show ();
+    private void on_timer_value_button_clicked () {
+        if (timer_popover == null) {
+            timer_popover = new TaskTimerValuePopover (timer_value_button, task);
+            timer_popover.popup ();
+            timer_popover.hide.connect (on_popover_hidden);
         } else {
-            status_label.hide ();
+            timer_popover.popdown ();
         }
     }
 
-    public Gtk.Widget? get_creation_time_widget () {
-        GOFI.Date? completion_date = task.completion_date;
-        GOFI.Date? creation_date = task.creation_date;
-        if (creation_date == null) {
-            return null;
-        }
-        return new ExplanationWidget (
-            get_creation_time_info_str (creation_date, completion_date)
-        );
+    private void on_popover_hidden () {
+        timer_value_button.active = false;
+
+        GLib.Idle.add (on_popover_animation_finished);
     }
 
-    public string get_creation_time_info_str (GOFI.Date creation_date, GOFI.Date? completion_date) {
-        /// See https://valadoc.org/glib-2.0/GLib.DateTime.format.html for
-        // formatting of DateTime
-        string date_format = _("%Y-%m-%d");
+    private bool on_popover_animation_finished () {
+        timer_popover.destroy ();
+        timer_popover = null;
 
-        if (task.done && completion_date != null) {
-            return _("Task completed at %1$s, created at %2$s").printf (
-                completion_date.dt.format (date_format),
-                creation_date.dt.format (date_format)
-            );
-        } else {
-            return _("Task created at %s").printf (
-                    creation_date.dt.format (date_format)
-            );
+        return GLib.Source.REMOVE;
+    }
+
+    private void on_sched_button_clicked () {
+        var dia = new SimpleRecurrenceDialog (this.get_toplevel () as Gtk.Window);
+        dia.recur_mode = task.recur_mode;
+        dia.rec_obj = task.recur;
+
+        dia.threshold_date = task.threshold_date;
+        dia.due_date = task.due_date;
+        dia.show_all ();
+
+        dia.save_clicked.connect (on_schedule_dialog_save_clicked);
+    }
+
+    private void on_delete_button_clicked () {
+        deletion_requested ();
+    }
+
+    private void on_entry_changed () {
+        string_changed = true;
+    }
+
+    private bool on_entry_focus_out () {
+        update_task_from_entry_string ();
+        return false;
+    }
+
+    private void update_task_from_entry_string () {
+        if (string_changed) {
+            task.update_from_simple_txt (edit_entry.text.strip ());
         }
     }
 
-    class TaskEditEntry : Gtk.Entry {
-        public signal void editing_finished ();
-        public signal void string_changed ();
-        private uint8 focus_wrestle_counter;
+    private void on_schedule_dialog_save_clicked (SimpleRecurrenceDialog dia) {
+        task.recur_mode = dia.recur_mode;
+        task.due_date = dia.due_date;
+        task.threshold_date= dia.threshold_date;
+        task.recur = dia.rec_obj;
+        dia.destroy ();
+    }
 
-        public bool hold_focus {
-            get {
-                return focus_wrestle_counter != 0;
-            }
-            set {
-                if (value) {
-                    // 1 seems to be sufficient right now
-                    focus_wrestle_counter = 1;
-                } else {
-                    focus_wrestle_counter = 0;
+    private bool on_row_key_release (Gdk.EventKey event) {
+        switch (event.keyval) {
+            case Gdk.Key.Delete:
+                if (!editing || !edit_entry.has_focus) {
+                    deletion_requested ();
+                    return true;
                 }
-            }
-        }
-
-        public TaskEditEntry (string description) {
-            can_focus = true;
-            text = description;
-            focus_wrestle_counter = 0;
-            focus_out_event.connect (() => {
-                if (focus_wrestle_counter == 0) {
-                    return false;
-                }
-                focus_wrestle_counter--;
-                grab_focus ();
+                break;
+            // case Gdk.Key.Escape:
+            //     if (editing) {
+            //         stop_editing ();
+            //         return true;
+            //     }
+            //     break;
+            default:
                 return false;
-            });
         }
+        return false;
+    }
 
-        private void abort_editing () {
-            editing_finished ();
+    public override void realize () {
+        Gtk.Allocation allocation;
+        Gdk.WindowAttr attributes = Gdk.WindowAttr ();
+        Gdk.WindowAttributesType attributes_mask;
+        Gdk.Window window;
+
+        this.get_allocation (out allocation);
+        this.set_realized (true);
+
+        attributes.x = allocation.x;
+        attributes.y = allocation.y;
+        attributes.width = allocation.width;
+        attributes.height = allocation.height;
+        attributes.window_type = Gdk.WindowType.CHILD;
+
+        attributes.event_mask = (Gdk.EventMask.ENTER_NOTIFY_MASK |
+                                 Gdk.EventMask.LEAVE_NOTIFY_MASK |
+                                 Gdk.EventMask.POINTER_MOTION_MASK |
+                                 Gdk.EventMask.EXPOSURE_MASK |
+                                 Gdk.EventMask.BUTTON_PRESS_MASK |
+                                 Gdk.EventMask.BUTTON_RELEASE_MASK
+                                 //Gdk.EventMask.KEY_PRESS_MASK |
+                                 //Gdk.EventMask.KEY_RELEASE_MASK
+                                 );
+        attributes.wclass = Gdk.WindowWindowClass.INPUT_OUTPUT;
+
+        attributes_mask = Gdk.WindowAttributesType.X |
+                          Gdk.WindowAttributesType.Y;
+
+        window = new Gdk.Window (
+            this.get_parent_window (), attributes, attributes_mask
+        );
+        window.set_user_data (this);
+        this.set_window (window);
+    }
+
+    public override void add (Gtk.Widget widget) {
+        warning ("add called on TaskRowLayout!");
+    }
+
+    private void _set_child_parent (Gtk.Widget? widget) {
+        if (widget == null) {
+            return;
         }
+        widget.set_parent (this);
+        widget.set_child_visible (true);
+    }
 
-        private void stop_editing () {
-            string_changed ();
-            abort_editing ();
-        }
+    public override void remove (Gtk.Widget widget) {
+        warning ("remove called on TaskRowLayout!");
+    }
 
-        public void edit () {
-            show ();
-            grab_focus ();
-            activate.connect (stop_editing);
+    public override void forall_internal (bool include_internals, Gtk.Callback callback) {
+        if (include_internals) {
+            callback (title_stack);
+            callback (misc_stack);
+            callback (check_button);
         }
     }
 
-    class TaskMarkupLabel : Gtk.Label {
-        private TxtTask task;
+    public override Gtk.SizeRequestMode get_request_mode () {
+        return Gtk.SizeRequestMode.HEIGHT_FOR_WIDTH;
+    }
 
-        private string markup_string;
+    public override void get_preferred_width (out int minimum_width, out int natural_width) {
+        int child_min_width, child_nat_width, check_min_width, check_nat_width;
 
-        public TaskMarkupLabel (TxtTask task) {
-            this.task = task;
+        check_button.get_preferred_width (out check_min_width, out check_nat_width);
+        title_stack.get_preferred_width (out child_min_width, out child_nat_width);
 
-            update ();
+        minimum_width = check_min_width + child_min_width + column_spacing;
+        natural_width = check_nat_width + child_nat_width + column_spacing;
 
-            hexpand = true;
-            wrap = true;
-            wrap_mode = Pango.WrapMode.WORD_CHAR;
-            this.xalign = 0f;
+        misc_stack.get_preferred_width (out child_min_width, out child_nat_width);
 
-            connect_signals ();
-            show_all ();
+        minimum_width = int.max (check_min_width + child_min_width + column_spacing, minimum_width);
+        natural_width = int.max (check_nat_width + child_nat_width + column_spacing, natural_width);
+    }
+
+    public override void get_preferred_height (out int minimum_height, out int natural_height) {
+        int minimum_width;
+        get_preferred_width (out minimum_width, null);
+        get_preferred_height_for_width (minimum_width, out minimum_height, out natural_height);
+    }
+
+    private void get_top_row_dimensions (Gtk.Allocation allocation, out int height, out Gtk.Allocation check_allocation, out Gtk.Allocation title_allocation) {
+        int title_min_width, title_nat_width, check_min_width, check_nat_width, misc_min_width, misc_nat_width;
+        check_allocation = {};
+        title_allocation = {};
+
+        check_button.get_preferred_width (out check_min_width, out check_nat_width);
+        title_stack.get_preferred_width (out title_min_width, out title_nat_width);
+        misc_stack.get_preferred_width (out misc_min_width, out misc_nat_width);
+
+        int check_width = allocation.width - int.max (title_nat_width, misc_nat_width) - column_spacing;
+        check_allocation.x = allocation.x;
+        if (check_width >= check_nat_width) {
+            check_allocation.width = check_nat_width;
+        } else if (check_width >= check_min_width) {
+            check_allocation.width = check_width;
+        } else {
+            check_allocation.width = check_min_width;
         }
 
-        private void gen_markup () {
-            markup_string = make_links (task.get_descr_parts ());
+        title_allocation.x = allocation.x + check_allocation.width + column_spacing;
+        title_allocation.width = allocation.width - check_allocation.width - column_spacing;
 
-            var done = task.done;
-            var duration = task.duration;
+        int title_min_height, title_nat_height;
+        title_stack.get_preferred_height_for_width (int.MAX/2, out title_min_height, out title_nat_height);
+        title_stack.get_preferred_height_for_width (title_allocation.width, out title_allocation.height, out title_nat_height);
+        check_button.get_preferred_height_for_width (check_allocation.width, out check_allocation.height, out title_nat_height);
 
-            if (task.priority != TxtTask.NO_PRIO) {
-                var prefix = _("priority");
-                var priority = task.priority;
-                char prio_char = priority + 65;
-                markup_string = @"<b><a href=\"$prefix:$prio_char\">($prio_char)</a></b> $markup_string";
-            }
-            if (duration > 0) {
-                var timer_value = task.timer_value;
-                string timer_str = _("%1$s / %2$s").printf (
-                    Utils.seconds_to_separated_timer_string (timer_value),
-                    Utils.seconds_to_separated_timer_string (duration)
-                );
-                markup_string = "%s <i>(%s)</i>".printf (
-                    markup_string, timer_str
-                );
-            }
-            if (done) {
-                markup_string = "<s>" + markup_string + "</s>";
-            }
+        int title_min_center = title_min_height/2;
+        int check_center = check_allocation.height/2;
+
+        int centerline = int.max (check_center, title_min_center);
+        check_allocation.y = centerline - check_center;
+        title_allocation.y = centerline - title_min_center;
+
+        height = int.max (
+            check_allocation.y + check_allocation.height,
+            title_allocation.y + title_allocation.height
+        );
+
+        check_allocation.y += allocation.y;
+        title_allocation.y += allocation.y;
+    }
+
+    public override void size_allocate (Gtk.Allocation allocation) {
+        int top_row_height;
+        Gtk.Allocation check_allocation, title_allocation;
+        get_top_row_dimensions (allocation, out top_row_height, out check_allocation, out title_allocation);
+
+        check_button.size_allocate (check_allocation);
+        title_stack.size_allocate (title_allocation);
+        misc_stack.size_allocate (Gtk.Allocation () {
+            x = title_allocation.x,
+            y = allocation.y + top_row_height,
+            width = title_allocation.width,
+            height = allocation.height - top_row_height
+        });
+
+        base.size_allocate (allocation);
+    }
+
+    public override void get_preferred_height_for_width (int width, out int minimum_height, out int natural_height) {
+        Gtk.Allocation allocation = {};
+        Gtk.Allocation check_allocation, title_allocation;
+        int top_row_height;
+        int misc_min_height, misc_nat_height;
+
+        allocation.width = width;
+
+        get_top_row_dimensions (allocation, out top_row_height, out check_allocation, out title_allocation);
+
+        misc_stack.get_preferred_height_for_width (title_allocation.width, out misc_min_height, out misc_nat_height);
+        minimum_height = misc_min_height + top_row_height;
+        natural_height = misc_nat_height + top_row_height;
+    }
+}
+
+class GOFI.TXT.TaskRow: DragListRow {
+
+    private TaskRowLayout layout;
+
+    public bool is_editing {
+        get {
+            return layout.is_editing;
         }
+    }
 
-        /**
-         * Used to find projects and contexts and replace those parts with a
-         * link.
-         * @param description the string to took for contexts or projects
-         */
-        private string make_links (TxtPart[] description) {
-            var length = description.length;
-            var markup_parts = new string[length];
-            string? delimiter = null, prefix = null, val = null;
-
-            for (uint i = 0; i < length; i++) {
-                unowned TxtPart part = description[i];
-                val = GLib.Markup.escape_text (part.content);
-
-                switch (part.part_type) {
-                    case TxtPartType.CONTEXT:
-                        prefix = _("context");
-                        delimiter = "@";
-                        break;
-                    case TxtPartType.PROJECT:
-                        prefix = _("project");
-                        delimiter = "+";
-                        break;
-                    case TxtPartType.URI:
-                        string uri, display_uri;
-                        if (part.tag_name == null || part.tag_name == "") {
-                            uri = part.content;
-                            display_uri = val;
-                        } else {
-                            uri = part.tag_name + ":" + part.content;
-                            display_uri = part.tag_name + ":" + val;
-                        }
-                        markup_parts[i] =
-                            @"<a href=\"$uri\" title=\"$display_uri\">$display_uri</a>";
-                        continue;
-                    case TxtPartType.TAG:
-                        markup_parts[i] = part.tag_name + ":" + val;
-                        continue;
-                    default:
-                        markup_parts[i] = val;
-                        continue;
-                }
-                markup_parts[i] = @" <a href=\"$FILTER_PREFIX$prefix:$val\" title=\"$val\">" +
-                                  @"$delimiter$val</a>";
-            }
-
-            return string.joinv (" ", markup_parts);
+    public bool is_active {
+        set {
+            layout.is_active = value;
         }
+    }
 
-        private void update () {
-            gen_markup ();
-            set_markup (markup_string);
+    public TxtTask task {
+        get {
+            return layout.task;
         }
+    }
 
-        private void connect_signals () {
-            task.notify.connect (on_task_notify);
-        }
+    public signal void task_selected ();
+    public signal void timer_started (bool start);
+    public signal void link_clicked (string uri);
+    public signal void deletion_requested ();
 
-        private void on_task_notify (ParamSpec pspec) {
-            switch (pspec.get_name ()) {
-                case "description":
-                case "priority":
-                case "timer-value":
-                case "duration":
-                    update ();
-                    break;
-                default:
-                    break;
-            }
-        }
+    public TaskRow (TxtTask task) {
+        layout = new TaskRowLayout (task);
+        layout.task_selected.connect (() => task_selected ());
+        layout.timer_started.connect ((start) => timer_started (start));
+        layout.link_clicked.connect ((uri) => link_clicked (uri));
+        layout.deletion_requested.connect (() => deletion_requested ());
+
+        this.add (layout);
+    }
+
+    public void edit (bool bla) {
+        layout.edit (bla);
+    }
+
+    public void stop_editing () {
+        layout.stop_editing ();
     }
 }
 

@@ -70,8 +70,6 @@ class GOFI.TXT.TxtListInstance : Object {
     }
 
    private void initialize_todo_list_widgets () {
-        var measurements_widget = new TextMeasurementWidget ();
-
         ready_list = new TaskListWidget (this.task_manager.todo_store);
         waiting_list = new TaskListWidget (this.task_manager.waiting_store);
 
@@ -104,7 +102,6 @@ class GOFI.TXT.TxtListInstance : Object {
         todo_list.add (add_new_txt);
         todo_list.add (ready_list);
         todo_list.add (waiting_list_revealer);
-        todo_list.add (measurements_widget);
 
         todo_scroll = new Gtk.ScrolledWindow (null, null);
         todo_scroll.add (todo_list);
