@@ -144,7 +144,7 @@ class GOFI.TimerView : Gtk.Grid {
     }
 
     public void on_timer_started () {
-        done_btn.visible = !timer.break_active;
+        done_btn.visible = !timer.break_active && timer.active_task != null;
 
         run_btn.label = _("Pau_se");
         var sc = kbsettings.get_shortcut (KeyBindingSettings.SCK_TOGGLE_TIMER);
@@ -153,7 +153,7 @@ class GOFI.TimerView : Gtk.Grid {
     }
 
     public void on_timer_stopped () {
-        done_btn.visible = !timer.break_active;
+        done_btn.visible = !timer.break_active && timer.active_task != null;
 
         run_btn.label = _("_Start");
         var sc = kbsettings.get_shortcut (KeyBindingSettings.SCK_TOGGLE_TIMER);
@@ -343,6 +343,8 @@ class GOFI.TimerView : Gtk.Grid {
      * can work.
      */
     public void set_focus () {
-        run_btn.has_focus = true;
+        if (run_btn.visible) {
+            run_btn.has_focus = true;
+        }
     }
 }
