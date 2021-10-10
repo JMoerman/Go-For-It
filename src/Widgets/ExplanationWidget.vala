@@ -23,8 +23,12 @@ public class GOFI.ExplanationWidget : Gtk.Button {
         image_widget.show ();
         this.add (image_widget);
 
+        this.clicked.connect (on_clicked);
+    }
+
+    private void create_popover () {
         explanation_popover = new Gtk.Popover (this);
-        popover_label = new Gtk.Label (explanation);
+        popover_label = new Gtk.Label (this.tooltip_text);
         popover_label.wrap = true;
         popover_label.wrap_mode = Pango.WrapMode.WORD_CHAR;
         popover_label.margin = 10;
@@ -32,12 +36,13 @@ public class GOFI.ExplanationWidget : Gtk.Button {
 
         popover_contents = new ConstrWidthBin (popover_label, 200);
         explanation_popover.add (popover_contents);
-
-        this.clicked.connect (on_clicked);
     }
 
     private void on_clicked () {
         var window = this.get_toplevel () as Gtk.Window;
+        if (explanation_popover == null) {
+            create_popover ();
+        }
         int max_width = 200;
         if (window != null) {
             max_width = window.get_child ().get_allocated_width ();
