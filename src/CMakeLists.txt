@@ -37,6 +37,7 @@ vala_precompile (VALA_C ${LIBNAME}
     TaskList.vala
     SequentialList.vala
     PluginInterface.vala
+    DragSource.vala
     Services/SettingsManager.vala
     Services/PluginManager.vala
     Services/ListManager.vala

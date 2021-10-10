@@ -769,7 +769,7 @@ public class GOFI.DragListRow : Gtk.ListBoxRow {
         this.drag_begin.connect (handle_drag_begin);
         this.drag_end.connect (handle_drag_end);
         this.drag_data_get.connect (handle_drag_data_get);
-        Gtk.drag_source_set (
+        GOFI.drag_source_set (
             this, Gdk.ModifierType.BUTTON1_MASK, DLB_ENTRIES, Gdk.DragAction.MOVE
         );
 
@@ -802,7 +802,7 @@ public class GOFI.DragListRow : Gtk.ListBoxRow {
             image = new Gtk.Image.from_icon_name ("drag-handle-symbolic", Gtk.IconSize.MENU);
             image.tooltip_text = _("Click and drag to reorder rows");
             handle.add (image);
-            Gtk.drag_source_set (
+            GOFI.drag_source_set (
                 handle, Gdk.ModifierType.BUTTON1_MASK, DLB_ENTRIES, Gdk.DragAction.MOVE
             );
             handle.drag_begin.connect (handle_drag_begin);
@@ -874,7 +874,8 @@ public class GOFI.DragListRow : Gtk.ListBoxRow {
         }
 
         source.translate_coordinates (this, 0, 0, out x, out y);
-        surface.set_device_offset (-x, -y);
+        // surface.set_device_offset (-x, -y);
+        surface.set_device_offset (-drag_offset_x - x, -drag_offset_y - y);
         Gtk.drag_set_icon_surface (context, surface);
     }
 
