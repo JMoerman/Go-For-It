@@ -35,7 +35,7 @@ class GOFI.TXT.TaskRowLayout : Gtk.Container {
 
     private Gtk.Image recur_indicator;
 
-    private Gtk.ToggleButton timer_button;
+    private Gtk.Button timer_button;
     private Gtk.Image timer_image;
 
     private Gtk.Revealer due_revealer;
@@ -140,7 +140,7 @@ class GOFI.TXT.TaskRowLayout : Gtk.Container {
         title_stack = new Gtk.Stack ();
         title_stack.homogeneous = false;
         title_stack.interpolate_size = true;
-        title_stack.transition_type = Gtk.StackTransitionType.SLIDE_DOWN;
+        title_stack.transition_type = Gtk.StackTransitionType.SLIDE_UP;
 
         title_stack.add_named (label_box, "label");
         title_stack.add_named (edit_grid, "edit_entry");
@@ -187,7 +187,7 @@ class GOFI.TXT.TaskRowLayout : Gtk.Container {
         bottom_bar.row_spacing = 6;
 
         if (!task.done) {
-            timer_button = new Gtk.ToggleButton ();
+            timer_button = new Gtk.Button ();
             timer_image = new Gtk.Image.from_icon_name (
                 "media-playback-start-symbolic", Gtk.IconSize.BUTTON
             );
@@ -294,7 +294,7 @@ class GOFI.TXT.TaskRowLayout : Gtk.Container {
     }
 
     private void update_status_label () {
-        var timer_value = task.timer_value;
+        var timer_value = task.timer_seconds;
         if (task.done && timer_value >= 60) {
             var timer_value_str = Utils.seconds_to_pretty_string (timer_value);
             status_label.label = "<i>%s</i>".printf (timer_value_str);
@@ -309,7 +309,7 @@ class GOFI.TXT.TaskRowLayout : Gtk.Container {
 
     private void update_timer_value_label () {
         var duration = task.duration;
-        var timer_value = task.timer_value;
+        var timer_value = task.timer_seconds;
         string timer_str = Utils.seconds_to_separated_timer_string (timer_value);
         if (duration > 0) {
             timer_value_button.label = _("%1$s / %2$s").printf (
@@ -354,11 +354,10 @@ class GOFI.TXT.TaskRowLayout : Gtk.Container {
         delete_button.clicked.connect (on_delete_button_clicked);
         check_button.toggled.connect (on_check_toggled);
         markup_label.activate_link.connect (on_activate_link);
+        close_edit_button.clicked.connect (stop_editing);
 
         key_release_event.connect (on_row_key_release);
-        edit_entry.key_release_event.connect (on_entry_key_release);
 
-        task.done_changed.connect (on_task_done_changed);
         task.notify["status"].connect (on_task_status_changed);
         task.notify["timer-value"].connect (on_task_duration_changed);
         task.notify["duration"].connect (on_task_duration_changed);
@@ -366,8 +365,7 @@ class GOFI.TXT.TaskRowLayout : Gtk.Container {
         edit_entry.focus_out_event.connect (on_entry_focus_out);
         edit_entry.activate.connect (update_task_from_entry_string);
         edit_entry.changed.connect (on_entry_changed);
-
-        close_edit_button.clicked.connect (stop_editing);
+        edit_entry.key_release_event.connect (on_entry_key_release);
     }
 
     private void on_task_duration_changed () {
@@ -376,12 +374,15 @@ class GOFI.TXT.TaskRowLayout : Gtk.Container {
     }
 
     private void on_check_toggled () {
-        task.done = !task.done;
+        GLib.Idle.add (toggle_task_done);
     }
 
-    private void on_task_done_changed () {
-        destroy ();
+    private bool toggle_task_done () {
+        task.done = !task.done;
+
+        return GLib.Source.REMOVE;
     }
+
 
     private void on_task_status_changed () {
         var status = task.status;
@@ -698,6 +699,7 @@ class GOFI.TXT.TaskRow: DragListRow {
         layout.deletion_requested.connect (() => deletion_requested ());
 
         this.add (layout);
+        this.show_all ();
     }
 
     public void edit (bool bla) {
@@ -783,7 +785,9 @@ class GOFI.TXT.TaskTimerValuePopover : Gtk.Popover {
     private void update_timer_spin_values () {
         uint hours, minutes, seconds;
 
-        Utils.uint_to_time (task.timer_value, out hours, out minutes, out seconds);
+        uint logged_time = task.timer_seconds;
+
+        Utils.uint_to_time (logged_time, out hours, out minutes, out seconds);
         timer_h_spin.value = (double) hours;
         timer_m_spin.value = (double) minutes;
         timer_s_spin.value = (double) seconds;
