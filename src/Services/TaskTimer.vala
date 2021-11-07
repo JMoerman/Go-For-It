@@ -25,7 +25,6 @@ public class GOFI.TaskTimer {
 
     private int64 start_sys_time;
     private int64 prev_update_sys_time;
-    private int64 prev_task_update_sys;
     private int64 task_time;
 
     private int64 iteration_duration;
@@ -75,16 +74,17 @@ public class GOFI.TaskTimer {
             }
             _active_task = value;
             if (_active_task != null) {
-                task_time = _active_task.timer_value * US_C;
+                task_time = _active_task.timer_value;
                 var task_duration = _active_task.duration;
                 task_duration_exceeded_sent_already =
-                    task_duration == 0 || task_duration < _active_task.timer_value;
+                    task_duration == 0 ||
+                    task_duration < (_active_task.timer_value / US_C);
                 _active_task.notify["description"].connect (on_task_notify_description);
+                _active_task.status |= TaskStatus.TIMER_SELECTED;
             } else {
                 task_time = 0;
                 task_duration_exceeded_sent_already = false;
             }
-            _active_task.status |= TaskStatus.TIMER_SELECTED;
 
             // Emit the corresponding notifier signal
             update_active_task ();
@@ -176,7 +176,7 @@ public class GOFI.TaskTimer {
         if (!running && _active_task != null) {
             start_time = new DateTime.now_utc ();
             start_sys_time = GLib.get_monotonic_time ();
-            prev_task_update_sys = start_sys_time;
+            prev_update_sys_time = start_sys_time;
             almost_over_sent_already = false;
 
             /*
@@ -202,7 +202,7 @@ public class GOFI.TaskTimer {
         var runtime = last_measurement - start_sys_time;
         previous_runtime += runtime;
 
-        update_task_time (last_measurement, true);
+        _active_task.timer_value = (last_measurement - prev_update_sys_time);
 
         GLib.Source.remove (update_loop_id);
         running = false;
@@ -278,9 +278,14 @@ public class GOFI.TaskTimer {
             return;
         }
 
+        _active_task.timer_value = (now_monotonic - prev_update_sys_time);
         prev_update_sys_time = now_monotonic;
 
-        update_task_time (now_monotonic, false);
+        if (!task_duration_exceeded_sent_already &&
+            _active_task.timer_value >= _active_task.duration * US_C) {
+            task_duration_exceeded ();
+            task_duration_exceeded_sent_already = true;
+        }
 
         check_almost_over (total_runtime);
     }
@@ -293,24 +298,6 @@ public class GOFI.TaskTimer {
                 timer_almost_over (remaining_duration);
             }
             almost_over_sent_already = true;
-        }
-    }
-
-    private void update_task_time (int64 now_monotonic, bool force_update) {
-        var time_diff = now_monotonic - prev_task_update_sys;
-
-        if (force_update || time_diff >= UPDATE_INTERVAL) {
-            prev_task_update_sys = now_monotonic;
-            task_time += time_diff;
-
-            _active_task.timer_value = us_to_s (task_time);
-            task_time_updated (_active_task);
-
-            if (!task_duration_exceeded_sent_already &&
-                task_time >= _active_task.duration * US_C) {
-                task_duration_exceeded ();
-                task_duration_exceeded_sent_already = true;
-            }
         }
     }
 
