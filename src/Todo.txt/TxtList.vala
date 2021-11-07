@@ -27,29 +27,7 @@ class GOFI.TXT.TxtListInstance : Object {
 
     private Gtk.Box menu_box;
 
-    public TxtTask? selected_task {
-        public get;
-        protected set;
-    }
-
-    /**
-     * Returns the task the user is currently working on.
-     * This property will generally be set externally and should only be set
-     * from this class when the current value is no longer valid.
-     */
-    public TxtTask? active_task {
-        public get {
-            return _active_task;
-        }
-        public set {
-            _active_task = value;
-            task_manager.set_active_task (_active_task);
-            if (_active_task != null) {
-                ready_list.select_task (_active_task);
-            }
-        }
-    }
-    private TxtTask? _active_task;
+    public signal void timer_task_chosen (TxtTask task);
 
     public TxtListInstance (ListSettings list_settings) {
         task_manager = new TaskManager (list_settings);
@@ -57,19 +35,22 @@ class GOFI.TXT.TxtListInstance : Object {
         initialize_widgets ();
 
         /* Action and Signal Handling */
-        ready_list.selection_changed.connect (on_selection_changed);
-        task_manager.active_task_invalid.connect (on_active_task_invalid);
-
-        selected_task = ready_list.get_selected_task ();
-        active_task = selected_task;
+        ready_list.selection_changed.connect (on_timer_task_chosen);
     }
 
     ~TxtListInstance () {
         task_manager.prepare_free ();
-        task_manager.save_queued_lists ();
+        task_manager.save_scheduled_lists ();
     }
 
-   private void initialize_todo_list_widgets () {
+    public void on_timer_task_chosen (TxtTask? task) {
+        if (task == null) {
+            return;
+        }
+        timer_task_chosen (task);
+    }
+
+    private void initialize_todo_list_widgets () {
         ready_list = new TaskListWidget (this.task_manager.todo_store);
         waiting_list = new TaskListWidget (this.task_manager.waiting_store);
 
@@ -172,17 +153,17 @@ class GOFI.TXT.TxtListInstance : Object {
     }
 
     /**
-     * Returns the next task relative to active_task.
+     * Returns the next task relative to relative_to.
      */
-    public TxtTask? get_next () {
-        return task_manager.get_next ();
+    public TxtTask? get_next (TxtTask? relative_to) {
+        return task_manager.get_next (relative_to);
     }
 
     /**
-     * Returns the previous task relative to active_task.
+     * Returns the previous task relative to relative_to.
      */
-    public TxtTask? get_prev () {
-        return task_manager.get_prev ();
+    public TxtTask? get_prev (TxtTask? relative_to) {
+        return task_manager.get_prev (relative_to);
     }
 
     public void entry_focus () {
@@ -210,22 +191,6 @@ class GOFI.TXT.TxtListInstance : Object {
         // placeholder.label = PLACEHOLDER_TEXT_FINISHED;
     }
 
-    // private void on_selection_changed (TxtTask? task) {
-    //     selection_changed (task);
-    // }
-
-    // private void on_active_task_invalid () {
-    //     active_task_invalid ();
-    // }
-
-    private void on_selection_changed (TxtTask? task) {
-        selected_task = task;
-    }
-
-    private void on_active_task_invalid () {
-        active_task = selected_task;
-    }
-
     /**
      * Called when the user has finished working on this task.
      */
@@ -240,45 +205,6 @@ class GOFI.TXT.TxtList : GOFI.TaskList, Object {
     public ListSettings list_settings {
         public get;
         private set;
-    }
-
-    /**
-     * Returns the task that is currently selected in the widget returned by
-     * get_primary_page.
-     */
-    public TodoTask? selected_task {
-        public get {
-            if (unlikely(instance == null)) {
-                warning ("get_selected_task called on unloaded TxtList!");
-            }
-            return instance.selected_task;
-        }
-        protected set {
-            // if (unlikely(instance == null)) {
-            //     warning ("set_selected_task called on unloaded TxtList!");
-            // }
-            // instance.selected_task = (TxtTask) value;
-        }
-    }
-
-    /**
-     * Returns the task the user is currently working on.
-     * This property will generally be set externally and should only be set
-     * from this class when the current value is no longer valid.
-     */
-    public TodoTask? active_task {
-        public get {
-            if (unlikely(instance == null)) {
-                warning ("get_active_task called on unloaded TxtList!");
-            }
-            return instance.active_task;
-        }
-        public set {
-            if (unlikely(instance == null)) {
-                warning ("set_active_task called on unloaded TxtList!");
-            }
-            instance.active_task = (TxtTask) value;
-        }
     }
 
     public TodoListInfo list_info {
@@ -323,19 +249,19 @@ class GOFI.TXT.TxtList : GOFI.TaskList, Object {
     }
 
     /**
-     * Returns the next task relative to active_task.
+     * Returns the next task relative to relative_to.
      */
-    public TodoTask? get_next () {
+    public TodoTask? get_next (TodoTask? relative_to) {
         assert (instance != null);
-        return instance.get_next ();
+        return instance.get_next ((TxtTask) relative_to);
     }
 
     /**
-     * Returns the previous task relative to active_task.
+     * Returns the previous task relative to relative_to.
      */
-    public TodoTask? get_prev () {
+    public TodoTask? get_prev (TodoTask? relative_to) {
         assert (instance != null);
-        return instance.get_prev ();
+        return instance.get_prev ((TxtTask) relative_to);
     }
 
     /**
@@ -369,14 +295,6 @@ class GOFI.TXT.TxtList : GOFI.TaskList, Object {
         return instance.get_menu ();
     }
 
-    // public void clear_done_list () {
-    //     instance.clear_done_list ();
-    // }
-
-    // public void sort_tasks () {
-    //     instance.sort_tasks ();
-    // }
-
     /**
      * Returns the schedule of task and break times specific to this list.
      */
@@ -404,7 +322,11 @@ class GOFI.TXT.TxtList : GOFI.TaskList, Object {
      */
     public void load () {
         instance = new TxtListInstance (list_settings);
-        instance.notify.connect (on_instance_notify);
+        instance.timer_task_chosen.connect (on_task_chosen);
+    }
+
+    private void on_task_chosen (TxtTask task) {
+        task_selected (task);
     }
 
     /**
@@ -413,20 +335,7 @@ class GOFI.TXT.TxtList : GOFI.TaskList, Object {
      * Widgets and other objects should be freed to preserve resources.
      */
     public void unload () {
-        instance.notify.disconnect (on_instance_notify);
+        instance.timer_task_chosen.disconnect (on_task_chosen);
         instance = null;
-    }
-
-    private void on_instance_notify (ParamSpec pspec) {
-        switch (pspec.get_name ()) {
-            case "active-task":
-                notify_property ("active-task");
-                break;
-            case "selected-task":
-                notify_property ("selected-task");
-                break;
-            default:
-                break;
-        }
     }
 }

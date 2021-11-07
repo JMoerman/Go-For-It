@@ -90,6 +90,24 @@ class GOFI.TXT.TaskStore : Object, DragListModel {
         return tasks.get_item (position);
     }
 
+    public unowned TxtTask? get_task (uint position) {
+        return (TxtTask) get_item (position);
+    }
+
+    public unowned TxtTask? get_task_wrap (int position) {
+        if (tasks.length == 0) {
+            return null;
+        }
+        while (position < 0) {
+            position += (int) tasks.length;
+        }
+        while (position >= tasks.length) {
+            position -= (int) tasks.length;
+        }
+
+        return get_task (position);
+    }
+
     public uint get_task_position (TxtTask task) {
         return tasks.get_item_position (task);
     }

@@ -23,24 +23,7 @@ public interface GOFI.TaskList : Object {
      */
     public signal void timer_values_changed (TimerSchedule? sched, int reminder_t);
 
-    /**
-     * Returns the task that is currently selected in the widget returned by
-     * get_primary_page.
-     */
-    public abstract TodoTask? selected_task {
-        public get;
-        protected set;
-    }
-
-    /**
-     * Returns the task the user is currently working on.
-     * This property will generally be set externally and should only be set
-     * from this class when the current value is no longer valid.
-     */
-    public abstract TodoTask? active_task {
-        public get;
-        public set;
-    }
+    public signal void task_selected (TodoTask task);
 
     public abstract TodoListInfo list_info {
         public get;
@@ -54,14 +37,20 @@ public interface GOFI.TaskList : Object {
     }
 
     /**
-     * Returns the next task relative to active_task.
+     * Returns the next task relative to relative_to.
+     * If relative_to is null, the first task will be returned and if it is the
+     * last task the first task will be returned.
+     * @param relative_to child task of this list.
      */
-    public abstract TodoTask? get_next ();
+    public abstract TodoTask? get_next (TodoTask? relative_to);
 
     /**
-     * Returns the previous task relative to active_task.
+     * Returns the previous task relative to relative_to.
+     * If relative_to is null, the last task will be returned and if it is the
+     * first task the last task will be returned.
+     * @param relative_to child task of this list.
      */
-    public abstract TodoTask? get_prev ();
+    public abstract TodoTask? get_prev (TodoTask? relative_to);
 
     /**
      * Called when the user has finished working on this task.
