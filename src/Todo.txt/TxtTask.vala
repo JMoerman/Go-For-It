@@ -519,7 +519,49 @@ class GOFI.TXT.TxtTask : TodoTask {
         return str_builder.str;
     }
 
+    /**
+     * Compares this with another task. Two tasks are considered equal if and
+     * only if they are the same object.
+     */
     public int cmp (TxtTask other) {
+        if (other == this) {
+            return 0;
+        }
+        int cmp_tmp = prop_cmp (other);
+        if (cmp_tmp != 0) {
+            return cmp_tmp;
+        }
+
+        var timer_diff = this.timer_value - other.timer_value;
+        if (timer_diff != 0) {
+            if (timer_diff > 0) {
+                return 1;
+            } else {
+                return -1;
+            }
+        }
+
+        if (this.done != other.done) {
+            if (this.done) {
+                return -1;
+            }
+            return 1;
+        }
+
+        // Last option: sort by memory address
+        if (((void*) this) > ((void*) other)) {
+            return 1;
+        }
+        return -1;
+    }
+
+    /**
+     * Compares this with another task. Two tasks are considered equal if most
+     * properties match. Properties that aren't used to compare tasks are
+     * - done
+     * - timer_value
+     */
+    public int prop_cmp (TxtTask other) {
         if (other == this) {
             return 0;
         }
@@ -537,22 +579,34 @@ class GOFI.TXT.TxtTask : TodoTask {
 
             // Sort by description, case insensitive
             cmp_tmp = this.description.ascii_casecmp (other.description);
-            if (cmp_tmp != 0) {
-                return cmp_tmp;
-            }
+            if (cmp_tmp != 0) { return cmp_tmp; }
 
             // Sort by description, case sensitive
             cmp_tmp = GLib.strcmp (this.description, other.description);
-            if (cmp_tmp != 0) {
-                return cmp_tmp;
-            }
+            if (cmp_tmp != 0) { return cmp_tmp; }
 
-            // Last option: sort by memory address
-            if (((void*) this) > ((void*) other)) {
+            // Sort by threshold date
+            if (this.threshold_date != null) {
+                if (other.threshold_date != null) {
+                    cmp_tmp = this.threshold_date.compare (other.threshold_date);
+                }
+            } if (other.threshold_date != null) {
                 return 1;
             }
 
-            return -1;
+            cmp_tmp = this.recur_mode - other.recur_mode;
+            if (cmp_tmp != 0) { return cmp_tmp; }
+
+            if (this.recur != null) {
+                if (
+                    (cmp_tmp = this.recur.freq - other.recur.freq) != 0 ||
+                    (cmp_tmp = this.recur.interval - other.recur.interval) != 0
+                ) {
+                    return cmp_tmp;
+                }
+            }
+
+            return 0;
         }
         if (this.priority == NO_PRIO) {
             return 1;
