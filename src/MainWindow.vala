@@ -172,7 +172,7 @@ class GOFI.MainWindow : Gtk.ApplicationWindow {
             if (list_info.provider_name == provider &&
                 list_info.id == id
             ) {
-                task_page.switch_active_task_list ();
+                task_page.remove_active_task_list ();
             }
         }
     }
