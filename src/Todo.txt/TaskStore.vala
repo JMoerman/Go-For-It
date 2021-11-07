@@ -28,6 +28,7 @@ class GOFI.TXT.TaskStore : Object, DragListModel {
     /* Signals */
     // Emitted when the properties of a task (including position), excluding done, have changed
     public signal void task_data_changed ();
+    public signal void timer_value_changed ();
     public signal void task_threshold_date_changed (TxtTask task);
     public signal void task_done_changed (TxtTask task);
     public signal void task_became_invalid (TxtTask task);
@@ -112,8 +113,10 @@ class GOFI.TXT.TaskStore : Object, DragListModel {
             case "show-date":
                 task_threshold_date_changed ((TxtTask) task);
                 break;
-            case "duration":
             case "timer-value":
+                timer_value_changed ();
+                break;
+            case "duration":
             case "description":
             case "priority":
             case "threshold-date":
