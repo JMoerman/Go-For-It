@@ -117,13 +117,12 @@ class GOFI.TimerView : Gtk.Grid {
     public void update_task_duration (TodoTask task) {
         var duration = task.duration;
         if (duration > 0) {
-            var timer_value = task.timer_value;
             task_duration_lbl.label = "<i>%u / %s</i>".printf (
-                timer_value / 60,
+                task.timer_seconds / 60,
                 Utils.seconds_to_short_string (duration)
             );
             var style = task_duration_lbl.get_style_context ();
-            if (duration <= timer_value) {
+            if (duration * 1000000 <= task.timer_value) {
                 style.add_class ("task-duration-exceeded");
             } else {
                 style.remove_class ("task-duration-exceeded");
