@@ -49,7 +49,7 @@ class GOFI.TXT.TaskMarkupLabel : Gtk.Label {
             markup_string = @"<b><a href=\"$prefix:$prio_char\">($prio_char)</a></b> $markup_string";
         }
         if (duration > 0) {
-            var timer_value = task.timer_value;
+            var timer_value = task.timer_seconds;
             string timer_str = _("%1$s / %2$s").printf (
                 Utils.seconds_to_separated_timer_string (timer_value),
                 Utils.seconds_to_separated_timer_string (duration)
