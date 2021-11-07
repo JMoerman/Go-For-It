@@ -261,7 +261,7 @@ class GOFI.TXT.TxtTask : TodoTask {
                     case "timer":
                         uint new_timer_value = 0;
                         if (match_duration_value (t.content, out new_timer_value)) {
-                            timer_value = new_timer_value;
+                            timer_seconds = new_timer_value;
                             continue;
                         }
                         break;
@@ -506,9 +506,9 @@ class GOFI.TXT.TxtTask : TodoTask {
             str_builder.append (dt_to_string (threshold_date.dt));
         }
 
-        if (log_timer && timer_value != 0) {
+        if (log_timer && timer_seconds != 0) {
             str_builder.append (" timer:");
-            str_builder.append (timer_to_string (timer_value));
+            str_builder.append (timer_to_string (timer_seconds));
         }
 
         if (duration != 0) {
