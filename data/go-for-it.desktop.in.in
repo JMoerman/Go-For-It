@@ -2,7 +2,7 @@
 Name=@APP_NAME@
 GenericName=@APP_NAME@
 Comment=@RELEASE_NAME@
-Categories=GTK;Utility;
+Categories=GTK;Office;ProjectManagement;Utility;
 Exec=@EXEC_NAME@
 Icon=@ICON_NAME@
 Terminal=false
