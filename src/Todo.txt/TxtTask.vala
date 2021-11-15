@@ -349,13 +349,13 @@ class GOFI.TXT.TxtTask : TodoTask {
         append_priority (str_builder);
 
         if (creation_date != null) {
-            str_builder.append (dt_to_string (creation_date.dt));
-            str_builder.append_c (' ');
-
             if (completion_date != null) {
                 str_builder.append (dt_to_string (completion_date.dt));
                 str_builder.append_c (' ');
             }
+
+            str_builder.append (dt_to_string (creation_date.dt));
+            str_builder.append_c (' ');
         }
 
         str_builder.append (description);
