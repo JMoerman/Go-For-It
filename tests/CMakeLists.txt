@@ -4,7 +4,6 @@ set (TEST_EXEC_NAME ${APP_ID}-tests)
 include (ValaPrecompile)
 vala_precompile (VALA_C ${TEST_EXEC_NAME}
     TestCase.vala
-    assertionhelpers.vala
     DragListTest.vala
     Tests.vala
     todo.txt/TodoTaskTest.vala

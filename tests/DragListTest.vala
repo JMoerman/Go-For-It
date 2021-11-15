@@ -62,7 +62,7 @@ class DragListTest : TestCase {
         add_rows ();
 
         for (int i = 0; i < TEST_ROWS_LENGTH; i++) {
-            assert (list.get_row_at_index (i) == rows[i]);
+            assert_true (list.get_row_at_index (i) == rows[i]);
         }
     }
 
@@ -71,40 +71,40 @@ class DragListTest : TestCase {
         list.move_row (rows[0], TEST_ROWS_LENGTH / 2);
         for (int i = 0, j = 1; i < TEST_ROWS_LENGTH; i++, j++) {
             if (i == TEST_ROWS_LENGTH / 2) {
-                assert (list.get_row_at_index (i) == rows[0]);
+                assert_true (list.get_row_at_index (i) == rows[0]);
                 j--;
             } else {
-                assert (list.get_row_at_index (i) == rows[j]);
+                assert_true (list.get_row_at_index (i) == rows[j]);
             }
         }
 
         list.move_row (rows[0], 0);
         for (int i = 0; i < TEST_ROWS_LENGTH; i++) {
-            assert (list.get_row_at_index (i) == rows[i]);
+            assert_true (list.get_row_at_index (i) == rows[i]);
         }
 
         list.move_row (rows[TEST_ROWS_LENGTH - 1], TEST_ROWS_LENGTH / 2);
         for (int i = 0, j = 0; i < TEST_ROWS_LENGTH; i++, j++) {
             if (i == TEST_ROWS_LENGTH / 2) {
-                assert (list.get_row_at_index (i) == rows[TEST_ROWS_LENGTH - 1]);
+                assert_true (list.get_row_at_index (i) == rows[TEST_ROWS_LENGTH - 1]);
                 j--;
             } else {
-                assert (list.get_row_at_index (i) == rows[j]);
+                assert_true (list.get_row_at_index (i) == rows[j]);
             }
         }
 
         list.move_row (rows[TEST_ROWS_LENGTH - 1], TEST_ROWS_LENGTH - 1);
         for (int i = 0; i < TEST_ROWS_LENGTH; i++) {
-            assert (list.get_row_at_index (i) == rows[i]);
+            assert_true (list.get_row_at_index (i) == rows[i]);
         }
 
         list.move_row (rows[1], TEST_ROWS_LENGTH - 2);
-        assert (list.get_row_at_index (TEST_ROWS_LENGTH - 2) == rows[1]);
-        assert (list.get_row_at_index (TEST_ROWS_LENGTH - 1) == rows[TEST_ROWS_LENGTH - 1]);
-        assert (list.get_row_at_index (1) == rows[2]);
+        assert_true (list.get_row_at_index (TEST_ROWS_LENGTH - 2) == rows[1]);
+        assert_true (list.get_row_at_index (TEST_ROWS_LENGTH - 1) == rows[TEST_ROWS_LENGTH - 1]);
+        assert_true (list.get_row_at_index (1) == rows[2]);
         list.move_row (rows[1], 1);
         for (int i = 0; i < TEST_ROWS_LENGTH; i++) {
-            assert (list.get_row_at_index (i) == rows[i]);
+            assert_true (list.get_row_at_index (i) == rows[i]);
         }
     }
 
@@ -112,40 +112,40 @@ class DragListTest : TestCase {
         row_selected_emitted = 0;
 
         add_rows ();
-        assert (compare_uint (row_selected_emitted, 1));
+        assert_cmpuint (row_selected_emitted, CompareOperator.EQ, 1);
         row_selected_emitted = 0;
 
         var selected_row = list.get_selected_row ();
-        assert (selected_row != null);
-        assert (selected_row == signal_selected_row);
+        assert_true (selected_row != null);
+        assert_true (selected_row == signal_selected_row);
 
         for (int i = 0; i < TEST_ROWS_LENGTH - 1; i++) {
             list.remove_row (rows[i + 1]);
         }
-        assert (selected_row == list.get_selected_row ());
-        assert (compare_uint (row_selected_emitted, 0));
+        assert_true (selected_row == list.get_selected_row ());
+        assert_cmpuint (row_selected_emitted, CompareOperator.EQ, 0);
 
         list.remove_row (selected_row);
-        assert (compare_uint (row_selected_emitted, 1));
-        assert (signal_selected_row == null);
+        assert_cmpuint (row_selected_emitted, CompareOperator.EQ, 1);
+        assert_true (signal_selected_row == null);
     }
 
     private void selection_remove_first () {
         row_selected_emitted = 0;
 
         add_rows ();
-        assert (compare_uint (row_selected_emitted, 1));
+        assert_cmpuint (row_selected_emitted, CompareOperator.EQ, 1);
         row_selected_emitted = 0;
 
         var first = list.get_row_at_index (0);
-        assert (first == list.get_selected_row ());
+        assert_true (first == list.get_selected_row ());
         while (first != null) {
             DragListRow? next = list.get_row_at_index (1);
             list.remove_row (first);
-            assert (compare_uint (row_selected_emitted, 1));
+            assert_cmpuint (row_selected_emitted, CompareOperator.EQ, 1);
             row_selected_emitted = 0;
-            assert (signal_selected_row == next);
-            assert (list.get_selected_row () == next);
+            assert_true (signal_selected_row == next);
+            assert_true (list.get_selected_row () == next);
             first = next;
         }
     }
@@ -154,24 +154,24 @@ class DragListTest : TestCase {
         row_selected_emitted = 0;
 
         add_rows ();
-        assert (compare_uint (row_selected_emitted, 1));
+        assert_cmpuint (row_selected_emitted, CompareOperator.EQ, 1);
         row_selected_emitted = 0;
 
-        assert (list.get_row_at_index (0) == list.get_selected_row ());
+        assert_true (list.get_row_at_index (0) == list.get_selected_row ());
         var last = list.get_row_at_index (TEST_ROWS_LENGTH - 1);
-        assert (last != null);
+        assert_true (last != null);
         list.select_row (last);
-        assert (list.get_selected_row () == last);
-        assert (compare_uint (row_selected_emitted, 1));
+        assert_true (list.get_selected_row () == last);
+        assert_cmpuint (row_selected_emitted, CompareOperator.EQ, 1);
         row_selected_emitted = 0;
-        assert (signal_selected_row == last);
+        assert_true (signal_selected_row == last);
 
         for (int i = TEST_ROWS_LENGTH - 1; i >= 0; i--) {
             DragListRow? prev = list.get_row_at_index (i - 1);
             list.remove_row (last);
-            assert (compare_uint (row_selected_emitted, 1));
+            assert_cmpuint (row_selected_emitted, CompareOperator.EQ, 1);
             row_selected_emitted = 0;
-            assert (signal_selected_row == prev);
+            assert_true (signal_selected_row == prev);
             last = prev;
         }
     }
@@ -180,19 +180,19 @@ class DragListTest : TestCase {
         row_selected_emitted = 0;
 
         add_rows ();
-        assert (compare_uint (row_selected_emitted, 1));
+        assert_cmpuint (row_selected_emitted, CompareOperator.EQ, 1);
         row_selected_emitted = 0;
 
         var last = list.get_row_at_index (TEST_ROWS_LENGTH - 1);
         list.select_row (last);
-        assert (compare_uint (row_selected_emitted, 1));
-        assert (signal_selected_row == last);
+        assert_cmpuint (row_selected_emitted, CompareOperator.EQ, 1);
+        assert_true (signal_selected_row == last);
         row_selected_emitted = 0;
 
         for (int i = TEST_ROWS_LENGTH - 2; i >= 0; i--) {
             list.remove_row (list.get_row_at_index (i));
         }
-        assert (compare_uint (row_selected_emitted, 0));
+        assert_cmpuint (row_selected_emitted, CompareOperator.EQ, 0);
     }
 
     private void test_automatic_row_selection () {
@@ -208,7 +208,7 @@ class DragListTest : TestCase {
         list.bind_model (model, return_row);
 
         for (int i = 0; i < TEST_ROWS_LENGTH; i++) {
-            assert (list.get_row_at_index (i) == rows[i]);
+            assert_true (list.get_row_at_index (i) == rows[i]);
         }
     }
 
@@ -220,40 +220,40 @@ class DragListTest : TestCase {
         model.model_move_item (0, TEST_ROWS_LENGTH / 2);
         for (int i = 0, j = 1; i < TEST_ROWS_LENGTH; i++, j++) {
             if (i == TEST_ROWS_LENGTH / 2) {
-                assert (list.get_row_at_index (i) == rows[0]);
+                assert_true (list.get_row_at_index (i) == rows[0]);
                 j--;
             } else {
-                assert (list.get_row_at_index (i) == rows[j]);
+                assert_true (list.get_row_at_index (i) == rows[j]);
             }
         }
 
         model.model_move_item (TEST_ROWS_LENGTH / 2, 0);
         for (int i = 0; i < TEST_ROWS_LENGTH; i++) {
-            assert (list.get_row_at_index (i) == rows[i]);
+            assert_true (list.get_row_at_index (i) == rows[i]);
         }
 
         model.model_move_item (TEST_ROWS_LENGTH - 1, TEST_ROWS_LENGTH / 2);
         for (int i = 0, j = 0; i < TEST_ROWS_LENGTH; i++, j++) {
             if (i == TEST_ROWS_LENGTH / 2) {
-                assert (list.get_row_at_index (i) == rows[TEST_ROWS_LENGTH - 1]);
+                assert_true (list.get_row_at_index (i) == rows[TEST_ROWS_LENGTH - 1]);
                 j--;
             } else {
-                assert (list.get_row_at_index (i) == rows[j]);
+                assert_true (list.get_row_at_index (i) == rows[j]);
             }
         }
 
         model.model_move_item (TEST_ROWS_LENGTH / 2, TEST_ROWS_LENGTH - 1);
         for (int i = 0; i < TEST_ROWS_LENGTH; i++) {
-            assert (list.get_row_at_index (i) == rows[i]);
+            assert_true (list.get_row_at_index (i) == rows[i]);
         }
 
         model.model_move_item (1, TEST_ROWS_LENGTH - 2);
-        assert (list.get_row_at_index (TEST_ROWS_LENGTH - 2) == rows[1]);
-        assert (list.get_row_at_index (TEST_ROWS_LENGTH - 1) == rows[TEST_ROWS_LENGTH - 1]);
-        assert (list.get_row_at_index (1) == rows[2]);
+        assert_true (list.get_row_at_index (TEST_ROWS_LENGTH - 2) == rows[1]);
+        assert_true (list.get_row_at_index (TEST_ROWS_LENGTH - 1) == rows[TEST_ROWS_LENGTH - 1]);
+        assert_true (list.get_row_at_index (1) == rows[2]);
         model.model_move_item (TEST_ROWS_LENGTH - 2, 1);
         for (int i = 0; i < TEST_ROWS_LENGTH; i++) {
-            assert (list.get_row_at_index (i) == rows[i]);
+            assert_true (list.get_row_at_index (i) == rows[i]);
         }
     }
 
@@ -264,70 +264,70 @@ class DragListTest : TestCase {
 
         model.move_item_called = 0;
         list.move_row (rows[0], TEST_ROWS_LENGTH / 2);
-        assert (model.move_item_called == 1);
-        assert (model.move_item_old == 0);
-        assert (model.move_item_new == TEST_ROWS_LENGTH / 2);
+        assert_true (model.move_item_called == 1);
+        assert_true (model.move_item_old == 0);
+        assert_true (model.move_item_new == TEST_ROWS_LENGTH / 2);
 
         model.move_item_called = 0;
         list.move_row (rows[0], 0);
-        assert (model.move_item_called == 1);
-        assert (model.move_item_old == TEST_ROWS_LENGTH / 2);
-        assert (model.move_item_new == 0);
+        assert_true (model.move_item_called == 1);
+        assert_true (model.move_item_old == TEST_ROWS_LENGTH / 2);
+        assert_true (model.move_item_new == 0);
 
         model.move_item_called = 0;
         list.move_row (rows[TEST_ROWS_LENGTH - 1], TEST_ROWS_LENGTH / 2);
-        assert (model.move_item_called == 1);
-        assert (model.move_item_old == TEST_ROWS_LENGTH - 1);
-        assert (model.move_item_new == TEST_ROWS_LENGTH / 2);
+        assert_true (model.move_item_called == 1);
+        assert_true (model.move_item_old == TEST_ROWS_LENGTH - 1);
+        assert_true (model.move_item_new == TEST_ROWS_LENGTH / 2);
 
         model.move_item_called = 0;
         list.move_row (rows[TEST_ROWS_LENGTH - 1], TEST_ROWS_LENGTH - 1);
-        assert (model.move_item_called == 1);
-        assert (model.move_item_old == TEST_ROWS_LENGTH / 2);
-        assert (model.move_item_new == TEST_ROWS_LENGTH - 1);
+        assert_true (model.move_item_called == 1);
+        assert_true (model.move_item_old == TEST_ROWS_LENGTH / 2);
+        assert_true (model.move_item_new == TEST_ROWS_LENGTH - 1);
 
         model.move_item_called = 0;
         list.move_row (rows[1], TEST_ROWS_LENGTH - 2);
-        assert (model.move_item_called == 1);
-        assert (model.move_item_old == 1);
-        assert (model.move_item_new == TEST_ROWS_LENGTH - 2);
+        assert_true (model.move_item_called == 1);
+        assert_true (model.move_item_old == 1);
+        assert_true (model.move_item_new == TEST_ROWS_LENGTH - 2);
     }
 
     private void model_selection_remove_next (TestModel model) {
         row_selected_emitted = 0;
 
         model.add_rows (rows, TEST_ROWS_LENGTH);
-        assert (compare_uint (row_selected_emitted, 1));
+        assert_cmpuint (row_selected_emitted, CompareOperator.EQ, 1);
         row_selected_emitted = 0;
 
         var selected_row = list.get_selected_row ();
-        assert (selected_row != null);
-        assert (selected_row == signal_selected_row);
+        assert_true (selected_row != null);
+        assert_true (selected_row == signal_selected_row);
 
         for (int i = 0; i < TEST_ROWS_LENGTH - 1; i++) {
             model.remove_rows (1, 1);
         }
-        assert (selected_row == list.get_selected_row ());
-        assert (compare_uint (row_selected_emitted, 0));
+        assert_true (selected_row == list.get_selected_row ());
+        assert_cmpuint (row_selected_emitted, CompareOperator.EQ, 0);
 
         model.remove_rows (0, 1);
-        assert (compare_uint (row_selected_emitted, 1));
-        assert (signal_selected_row == null);
+        assert_cmpuint (row_selected_emitted, CompareOperator.EQ, 1);
+        assert_true (signal_selected_row == null);
 
         // multiple
         row_selected_emitted = 0;
 
         model.add_rows (rows, TEST_ROWS_LENGTH);
-        assert (compare_uint (row_selected_emitted, 1));
+        assert_cmpuint (row_selected_emitted, CompareOperator.EQ, 1);
         row_selected_emitted = 0;
 
         selected_row = list.get_selected_row ();
-        assert (selected_row != null);
-        assert (selected_row == signal_selected_row);
+        assert_true (selected_row != null);
+        assert_true (selected_row == signal_selected_row);
 
         model.remove_rows (1, TEST_ROWS_LENGTH - 1);
-        assert (selected_row == list.get_selected_row ());
-        assert (compare_uint (row_selected_emitted, 0));
+        assert_true (selected_row == list.get_selected_row ());
+        assert_cmpuint (row_selected_emitted, CompareOperator.EQ, 0);
         model.remove_rows (0, 1);
     }
 
@@ -335,18 +335,18 @@ class DragListTest : TestCase {
         row_selected_emitted = 0;
 
         model.add_rows (rows, TEST_ROWS_LENGTH);
-        assert (compare_uint (row_selected_emitted, 1));
+        assert_cmpuint (row_selected_emitted, CompareOperator.EQ, 1);
         row_selected_emitted = 0;
 
         var first = list.get_row_at_index (0);
-        assert (first == list.get_selected_row ());
+        assert_true (first == list.get_selected_row ());
         while (first != null) {
             DragListRow? next = list.get_row_at_index (1);
             model.remove_rows (0, 1);
-            assert (compare_uint (row_selected_emitted, 1));
+            assert_cmpuint (row_selected_emitted, CompareOperator.EQ, 1);
             row_selected_emitted = 0;
-            assert (signal_selected_row == next);
-            assert (list.get_selected_row () == next);
+            assert_true (signal_selected_row == next);
+            assert_true (list.get_selected_row () == next);
             first = next;
         }
     }
@@ -355,24 +355,24 @@ class DragListTest : TestCase {
         row_selected_emitted = 0;
 
         model.add_rows (rows, TEST_ROWS_LENGTH);
-        assert (compare_uint (row_selected_emitted, 1));
+        assert_cmpuint (row_selected_emitted, CompareOperator.EQ, 1);
         row_selected_emitted = 0;
 
-        assert (list.get_row_at_index (0) == list.get_selected_row ());
+        assert_true (list.get_row_at_index (0) == list.get_selected_row ());
         var last = list.get_row_at_index (TEST_ROWS_LENGTH - 1);
-        assert (last != null);
+        assert_true (last != null);
         list.select_row (last);
-        assert (list.get_selected_row () == last);
-        assert (compare_uint (row_selected_emitted, 1));
+        assert_true (list.get_selected_row () == last);
+        assert_cmpuint (row_selected_emitted, CompareOperator.EQ, 1);
         row_selected_emitted = 0;
-        assert (signal_selected_row == last);
+        assert_true (signal_selected_row == last);
 
         for (int i = TEST_ROWS_LENGTH - 1; i >= 0; i--) {
             DragListRow? prev = list.get_row_at_index (i - 1);
             model.remove_rows (i, 1);
-            assert (row_selected_emitted == 1);
+            assert_true (row_selected_emitted == 1);
             row_selected_emitted = 0;
-            assert (signal_selected_row == prev);
+            assert_true (signal_selected_row == prev);
             last = prev;
         }
     }
@@ -382,20 +382,20 @@ class DragListTest : TestCase {
         row_selected_emitted = 0;
 
         model.add_rows (rows, TEST_ROWS_LENGTH);
-        assert (compare_uint (row_selected_emitted, 1));
+        assert_cmpuint (row_selected_emitted, CompareOperator.EQ, 1);
         row_selected_emitted = 0;
 
         var last = list.get_row_at_index (TEST_ROWS_LENGTH - 1);
         list.select_row (last);
-        assert (compare_uint (row_selected_emitted, 1));
-        assert (signal_selected_row == last);
+        assert_cmpuint (row_selected_emitted, CompareOperator.EQ, 1);
+        assert_true (signal_selected_row == last);
         row_selected_emitted = 0;
 
         for (int i = TEST_ROWS_LENGTH - 2; i >= 0; i--) {
             model.remove_rows (i, 1);
         }
-        assert (list.get_selected_row () == last);
-        assert (compare_uint (row_selected_emitted, 0));
+        assert_true (list.get_selected_row () == last);
+        assert_cmpuint (row_selected_emitted, CompareOperator.EQ, 0);
 
         //multiple
         model.add_rows (
@@ -405,7 +405,7 @@ class DragListTest : TestCase {
             TEST_ROWS_LENGTH - 1
         );
         model.remove_rows (0, TEST_ROWS_LENGTH - 1);
-        assert (compare_uint (row_selected_emitted, 0));
+        assert_cmpuint (row_selected_emitted, CompareOperator.EQ, 0);
 
         model.remove_rows (0, 1);
     }
@@ -414,18 +414,18 @@ class DragListTest : TestCase {
         row_selected_emitted = 0;
 
         model.add_rows (rows, TEST_ROWS_LENGTH);
-        assert (compare_uint (row_selected_emitted, 1));
+        assert_cmpuint (row_selected_emitted, CompareOperator.EQ, 1);
         row_selected_emitted = 0;
 
         model.remove_rows (0, TEST_ROWS_LENGTH);
-        assert (signal_selected_row == null);
+        assert_true (signal_selected_row == null);
     }
 
     private void model_selection_replace (TestModel model) {
         row_selected_emitted = 0;
 
         model.add_rows (rows, TEST_ROWS_LENGTH);
-        assert (compare_uint (row_selected_emitted, 1));
+        assert_cmpuint (row_selected_emitted, CompareOperator.EQ, 1);
         row_selected_emitted = 0;
 
         uint selected_index = TEST_ROWS_LENGTH / 2;
@@ -434,14 +434,14 @@ class DragListTest : TestCase {
         row_selected_emitted = 0;
 
         model.replace (0, selected_index, generate_rows (0, selected_index));
-        assert (compare_uint (row_selected_emitted, 0));
+        assert_cmpuint (row_selected_emitted, CompareOperator.EQ, 0);
         uint remove = selected_index + 1;
         model.replace (remove, TEST_ROWS_LENGTH - (remove), generate_rows (remove, remove));
-        assert (compare_uint (row_selected_emitted, 0));
-        assert (signal_selected_row == rows[selected_index]);
+        assert_cmpuint (row_selected_emitted, CompareOperator.EQ, 0);
+        assert_true (signal_selected_row == rows[selected_index]);
         model.replace (selected_index, 1, generate_rows (selected_index, 1));
-        assert (compare_uint (row_selected_emitted, 1));
-        assert (signal_selected_row == model.get_item (selected_index));
+        assert_cmpuint (row_selected_emitted, CompareOperator.EQ, 1);
+        assert_true (signal_selected_row == model.get_item (selected_index));
 
         model.remove_rows (0, TEST_ROWS_LENGTH);
     }

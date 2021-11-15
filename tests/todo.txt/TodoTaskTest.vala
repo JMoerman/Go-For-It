@@ -84,7 +84,7 @@ class TodoTaskTest : TestCase {
             TxtTask test_task = new TxtTask (test_title, done);
 
             assert_cmpstr (test_task.description, CompareOperator.EQ, test_title);
-            assert_true (compare_bool (test_task.done, done));
+            assert_true (test_task.done == done);
             assert_true (test_task.valid);
         }
     }
@@ -107,7 +107,7 @@ class TodoTaskTest : TestCase {
 
             assert_true (check_expected (1, 0, 0));
             assert_cmpstr (task.description, CompareOperator.EQ, new_title);
-            assert_true (compare_bool (task.done, done));
+            assert_true (task.done == done);
             assert_true (task.valid);
             disconnect_task (task);
         }
@@ -125,7 +125,7 @@ class TodoTaskTest : TestCase {
 
             assert_true (check_expected (1, 0, 0));
             assert_cmpstr (task.description, CompareOperator.EQ, new_title);
-            assert_true (compare_bool (task.done, done));
+            assert_true (task.done == done);
             assert_true (!task.valid);
             disconnect_task (task);
         }
@@ -148,7 +148,7 @@ class TodoTaskTest : TestCase {
 
             assert_true (check_expected (0, 1, 1));
             assert_cmpstr (task.description, CompareOperator.EQ, test_title);
-            assert_true (compare_bool (task.done, !done));
+            assert_true (task.done == !done);
             assert_true (task.valid);
             disconnect_task (task);
         }
@@ -165,7 +165,7 @@ class TodoTaskTest : TestCase {
 
             assert_true (check_expected (0, 0, 1));
             assert_cmpstr (task.description, CompareOperator.EQ, test_title);
-            assert_true (compare_bool (task.done, done));
+            assert_true (task.done == done);
             assert_true (task.valid);
             disconnect_task (task);
         }
