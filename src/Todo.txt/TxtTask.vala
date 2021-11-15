@@ -136,7 +136,7 @@ class GOFI.TXT.TxtTask : TodoTask {
         assert (parts[0] != null);
         uint index = 0;
 
-        _done = parse_done (parts, ref index);
+        _done = parse_done (parts, ref index) | done;
         parse_priority (parts, ref index);
         parse_dates (parts, ref index);
 
