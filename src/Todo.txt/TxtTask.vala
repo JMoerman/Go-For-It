@@ -417,4 +417,51 @@ class GOFI.TXT.TxtTask : TodoTask {
         }
         return -1;
     }
+
+    internal string? assert_equal (TxtTask other) {
+        if (this.priority != other.priority) {
+            return "\"%s\" != \"%s\": Priorities don't match".printf (
+                this.to_txt (true), other.to_txt (true)
+            );
+        }
+        if (this.done != other.done) {
+            return "\"%s\" != \"%s\": Completion status doesn't match".printf (
+                this.to_txt (true), other.to_txt (true)
+            );
+        }
+        bool a, b;
+        a = this.creation_date != null;
+        b = other.creation_date != null;
+        if (a != b || (a && b && this.creation_date.compare (other.creation_date) != 0)) {
+            return "\"%s\" != \"%s\": Creation dates don't match".printf (
+                this.to_txt (true), other.to_txt (true)
+            );
+        }
+        a = this.completion_date != null;
+        b = other.completion_date != null;
+        if (a != b || (a && b && this.completion_date.compare (other.completion_date) != 0)) {
+            return "\"%s\" != \"%s\": Completion dates don't match".printf (
+                this.to_txt (true), other.to_txt (true)
+            );
+        }
+        if (this.description != other.description) {
+            return "\"%s\" != \"%s\": Descriptions don't match: \"%s\" != \"%s\"".printf (
+                this.to_txt (true), other.to_txt (true),
+                this.description, other.description
+            );
+        }
+        if (this.timer_value != other.timer_value) {
+            return "\"%s\" != \"%s\": Timer values don't match: \"%u\" != \"%u\"".printf (
+                this.to_txt (true), other.to_txt (true),
+                this.timer_value, other.timer_value
+            );
+        }
+        if (this.timer_value != other.timer_value) {
+            return "\"%s\" != \"%s\": Duration values values don't match: \"%u\" != \"%u\"".printf (
+                this.to_txt (true), other.to_txt (true),
+                this.duration, other.duration
+            );
+        }
+        return null;
+    }
 }

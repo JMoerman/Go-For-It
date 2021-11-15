@@ -17,6 +17,8 @@ OPTIONS
     ${VALAC_OPTIONS}
 CUSTOM_VAPIS
     ${CMAKE_BINARY_DIR}/${LIBRARY_PATH}/${LIBNAME}_internal.vapi
+CUSTOM_VAPIS
+    ${CUSTOM_VAPIS}
 )
 
 # tell cmake what to call the executable we just made

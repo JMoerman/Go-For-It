@@ -113,6 +113,11 @@ include (ValaVersion)
 # make sure it's the desired version of vala
 ensure_vala_version("0.36.15" MINIMUM)
 
+set (CUSTOM_VAPIS )
+if (${VALA_VERSION} VERSION_LESS "0.51.1")
+    set (CUSTOM_VAPIS ${CUSTOM_VAPIS} ${CMAKE_SOURCE_DIR}/vapi/glib_assert.vapi)
+endif ()
+
 option (BUILD_TESTS "Build a unit test executable." OFF)
 
 option (ICON_UPDATE "Run gtk-update-icon-cache after the install." ON)
