@@ -369,6 +369,15 @@ class GOFI.TXT.TaskRow: DragListRow {
                     );
                 }
             }
+
+            //TODO: remove this once due and threshold dates are fully supported
+            if (task.threshold_date != null) {
+                markup_string += " t:" + TxtUtils.dt_to_string (task.threshold_date.dt);
+            }
+            if (task.due_date != null) {
+                markup_string += " due:" + TxtUtils.dt_to_string (task.due_date.dt);
+            }
+
             if (done) {
                 markup_string = "<s>" + markup_string + "</s>";
             }

@@ -196,36 +196,61 @@ class TodoTaskTest : TestCase {
     }
     private const string TEST_TASK3_TXT = "(A) 2021-11-15 2020-10-13 @context +project Test task";
 
+    private static TxtTask build_test_task4 () {
+        TxtTask task = new TxtTask ("Test task", false);
+        task.threshold_date = new GOFI.Date.from_ymd (2021, 11, 16);
+        task.due_date = new GOFI.Date.from_ymd (2021, 11, 17);
+        return task;
+    }
+    private const string TEST_TASK4_TXT = "Test task t:2021-11-16 due:2021-11-17";
+
+    private void print_comp_error (TxtTask task1, TxtTask task2, string error_str) {
+        stdout.printf ("%s != %s: %s\n", task1.to_txt (true), task2.to_txt (true), error_str);
+    }
+
     private void test_from_txt () {
-        string? error_str = build_test_task1 ().assert_equal (new TxtTask.from_todo_txt (TEST_TASK1_TXT, false));
-        if (error_str != null) { stdout.printf ("%s\n", error_str); assert_not_reached (); }
-        error_str = build_test_task2 ().assert_equal (new TxtTask.from_todo_txt (TEST_TASK2_TXT, false));
-        if (error_str != null) { stdout.printf ("%s\n", error_str); assert_not_reached (); }
-        error_str = build_test_task2 ().assert_equal (new TxtTask.from_todo_txt (TEST_TASK2_TXT.offset (2), true));
-        if (error_str != null) { stdout.printf ("%s\n", error_str); assert_not_reached (); }
-        error_str = build_test_task3 ().assert_equal (new TxtTask.from_todo_txt (TEST_TASK3_TXT, false));
-        if (error_str != null) { stdout.printf ("%s\n", error_str); assert_not_reached (); }
+        TxtTask[] reference_tasks = {};
+        TxtTask[] txt_tasks = {};
+        reference_tasks += build_test_task1 (); txt_tasks += new TxtTask.from_todo_txt (TEST_TASK1_TXT, false);
+        reference_tasks += build_test_task2 (); txt_tasks += new TxtTask.from_todo_txt (TEST_TASK2_TXT, false);
+        reference_tasks += build_test_task2 (); txt_tasks += new TxtTask.from_todo_txt (TEST_TASK2_TXT.offset (2), true);
+        reference_tasks += build_test_task3 (); txt_tasks += new TxtTask.from_todo_txt (TEST_TASK3_TXT, false);
+        reference_tasks += build_test_task4 (); txt_tasks += new TxtTask.from_todo_txt (TEST_TASK4_TXT, false);
+
+        assert_cmpuint (reference_tasks.length, CompareOperator.EQ, txt_tasks.length);
+
+        string error_str = null;
+        for (uint i = 0; i < reference_tasks.length; i++) {
+            var reference_taks = reference_tasks[i];
+            var txt_task = txt_tasks[i];
+
+            if ((error_str = reference_taks.assert_equal (txt_task)) != null) {
+                stdout.printf ("Task pair %u doesn't match\n", i);
+                print_comp_error (reference_taks, txt_task, error_str);
+                assert_not_reached ();
+            }
+        }
     }
 
     private void test_to_txt () {
         var initial_task = build_test_task1 ();
         var final_task = new TxtTask.from_todo_txt (initial_task.to_txt (true), false);
         string? error_str = initial_task.assert_equal (final_task);
-        if (error_str != null) { stdout.printf ("%s\n", error_str); assert_not_reached (); }
+        if (error_str != null) { print_comp_error (initial_task, final_task, error_str); assert_not_reached (); }
 
         initial_task = build_test_task2 ();
         final_task = new TxtTask.from_todo_txt (initial_task.to_txt (true), false);
         error_str = initial_task.assert_equal (final_task);
-        if (error_str != null) { stdout.printf ("%s\n", error_str); assert_not_reached (); }
+        if (error_str != null) { print_comp_error (initial_task, final_task, error_str); assert_not_reached (); }
         final_task = new TxtTask.from_todo_txt (initial_task.to_txt (false), false);
         assert_cmpuint (final_task.timer_value, CompareOperator.EQ, 0);
         final_task.timer_value = initial_task.timer_value;
         error_str = initial_task.assert_equal (final_task);
-        if (error_str != null) { stdout.printf ("%s\n", error_str); assert_not_reached (); }
+        if (error_str != null) { print_comp_error (initial_task, final_task, error_str); assert_not_reached (); }
 
         initial_task = build_test_task3 ();
         final_task = new TxtTask.from_todo_txt (initial_task.to_txt (true), false);
         error_str = initial_task.assert_equal (final_task);
-        if (error_str != null) { stdout.printf ("%s\n", error_str); assert_not_reached (); }
+        if (error_str != null) { print_comp_error (initial_task, final_task, error_str); assert_not_reached (); }
     }
 }

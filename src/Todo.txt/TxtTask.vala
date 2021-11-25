@@ -94,6 +94,18 @@ class GOFI.TXT.TxtTask : TodoTask {
         default = null;
     }
 
+    public GOFI.Date? due_date {
+        public get;
+        public set;
+        default = null;
+    }
+
+    public GOFI.Date? threshold_date {
+        public get;
+        public set;
+        default = null;
+    }
+
     public uint8 priority {
         public get;
         public set;
@@ -236,6 +248,18 @@ class GOFI.TXT.TxtTask : TodoTask {
                             continue;
                         }
                         break;
+                    case "due":
+                        if (is_date (t.content)) {
+                            due_date = string_to_date (t.content);
+                            continue;
+                        }
+                        break;
+                    case "t":
+                        if (is_date (t.content)) {
+                            threshold_date = string_to_date (t.content);
+                            continue;
+                        }
+                        break;
                 }
             }
             parsed_parts += (owned) t;
@@ -256,6 +280,8 @@ class GOFI.TXT.TxtTask : TodoTask {
         parse_priority (parts, ref index);
 
         duration = 0;
+        due_date = null;
+        threshold_date = null;
         set_descr_parts (parse_description (parts, index));
     }
 
@@ -292,6 +318,7 @@ class GOFI.TXT.TxtTask : TodoTask {
 
             descr_builder.append (p.content);
         }
+
         return descr_builder.str;
     }
 
@@ -327,6 +354,15 @@ class GOFI.TXT.TxtTask : TodoTask {
         if (duration > 0) {
             str_builder.append (" duration:");
             append_duration (this.duration, str_builder);
+        }
+        if (threshold_date != null) {
+            str_builder.append (" t:");
+            str_builder.append (dt_to_string (threshold_date.dt));
+        }
+
+        if (due_date != null) {
+            str_builder.append (" due:");
+            str_builder.append (dt_to_string (due_date.dt));
         }
 
         return str_builder.str;
@@ -370,6 +406,16 @@ class GOFI.TXT.TxtTask : TodoTask {
             append_duration (duration, str_builder);
         }
 
+        if (threshold_date != null) {
+            str_builder.append (" t:");
+            str_builder.append (dt_to_string (threshold_date.dt));
+        }
+
+        if (due_date != null) {
+            str_builder.append (" due:");
+            str_builder.append (dt_to_string (due_date.dt));
+        }
+
         return str_builder.str;
     }
 
@@ -379,6 +425,17 @@ class GOFI.TXT.TxtTask : TodoTask {
         }
         if (this.priority == other.priority) {
             int cmp_tmp;
+
+            // Sort by due date
+            if (this.due_date != null) {
+                if (other.due_date != null) {
+                    cmp_tmp = this.due_date.compare (other.due_date);
+                } else {
+                    return -1;
+                }
+            } else if (other.due_date != null) {
+                return 1;
+            }
 
             // Sort by description, case insensitive
             cmp_tmp = this.description.ascii_casecmp (other.description);
@@ -390,6 +447,17 @@ class GOFI.TXT.TxtTask : TodoTask {
             cmp_tmp = GLib.strcmp (this.description, other.description);
             if (cmp_tmp != 0) {
                 return cmp_tmp;
+            }
+
+            // Sort by threshold date
+            if (this.threshold_date != null) {
+                if (other.threshold_date != null) {
+                    cmp_tmp = this.threshold_date.compare (other.threshold_date);
+                } else {
+                    return -1;
+                }
+            } else if (other.threshold_date != null) {
+                return 1;
             }
 
             // Sort by creation date
@@ -420,45 +488,58 @@ class GOFI.TXT.TxtTask : TodoTask {
 
     internal string? assert_equal (TxtTask other) {
         if (this.priority != other.priority) {
-            return "\"%s\" != \"%s\": Priorities don't match".printf (
-                this.to_txt (true), other.to_txt (true)
+            return "Priorities don't match: %u != %u".printf (
+                (uint) this.priority, (uint) other.priority
             );
         }
         if (this.done != other.done) {
-            return "\"%s\" != \"%s\": Completion status doesn't match".printf (
-                this.to_txt (true), other.to_txt (true)
-            );
+            return "Completion status doesn't match";
         }
         bool a, b;
         a = this.creation_date != null;
         b = other.creation_date != null;
         if (a != b || (a && b && this.creation_date.compare (other.creation_date) != 0)) {
-            return "\"%s\" != \"%s\": Creation dates don't match".printf (
-                this.to_txt (true), other.to_txt (true)
+            return "Creation dates don't match: %s != %s".printf (
+                a ? dt_to_string (this.creation_date.dt) : "null",
+                b ? dt_to_string (other.creation_date.dt) : "null"
             );
         }
         a = this.completion_date != null;
         b = other.completion_date != null;
         if (a != b || (a && b && this.completion_date.compare (other.completion_date) != 0)) {
-            return "\"%s\" != \"%s\": Completion dates don't match".printf (
-                this.to_txt (true), other.to_txt (true)
+            return "Completion dates don't match: %s != %s".printf (
+                a ? dt_to_string (this.completion_date.dt) : "null",
+                b ? dt_to_string (other.completion_date.dt) : "null"
+            );
+        }
+        a = this.threshold_date != null;
+        b = other.threshold_date != null;
+        if (a != b || (a && b && this.threshold_date.compare (other.threshold_date) != 0)) {
+            return "Threshold dates don't match: %s != %s".printf (
+                a ? dt_to_string (this.threshold_date.dt) : "null",
+                b ? dt_to_string (other.threshold_date.dt) : "null"
+            );
+        }
+        a = this.due_date != null;
+        b = other.due_date != null;
+        if (a != b || (a && b && this.due_date.compare (other.due_date) != 0)) {
+            return "Due dates don't match: %s != %s".printf (
+                a ? dt_to_string (this.due_date.dt) : "null",
+                b ? dt_to_string (other.due_date.dt) : "null"
             );
         }
         if (this.description != other.description) {
-            return "\"%s\" != \"%s\": Descriptions don't match: \"%s\" != \"%s\"".printf (
-                this.to_txt (true), other.to_txt (true),
+            return "Descriptions don't match: \"%s\" != \"%s\"".printf (
                 this.description, other.description
             );
         }
         if (this.timer_value != other.timer_value) {
-            return "\"%s\" != \"%s\": Timer values don't match: \"%u\" != \"%u\"".printf (
-                this.to_txt (true), other.to_txt (true),
+            return "Timer values don't match: \"%u\" != \"%u\"".printf (
                 this.timer_value, other.timer_value
             );
         }
         if (this.timer_value != other.timer_value) {
-            return "\"%s\" != \"%s\": Duration values values don't match: \"%u\" != \"%u\"".printf (
-                this.to_txt (true), other.to_txt (true),
+            return "Duration values values don't match: \"%u\" != \"%u\"".printf (
                 this.duration, other.duration
             );
         }
