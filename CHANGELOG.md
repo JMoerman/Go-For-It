@@ -1,5 +1,12 @@
 # Change Log
 
+## [1.9.6](https://github.com/JMoerman/Go-For-It/tree/1.9.6) (2021-11-25)
+[Full Changelog](https://github.com/JMoerman/Go-For-It/compare/1.9.5...1.9.6)
+
+**Fixed bugs:**
+
+- The creation date and completion date would be swapped when saving the tasks to a todo.txt file. This issue was introduced in 1.9.5.
+
 ## [1.9.5](https://github.com/JMoerman/Go-For-It/tree/1.9.5) (2021-10-07)
 [Full Changelog](https://github.com/JMoerman/Go-For-It/compare/1.9.4...1.9.5)
 

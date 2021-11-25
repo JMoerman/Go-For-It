@@ -32,6 +32,14 @@ To-do lists are stored in the Todo.txt format. This simplifies synchronization w
     <value key="x-appcenter-color-primary-text">rgb(255, 255, 255)</value>
   </custom>
   <releases>
+    <release version="1.9.6" date="2021-11-25">
+      <description>
+        <p>Fixed bugs:</p>
+        <ul>
+          <li>The creation date and completion date would be swapped when saving the tasks to a todo.txt file. This issue was introduced in 1.9.5.</li>
+        </ul>
+      </description>
+    </release>
     <release version="1.9.5" date="2021-10-07">
       <description>
         <p>Improvements:</p>
