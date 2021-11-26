@@ -122,6 +122,17 @@ class GOFI.TXT.TxtTask : TodoTask {
     }
     private TxtPart[] _parts;
 
+    public RecurrenceRule? recur {
+        get;
+        set;
+        default = null;
+    }
+
+    public RecurrenceMode recur_mode {
+        get;
+        set;
+        default = RecurrenceMode.NO_RECURRENCE;
+    }
 
     public signal void done_changed ();
 
@@ -260,12 +271,80 @@ class GOFI.TXT.TxtTask : TodoTask {
                             continue;
                         }
                         break;
+                    case "rec":
+                        if (parse_recur_rule (t.content)) {
+                            continue;
+                        }
+                        break;
                 }
             }
             parsed_parts += (owned) t;
         }
 
         return parsed_parts;
+    }
+
+    private bool parse_recur_rule (string recur_rule) {
+        unowned string remaining = recur_rule;
+        var new_recur_mode = RecurrenceMode.ON_COMPLETION;
+        GOFI.RecurrenceFrequency recur_freq;
+        int interval, day;
+        switch (recur_rule[0]) {
+            case '+':
+                switch (recur_rule[1]) {
+                    case '+':
+                        new_recur_mode = RecurrenceMode.PERIODICALLY_SKIP_OLD;
+                        remaining = recur_rule.offset (2);
+                        break;
+                    case 's':
+                        new_recur_mode = RecurrenceMode.PERIODICALLY_AUTO_RESCHEDULE;
+                        remaining = recur_rule.offset (2);
+                        break;
+                    case '\0':
+                        return false;
+                    default:
+                        new_recur_mode = RecurrenceMode.PERIODICALLY;
+                        remaining = recur_rule.offset (1);
+                        break;
+                }
+                break;
+            case '\0':
+                return false;
+            default:
+                break;
+        }
+        if (int.try_parse (remaining, out interval, out remaining)) {
+            return false;
+        }
+        if (interval <= 0) {
+            return false;
+        }
+        switch (remaining.get (0)) {
+            case 'y':
+                recur_freq = GOFI.RecurrenceFrequency.YEARLY_RECURRENCE;
+                break;
+            case 'm':
+                recur_freq = GOFI.RecurrenceFrequency.MONTHLY_RECURRENCE;
+                break;
+            case 'w':
+                recur_freq = GOFI.RecurrenceFrequency.WEEKLY_RECURRENCE;
+                break;
+            case 'd':
+                recur_freq = GOFI.RecurrenceFrequency.DAILY_RECURRENCE;
+                break;
+            default:
+                return false;
+        }
+        if (remaining.offset (1).has_prefix (";d=")) {
+            if (!int.try_parse (remaining.offset (4), out day, out remaining)) {
+                return false;
+            }
+        } else {
+            day = 0;
+        }
+        recur = new RecurrenceRule (recur_freq, (short) interval, (short) day);
+        recur_mode = new_recur_mode;
+        return true;
     }
 
     public void update_from_simple_txt (string descr) {
@@ -365,6 +444,8 @@ class GOFI.TXT.TxtTask : TodoTask {
             str_builder.append (dt_to_string (due_date.dt));
         }
 
+        append_recurrence_rule (str_builder);
+
         return str_builder.str;
     }
 
@@ -416,7 +497,46 @@ class GOFI.TXT.TxtTask : TodoTask {
             str_builder.append (dt_to_string (due_date.dt));
         }
 
+        append_recurrence_rule (str_builder);
+
         return str_builder.str;
+    }
+
+    internal void append_recurrence_rule (StringBuilder str_builder) {
+        if (recur != null) {
+            str_builder.append (" rec:");
+            switch (recur_mode) {
+                case RecurrenceMode.PERIODICALLY:
+                    str_builder.append_c ('+');
+                    break;
+                case RecurrenceMode.PERIODICALLY_SKIP_OLD:
+                    str_builder.append ("++");
+                    break;
+                case RecurrenceMode.PERIODICALLY_AUTO_RESCHEDULE:
+                    str_builder.append ("+s");
+                    break;
+                default:
+                    break;
+            }
+            str_builder.append (recur.interval.to_string ());
+            switch (recur.freq) {
+                case GOFI.RecurrenceFrequency.YEARLY_RECURRENCE:
+                    str_builder.append_c ('y');
+                    break;
+                case GOFI.RecurrenceFrequency.MONTHLY_RECURRENCE:
+                    str_builder.append_c ('m');
+                    break;
+                case GOFI.RecurrenceFrequency.WEEKLY_RECURRENCE:
+                    str_builder.append_c ('w');
+                    break;
+                default:
+                    str_builder.append_c ('d');
+                    break;
+            }
+            if (recur.month_day < 0 || recur.month_day > 27) {
+                str_builder.append_printf (";d=%hi", recur.month_day);
+            }
+        }
     }
 
     public int cmp (TxtTask other) {
@@ -458,6 +578,15 @@ class GOFI.TXT.TxtTask : TodoTask {
                 }
             } else if (other.threshold_date != null) {
                 return 1;
+            }
+
+            if (this.recur != null) {
+                if (
+                    (cmp_tmp = this.recur.freq - other.recur.freq) != 0 ||
+                    (cmp_tmp = this.recur.interval - other.recur.interval) != 0
+                ) {
+                    return cmp_tmp;
+                }
             }
 
             // Sort by creation date
@@ -534,14 +663,29 @@ class GOFI.TXT.TxtTask : TodoTask {
             );
         }
         if (this.timer_value != other.timer_value) {
-            return "Timer values don't match: \"%u\" != \"%u\"".printf (
+            return "Timer values don't match: %u != %u".printf (
                 this.timer_value, other.timer_value
             );
         }
         if (this.timer_value != other.timer_value) {
-            return "Duration values values don't match: \"%u\" != \"%u\"".printf (
+            return "Duration values values don't match: %u != %u".printf (
                 this.duration, other.duration
             );
+        }
+        if (this.recur_mode != other.recur_mode) {
+            return "Recurrence modes don't match";
+        }
+        if (this.recur_mode != RecurrenceMode.NO_RECURRENCE) {
+            if (this.recur.freq != other.recur.freq) {
+                return "Recurrence frequencies don't match: %hi != %hi".printf (
+                    this.recur.freq, other.recur.freq
+                );
+            }
+            if (this.recur.interval != other.recur.interval) {
+                return "Recurrence intervals don't match: %hi != %hi".printf (
+                    this.recur.interval, other.recur.interval
+                );
+            }
         }
         return null;
     }

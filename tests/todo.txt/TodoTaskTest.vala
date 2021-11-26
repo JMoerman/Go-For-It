@@ -204,8 +204,48 @@ class TodoTaskTest : TestCase {
     }
     private const string TEST_TASK4_TXT = "Test task t:2021-11-16 due:2021-11-17";
 
+    // Repeats two days after completion
+    private static TxtTask build_test_task5 () {
+        TxtTask task = new TxtTask ("Test task", false);
+        task.threshold_date = new GOFI.Date.from_ymd (2021, 11, 16);
+        task.recur = new GOFI.RecurrenceRule (GOFI.RecurrenceFrequency.DAILY_RECURRENCE, 2);
+        task.recur_mode = GOFI.RecurrenceMode.ON_COMPLETION;
+        return task;
+    }
+    private const string TEST_TASK5_TXT = "Test task t:2021-11-16 rec:2d";
+
+    // Repeats every week
+    private static TxtTask build_test_task6 () {
+        TxtTask task = new TxtTask ("Test task", false);
+        task.due_date = new GOFI.Date.from_ymd (2021, 11, 16);
+        task.recur = new GOFI.RecurrenceRule (GOFI.RecurrenceFrequency.WEEKLY_RECURRENCE, 1);
+        task.recur_mode = GOFI.RecurrenceMode.PERIODICALLY;
+        return task;
+    }
+    private const string TEST_TASK6_TXT = "Test task due:2021-11-16 rec:+1w";
+
+    // Repeats on the last day of the month, every 3 months, discards overdue tasks
+    private static TxtTask build_test_task7 () {
+        TxtTask task = new TxtTask ("Test task", false);
+        task.due_date = new GOFI.Date.from_ymd (2021, 11, 30);
+        task.recur = new GOFI.RecurrenceRule (GOFI.RecurrenceFrequency.MONTHLY_RECURRENCE, 3, -1);
+        task.recur_mode = GOFI.RecurrenceMode.PERIODICALLY_SKIP_OLD;
+        return task;
+    }
+    private const string TEST_TASK7_TXT = "Test task due:2021-11-30 rec:++3m;d=-1";
+
+    // Repeats on the last day of the month, every 3 months, discards overdue tasks
+    private static TxtTask build_test_task8 () {
+        TxtTask task = new TxtTask ("Test task", false);
+        task.due_date = new GOFI.Date.from_ymd (2021, 11, 16);
+        task.recur = new GOFI.RecurrenceRule (GOFI.RecurrenceFrequency.YEARLY_RECURRENCE, 1);
+        task.recur_mode = GOFI.RecurrenceMode.PERIODICALLY_AUTO_RESCHEDULE;
+        return task;
+    }
+    private const string TEST_TASK8_TXT = "Test task due:2021-11-16 rec:+s1y";
+
     private void print_comp_error (TxtTask task1, TxtTask task2, string error_str) {
-        stdout.printf ("%s != %s: %s\n", task1.to_txt (true), task2.to_txt (true), error_str);
+        stdout.printf ("\"%s\" != \"%s\":\n\t %s\n", task1.to_txt (true), task2.to_txt (true), error_str);
     }
 
     private void test_from_txt () {
@@ -216,6 +256,10 @@ class TodoTaskTest : TestCase {
         reference_tasks += build_test_task2 (); txt_tasks += new TxtTask.from_todo_txt (TEST_TASK2_TXT.offset (2), true);
         reference_tasks += build_test_task3 (); txt_tasks += new TxtTask.from_todo_txt (TEST_TASK3_TXT, false);
         reference_tasks += build_test_task4 (); txt_tasks += new TxtTask.from_todo_txt (TEST_TASK4_TXT, false);
+        reference_tasks += build_test_task5 (); txt_tasks += new TxtTask.from_todo_txt (TEST_TASK5_TXT, false);
+        reference_tasks += build_test_task6 (); txt_tasks += new TxtTask.from_todo_txt (TEST_TASK6_TXT, false);
+        reference_tasks += build_test_task7 (); txt_tasks += new TxtTask.from_todo_txt (TEST_TASK7_TXT, false);
+        reference_tasks += build_test_task8 (); txt_tasks += new TxtTask.from_todo_txt (TEST_TASK8_TXT, false);
 
         assert_cmpuint (reference_tasks.length, CompareOperator.EQ, txt_tasks.length);
 

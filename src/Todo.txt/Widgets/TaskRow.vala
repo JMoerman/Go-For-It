@@ -346,6 +346,7 @@ class GOFI.TXT.TaskRow: DragListRow {
 
         private void gen_markup () {
             markup_string = make_links (task.get_descr_parts ());
+            var str_builder = new StringBuilder.sized (100);
 
             var done = task.done;
             var duration = task.duration;
@@ -354,33 +355,38 @@ class GOFI.TXT.TaskRow: DragListRow {
                 var prefix = _("priority");
                 var priority = task.priority;
                 char prio_char = priority + 65;
-                markup_string = @"<b><a href=\"$prefix:$prio_char\">($prio_char)</a></b> $markup_string";
+                str_builder.append (@"<b><a href=\"$prefix:$prio_char\">($prio_char)</a></b> ");
             }
+            str_builder.append (markup_string);
             if (duration > 0) {
                 var timer_value = task.timer_value;
                 if (timer_value > 0 && !done) {
-                    markup_string = "%s <i>(%u / %s)</i>".printf (
-                        markup_string, timer_value / 60,
-                        Utils.seconds_to_short_string (duration)
-                    );
+                    str_builder.append (" <i>(%u / %s)</i>".printf (
+                        timer_value / 60, Utils.seconds_to_short_string (duration)
+                    ));
                 } else {
-                    markup_string = "%s <i>(%s)</i>".printf (
-                        markup_string, Utils.seconds_to_short_string (duration)
-                    );
+                    str_builder.append (" <i>(%s)</i>".printf (
+                        Utils.seconds_to_short_string (duration)
+                    ));
                 }
             }
 
             //TODO: remove this once due and threshold dates are fully supported
             if (task.threshold_date != null) {
-                markup_string += " t:" + TxtUtils.dt_to_string (task.threshold_date.dt);
+                str_builder.append (" t:");
+                str_builder.append (TxtUtils.dt_to_string (task.threshold_date.dt));
             }
             if (task.due_date != null) {
-                markup_string += " due:" + TxtUtils.dt_to_string (task.due_date.dt);
+                str_builder.append (" due:");
+                str_builder.append (TxtUtils.dt_to_string (task.due_date.dt));
             }
+            task.append_recurrence_rule (str_builder);
 
             if (done) {
-                markup_string = "<s>" + markup_string + "</s>";
+                str_builder.prepend ("<s>");
+                str_builder.append ("</s>");
             }
+            markup_string = str_builder.str;
         }
 
         /**
