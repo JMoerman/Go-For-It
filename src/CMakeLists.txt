@@ -77,6 +77,7 @@ vala_precompile (VALA_C ${LIBNAME}
     Recurrence/RecurrenceFrequency.vala
     Recurrence/RecurrenceMode.vala
     Recurrence/RecurrenceRule.vala
+    Recurrence/RecurrenceIterator.vala
 
     Todo.txt/Constants.vala
     Todo.txt/TxtTask.vala

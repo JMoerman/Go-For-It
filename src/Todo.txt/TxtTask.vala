@@ -145,12 +145,29 @@ class GOFI.TXT.TxtTask : TodoTask {
         set_descr_parts (parse_description (line.split (" "), 0));
     }
 
-    public TxtTask.from_simple_txt (string descr, bool done) {
+    public TxtTask.from_simple_txt (string descr, bool done, GOFI.Date? creation_date = null) {
         Object (
             done: false,
-            creation_date: new Date (new GLib.DateTime.now_local ())
+            creation_date: creation_date
         );
         update_from_simple_txt (descr);
+    }
+
+    /**
+     * Creates a copy of the provided task. The new task will not be finished,
+     * even if the provided task is.
+     */
+    public TxtTask.from_template_task (TxtTask template) {
+        Object (
+            done: false,
+            due_date: template.due_date,
+            threshold_date: template.threshold_date,
+            recur: template.recur,
+            recur_mode: template.recur_mode,
+            duration: template.duration,
+            priority: template.priority
+        );
+        set_descr_parts (parse_description (template.description.split (" "), 0));
     }
 
     public TxtTask.from_todo_txt (string descr, bool done) {
@@ -457,8 +474,13 @@ class GOFI.TXT.TxtTask : TodoTask {
         }
     }
 
-    public string to_txt (bool log_timer) {
+    public string to_txt (bool log_timer = true) {
         var str_builder = new StringBuilder.sized (100);
+        append_txt_to_builder (str_builder, log_timer);
+        return str_builder.str;
+    }
+
+    public void append_txt_to_builder (StringBuilder str_builder, bool log_timer = true) {
         if (done) {
             str_builder.append ("x ");
         }
@@ -498,8 +520,6 @@ class GOFI.TXT.TxtTask : TodoTask {
         }
 
         append_recurrence_rule (str_builder);
-
-        return str_builder.str;
     }
 
     internal void append_recurrence_rule (StringBuilder str_builder) {
