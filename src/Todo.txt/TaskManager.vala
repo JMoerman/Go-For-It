@@ -23,7 +23,7 @@ using GOFI.TXT.TxtUtils;
  * lists. Editing specific tasks (e.g. removing, renaming) is to be done
  * by addressing the corresponding TaskStore instance.
  */
-class GOFI.TXT.TaskManager {
+class GOFI.TXT.TaskManager : Object {
     private ListSettings lsettings;
     // The user's todo.txt related files
     private File todo_txt;
@@ -33,6 +33,8 @@ class GOFI.TXT.TaskManager {
     private bool read_only;
     private bool io_failed;
     private bool single_file_mode;
+
+    private TimeoutHandler timeout_handler;
 
     // refreshing
     private bool refresh_queued;
@@ -67,7 +69,7 @@ class GOFI.TXT.TaskManager {
         load_task_stores ();
         connect_store_signals ();
 
-        GLib.Timeout.add (300000, reschedule_overdue_tasks_job);
+        timeout_handler = new TimeoutHandler (this);
 
         /* Signal processing */
 
@@ -75,6 +77,47 @@ class GOFI.TXT.TaskManager {
         // actually changing, which could cause 1-6 extra reloads
         lsettings.notify["todo-uri"].connect (on_todo_uri_changed);
         lsettings.notify["done-uri"].connect (on_done_uri_changed);
+    }
+
+    internal TaskManager.null_stores () {
+        this.lsettings = new ListSettings.empty ();
+
+        // Initialize TaskStores
+        todo_store = new TaskStore (false);
+        done_store = new TaskStore (true);
+
+        refresh_queued = false;
+        todo_save_timeout_id = 0;
+        done_save_timeout_id = 0;
+
+        todo_txt = null;
+        done_txt = null;
+        read_only = true;
+
+        connect_store_signals ();
+    }
+
+    /**
+     * Using GLib.Timeout.add directly in the TaskManager will lead to a reference
+     * count loop.
+     */
+    [Compact]
+    private class TimeoutHandler {
+        public unowned TaskManager task_manager;
+        public uint job;
+
+        public TimeoutHandler (TaskManager task_manager) {
+            this.task_manager = task_manager;
+            job = GLib.Timeout.add (300000, reschedule_overdue_tasks_job);
+        }
+
+        ~TimeoutHandler () {
+            Source.remove (job);
+        }
+
+        public bool reschedule_overdue_tasks_job () {
+            return task_manager.reschedule_overdue_tasks_job ();
+        }
     }
 
     public void prepare_free () {
