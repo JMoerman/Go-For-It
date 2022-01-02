@@ -128,7 +128,7 @@ public class GOFI.RecurrenceIterator : Object {
                 default:
                     break;
             }
-            while (current_date.compare (cmp_date) > 0) {
+            while (current_date.compare (cmp_date) < 0) {
                 if (!set_next ()) {
                     return null;
                 }

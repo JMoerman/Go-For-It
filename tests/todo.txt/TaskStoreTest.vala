@@ -122,7 +122,7 @@ class TaskStoreTest : TestCase {
     private void test_access () {
         add_tasks ();
 
-        assert_true (test_store.get_n_items () == TEST_TASKS_LENGTH);
+        assert_cmpuint (test_store.get_n_items (), CompareOperator.EQ, TEST_TASKS_LENGTH);
 
         // sequential access
         for (uint i = 0; i < TEST_TASKS_LENGTH; i++) {
@@ -156,7 +156,7 @@ class TaskStoreTest : TestCase {
                 assert_true (compare_tasks (k, j));
             }
         }
-        assert_true (test_store.get_n_items () == 0);
+        assert_cmpuint (test_store.get_n_items (), CompareOperator.EQ, 0);
         assert_true (test_store.get_item (0) == null);
 
         // Remove all in reverse
@@ -168,7 +168,7 @@ class TaskStoreTest : TestCase {
                 assert_true (compare_tasks (j, j));
             }
         }
-        assert_true (test_store.get_n_items () == 0);
+        assert_cmpuint (test_store.get_n_items (), CompareOperator.EQ, 0);
         assert_true (test_store.get_item (0) == null);
 
         // Removing the middle

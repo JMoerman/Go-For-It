@@ -178,6 +178,12 @@ class GOFI.TXT.TxtList : GOFI.TaskList, Object {
      */
     public void load () {
         task_manager = new TaskManager (list_settings);
+        task_manager.new_tasks_on_top = settings.new_tasks_on_top;
+        if (list_settings.add_default_todos && settings.add_default_todos) {
+            task_manager.add_new_tasks_from_strings (get_default_todos ());
+            list_settings.add_default_todos = false;
+            settings.add_default_todos = false;
+        }
         todo_list = new TaskListWidget (this.task_manager.todo_store, true);
         done_list = new TaskListWidget (this.task_manager.done_store, false);
         var clear_done_button = new Gtk.ModelButton ();
@@ -206,12 +212,27 @@ class GOFI.TXT.TxtList : GOFI.TaskList, Object {
         menu_box.show_all ();
 
         /* Action and Signal Handling */
-        todo_list.add_new_task.connect (task_manager.add_new_task);
+        todo_list.add_new_task.connect (task_manager.add_new_task_from_txt);
         todo_list.selection_changed.connect (on_selection_changed);
         task_manager.active_task_invalid.connect (on_active_task_invalid);
+        settings.notify.connect (on_settings_notify);
 
         selected_task = todo_list.get_selected_task ();
         active_task = selected_task;
+    }
+
+    private void on_settings_notify (GLib.ParamSpec pspec) {
+        switch (pspec.name) {
+            case "new-tasks-on-top":
+                on_new_tasks_on_top_changed ();
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void on_new_tasks_on_top_changed () {
+        task_manager.new_tasks_on_top = settings.new_tasks_on_top;
     }
 
     /**
@@ -220,8 +241,8 @@ class GOFI.TXT.TxtList : GOFI.TaskList, Object {
      * Widgets and other objects should be freed to preserve resources.
      */
     public void unload () {
-        task_manager.prepare_free ();
-        task_manager.save_queued_lists ();
+        settings.notify.disconnect (on_settings_notify);
+        task_manager.flush_changes_and_stop_monitoring ();
         todo_list = null;
         done_list = null;
         task_manager = null;

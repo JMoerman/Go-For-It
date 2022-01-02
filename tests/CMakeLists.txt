@@ -8,6 +8,7 @@ vala_precompile (VALA_C ${TEST_EXEC_NAME}
     Tests.vala
     todo.txt/TodoTaskTest.vala
     todo.txt/TaskStoreTest.vala
+    todo.txt/TaskManagerTest.vala
 
 # tell what libraries to use when compiling
 PACKAGES

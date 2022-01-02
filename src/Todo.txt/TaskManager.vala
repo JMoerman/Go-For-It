@@ -51,6 +51,18 @@ class GOFI.TXT.TaskManager : Object {
     string read_error_message = _("Couldn't read the todo.txt file (%s):") + "\n\n%s\n\n";
     string write_error_message = _("Couldn't save the to-do list (%s):") + "\n\n%s\n\n";
 
+    internal GLib.DateTime? static_date {
+        get;
+        set;
+        default = null;
+    }
+
+    public bool new_tasks_on_top {
+        get;
+        set;
+        default = false;
+    }
+
     public signal void active_task_invalid ();
     public signal void refreshing ();
     public signal void refreshed ();
@@ -79,7 +91,7 @@ class GOFI.TXT.TaskManager : Object {
         lsettings.notify["done-uri"].connect (on_done_uri_changed);
     }
 
-    internal TaskManager.null_stores () {
+    internal TaskManager.test_instance () {
         this.lsettings = new ListSettings.empty ();
 
         // Initialize TaskStores
@@ -120,9 +132,24 @@ class GOFI.TXT.TaskManager : Object {
         }
     }
 
-    public void prepare_free () {
+    public void flush_changes_and_stop_monitoring () {
         lsettings.notify["todo-uri"].disconnect (on_todo_uri_changed);
         lsettings.notify["done-uri"].disconnect (on_done_uri_changed);
+        save_queued_lists ();
+        todo_watcher.watching = false;
+        if (!single_file_mode) {
+            done_watcher.watching = false;
+        }
+        todo_watcher = null;
+        done_watcher = null;
+        read_only = true;
+    }
+
+    private inline GLib.DateTime get_date () {
+        if (static_date != null) {
+            return static_date;
+        }
+        return new GLib.DateTime.now_local ();
     }
 
     private void on_todo_uri_changed () {
@@ -163,26 +190,37 @@ class GOFI.TXT.TaskManager : Object {
     }
 
     public void mark_done (TxtTask task) {
-        task.done = true;
+        // task.done = true;
+        task.set_completed (new GOFI.Date (get_date ()));
     }
 
     /**
      * To be called when adding a new (unfinished) task.
      */
-    public void add_new_task (string task) {
+    public void add_new_task_from_txt (string task) {
         string _task = task.strip ();
         if (_task != "") {
             GOFI.Date? creation_date = lsettings.add_creation_dates ?
-                new Date (new GLib.DateTime.now_local ()) : null;
+                new Date (get_date ()) : null;
             var todo_task = new TxtTask.from_simple_txt (_task, false, creation_date);
             if (!todo_task.valid) {
                 return;
             }
-            if (settings.new_tasks_on_top) {
-                todo_store.prepend_task (todo_task);
-            } else {
-                todo_store.add_task (todo_task);
-            }
+            add_new_task (todo_task);
+        }
+    }
+
+    public void add_new_tasks_from_strings (string[] task_strings) {
+        for (int i = 0; i < task_strings.length; i++) {
+            todo_store.add_task (new TxtTask (task_strings[i], false));
+        }
+    }
+
+    public void add_new_task (TxtTask todo_task) {
+        if (new_tasks_on_top) {
+            todo_store.prepend_task (todo_task);
+        } else {
+            todo_store.add_task (todo_task);
         }
     }
 
@@ -249,9 +287,8 @@ class GOFI.TXT.TaskManager : Object {
         return Source.CONTINUE;
     }
 
-    private void reschedule_overdue_tasks () {
-        var now = new DateTime.now_local ();
-        _reschedule_overdue_tasks (now);
+    public void reschedule_overdue_tasks () {
+        _reschedule_overdue_tasks (get_date ());
     }
 
     internal void _reschedule_overdue_tasks (DateTime now) {
@@ -368,31 +405,71 @@ class GOFI.TXT.TaskManager : Object {
         if (recur_mode <= RecurrenceMode.NO_RECURRENCE) {
             return;
         }
-        unowned RecurrenceRule recur = task.recur;
-        if (recur == null) {
-            critical ("Invalid TxtTask state for task %p: recurrence rule is missing!", task);
-            return;
-        }
         var new_task = new TxtTask.from_template_task (task);
         task.recur_mode = RecurrenceMode.NO_RECURRENCE;
         task.recur = null;
-        var task_due = new_task.due_date;
-        if (task_due == null) {
-            warning ("Encountered recurring todo.txt task without due date: %s", task.to_txt (false));
-            task_due = new Date (new GLib.DateTime.now_local ());
-        }
+
         DateTime? new_due_dt;
         DateTime now_dt;
         if (dt == null) {
-            now_dt = new DateTime.now_local ();
+            now_dt = get_date ();
         } else {
             now_dt = dt;
         }
+        var due_date = new_task.due_date;
+        var threshold_date = new_task.threshold_date;
+
+        if (due_date == null) {
+            if (threshold_date != null) {
+                var threshold_dt = get_next_date (recur_mode, now_dt, new_task, threshold_date);
+                if (threshold_dt == null) {
+                    return;
+                }
+                threshold_date = new Date (threshold_dt);
+            } else {
+                due_date = new Date (get_date ());
+            }
+        }
+        if (due_date != null) {
+            new_due_dt = get_next_date (recur_mode, now_dt, new_task, due_date);
+            var new_due_date = new Date (new_due_dt);
+            new_task.due_date = new_due_date;
+            if (new_due_dt == null) {
+                return;
+            }
+            if (threshold_date != null) {
+                var threshold_dt = threshold_date.dt.add_days (
+                    due_date.days_between (new_due_date)
+                );
+                // if (due_date.)
+                threshold_date = new Date (threshold_dt);
+            }
+        }
+        if (threshold_date != null) {
+            new_task.threshold_date = threshold_date;
+            // if (date_after (threshold_date, now_dt)) {
+            //     waiting_store.add_task (new_task);
+            //     return;
+            // }
+        }
+        if (lsettings.add_creation_dates) {
+            new_task.creation_date = new Date (get_date ());
+        }
+        add_new_task (new_task);
+    }
+
+    private GLib.DateTime? get_next_date (RecurrenceMode recur_mode, DateTime now_dt, TxtTask task, GOFI.Date date) {
+        unowned RecurrenceRule recur = task.recur;
+        if (recur == null) {
+            critical ("Invalid TxtTask state for task %p: recurrence rule is missing!", task);
+            return null;
+        }
+        DateTime? next_date;
         switch (recur_mode) {
             case RecurrenceMode.PERIODICALLY_AUTO_RESCHEDULE:
             case RecurrenceMode.PERIODICALLY_SKIP_OLD:
-                var iter = new RecurrenceIterator (recur, task_due.dt);
-                new_due_dt = iter.next_skip_dates (now_dt);
+                var iter = new RecurrenceIterator (recur, date.dt);
+                next_date = iter.next_skip_dates (now_dt);
                 break;
             case RecurrenceMode.ON_COMPLETION:
                 unowned DateTime completion_date;
@@ -402,34 +479,15 @@ class GOFI.TXT.TaskManager : Object {
                     completion_date = now_dt;
                 }
                 var iter = new RecurrenceIterator (recur, completion_date);
-                new_due_dt = iter.next ();
+                next_date = iter.next ();
                 break;
             default:
-                var iter = new RecurrenceIterator (recur, task_due.dt);
-                new_due_dt = iter.next ();
+                var iter = new RecurrenceIterator (recur, date.dt);
+                next_date = iter.next ();
                 break;
         }
-        if (new_due_dt == null) {
-            return;
-        }
-        if (lsettings.add_creation_dates) {
-            new_task.creation_date = new Date (new GLib.DateTime.now_local ());
-        }
-        var new_due_date = new Date (new_due_dt);
-        new_task.due_date = new_due_date;
-        var threshold_date = task.threshold_date;
-        if (task.threshold_date != null) {
-            var threshold_dt = threshold_date.dt.add_days (
-                task_due.days_between (new_due_date)
-            );
-            threshold_date = new Date (threshold_dt);
-            new_task.threshold_date = threshold_date;
-            // if (date_after (threshold_date, now_dt)) {
-            //     waiting_store.add_task (new_task);
-            //     return;
-            // }
-        }
-        todo_store.add_task (new_task);
+
+        return next_date;
     }
 
     private void task_done_handler (TaskStore source, TxtTask task) {
@@ -462,24 +520,11 @@ class GOFI.TXT.TaskManager : Object {
             read_task_file (this.done_txt, true);
         }
 
-        if (settings.add_default_todos && lsettings.add_default_todos) {
-            add_default_todos ();
-        }
-
         read_only = false;
 
         if (!active_task_found) {
             active_task_invalid ();
         }
-    }
-
-    private void add_default_todos () {
-        var default_todos = get_default_todos ();
-        for (int i = 0; i < default_todos.length; i++) {
-            todo_store.add_task (new TxtTask (default_todos[i], false));
-        }
-        lsettings.add_default_todos = false;
-        settings.add_default_todos = false;
     }
 
     /**

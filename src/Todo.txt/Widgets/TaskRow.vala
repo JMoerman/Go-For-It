@@ -208,7 +208,9 @@ class GOFI.TXT.TaskRow: DragListRow {
     }
 
     private void on_check_toggled () {
-        task.done = !task.done;
+        if (!task.done) {
+            task.set_completed_now ();
+        }
     }
 
     private void on_task_done_changed () {

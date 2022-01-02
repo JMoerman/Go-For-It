@@ -5,6 +5,7 @@ void main (string[] args) {
     TestSuite.get_root ().add_suite (new TaskStoreTest ().get_suite ());
     TestSuite.get_root ().add_suite (new TodoTaskTest ().get_suite ());
     TestSuite.get_root ().add_suite (new DragListTest ().get_suite ());
+    TestSuite.get_root ().add_suite (new TaskManagerTest ().get_suite ());
 
     Idle.add (() => {
         Test.run ();

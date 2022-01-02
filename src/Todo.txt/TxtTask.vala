@@ -70,11 +70,6 @@ class GOFI.TXT.TxtTask : TodoTask {
         }
         public set {
             if (_done != value) {
-                if (value && creation_date != null) {
-                    completion_date = new GOFI.Date (new GLib.DateTime.now_local ());
-                } else {
-                    completion_date = null;
-                }
                 _done = value;
                 done_changed ();
             }
@@ -93,7 +88,6 @@ class GOFI.TXT.TxtTask : TodoTask {
         public set;
         default = null;
     }
-
     public GOFI.Date? due_date {
         public get;
         public set;
@@ -154,8 +148,9 @@ class GOFI.TXT.TxtTask : TodoTask {
     }
 
     /**
-     * Creates a copy of the provided task. The new task will not be finished,
-     * even if the provided task is.
+     * Creates a new task using the provided task as template.
+     * The resulting task may have a different completion status (done will be false)
+     * and the timer value will also be ignored.
      */
     public TxtTask.from_template_task (TxtTask template) {
         Object (
@@ -166,6 +161,25 @@ class GOFI.TXT.TxtTask : TodoTask {
             recur_mode: template.recur_mode,
             duration: template.duration,
             priority: template.priority
+        );
+        set_descr_parts (parse_description (template.description.split (" "), 0));
+    }
+
+    /**
+     * Creates a copy of the provided task.
+     */
+    private TxtTask.from_task (TxtTask template) {
+        Object (
+            done: template.done,
+            due_date: template.due_date,
+            threshold_date: template.threshold_date,
+            creation_date: template.creation_date,
+            completion_date: template.completion_date,
+            recur: template.recur,
+            recur_mode: template.recur_mode,
+            duration: template.duration,
+            priority: template.priority,
+            timer_value: template.timer_value
         );
         set_descr_parts (parse_description (template.description.split (" "), 0));
     }
@@ -186,6 +200,21 @@ class GOFI.TXT.TxtTask : TodoTask {
             warning ("Task does not have a description: \"%s\"", descr);
             return;
         }
+    }
+
+    public TxtTask copy () {
+        return new TxtTask.from_task (this);
+    }
+
+    public void set_completed (GOFI.Date? completion_date) {
+        this.completion_date = completion_date;
+        if (!_done) {
+            done = true;
+        }
+    }
+
+    public void set_completed_now () {
+        set_completed (new GOFI.Date (new GLib.DateTime.now_local ()));
     }
 
     private inline bool parse_done (string[] parts, ref uint index) {

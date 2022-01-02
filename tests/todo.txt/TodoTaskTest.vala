@@ -234,7 +234,7 @@ class TodoTaskTest : TestCase {
     }
     private const string TEST_TASK7_TXT = "Test task due:2021-11-30 rec:++3m;d=-1";
 
-    // Repeats on the last day of the month, every 3 months, discards overdue tasks
+    // Task is scheduled on the 16th of november and is rescheduled to the same day next year if overdue
     private static TxtTask build_test_task8 () {
         TxtTask task = new TxtTask ("Test task", false);
         task.due_date = new GOFI.Date.from_ymd (2021, 11, 16);
