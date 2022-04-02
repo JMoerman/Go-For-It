@@ -32,7 +32,7 @@ public class GOFI.TaskTimer {
 
     private const int64 US_C = 1000000; // μs<->s conversion
 
-    public const int64 UPDATE_INTERVAL = 60 * US_C;
+    private const int64 UPDATE_INTERVAL = 60 * US_C;
 
     /**
      * A proxy attribute, that does not store any data itself, but provides
