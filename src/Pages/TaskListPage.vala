@@ -193,13 +193,11 @@ class GOFI.TaskListPage : Gtk.Grid {
      */
     private void add_widgets () {
         string first_page_name;
-        string second_page_name;
 
         disconnect_first_page_signals ();
 
         /* Instantiation of the Widgets */
         first_page = _shown_list.get_primary_page (out first_page_name);
-        last_page = _shown_list.get_secondary_page (out second_page_name);
         first_page_layout = new Gtk.Grid ();
         first_page_layout.orientation = Gtk.Orientation.VERTICAL;
         first_page_layout.add (first_page);
@@ -208,14 +206,10 @@ class GOFI.TaskListPage : Gtk.Grid {
         if (first_page_name == null) {
            first_page_name = _("To-Do");
         }
-        if (second_page_name == null) {
-           second_page_name = _("Done");
-        }
 
         // Add widgets to the activity stack
         activity_stack.add_titled (first_page_layout, "primary", first_page_name);
         activity_stack.add_titled (timer_view, "timer", _("Timer"));
-        activity_stack.add_titled (last_page, "secondary", second_page_name);
 
         if (task_timer.running) {
             // Otherwise no task will be displayed in the timer view

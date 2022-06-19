@@ -73,11 +73,6 @@ public interface GOFI.TaskList : Object {
      */
     public abstract unowned Gtk.Widget get_primary_page (out string? page_name);
 
-    /**
-     * Can be future recurring tasks or tasks that are already done
-     */
-    public abstract unowned Gtk.Widget get_secondary_page (out string? page_name);
-
     public abstract unowned Gtk.Widget? get_menu ();
 
     /**

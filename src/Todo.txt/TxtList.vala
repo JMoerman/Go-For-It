@@ -123,17 +123,6 @@ class GOFI.TXT.TxtList : GOFI.TaskList, Object {
         return txt_page;
     }
 
-    /**
-     * Can be future recurring tasks or tasks that are already done
-     */
-    public unowned Gtk.Widget get_secondary_page (out string? page_name) {
-        page_name = null;
-        temp_widget = new Gtk.Label ("Remove me");
-        return temp_widget;
-    }
-
-    private Gtk.Widget temp_widget;
-
     public unowned Gtk.Widget? get_menu () {
         return null;
     }
