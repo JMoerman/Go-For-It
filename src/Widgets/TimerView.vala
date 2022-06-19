@@ -36,9 +36,11 @@ class GOFI.TimerView : Gtk.Grid {
     private Gtk.Grid action_task_grid;
     private Gtk.Button run_btn;
     private Gtk.Button skip_btn;
-    public Gtk.Button done_btn;
+    private Gtk.Button done_btn;
+    private Gtk.Button close_button;
 
     public signal void done_btn_clicked ();
+    public signal void close_btn_clicked ();
 
     [Signal (action = true)]
     public virtual signal void skip () {
@@ -51,6 +53,10 @@ class GOFI.TimerView : Gtk.Grid {
         /* Settings of the widget itself */
         this.orientation = Gtk.Orientation.VERTICAL;
         this.expand = true;
+
+        close_button = new Gtk.Button.with_label ("close");
+        this.add (close_button);
+        close_button.clicked.connect (() => close_btn_clicked ());
 
         setup_task_widgets ();
         setup_timer_container ();

@@ -18,8 +18,7 @@ class GOFI.TXT.TxtList : GOFI.TaskList, Object {
     private TaskManager task_manager;
     private TaskListWidget todo_list;
     private TaskListWidget done_list;
-
-    private Gtk.Box menu_box;
+    private TxtPage txt_page;
 
     public ListSettings list_settings {
         public get;
@@ -121,7 +120,7 @@ class GOFI.TXT.TxtList : GOFI.TaskList, Object {
      */
     public unowned Gtk.Widget get_primary_page (out string? page_name) {
         page_name = null;
-        return todo_list;
+        return txt_page;
     }
 
     /**
@@ -129,11 +128,14 @@ class GOFI.TXT.TxtList : GOFI.TaskList, Object {
      */
     public unowned Gtk.Widget get_secondary_page (out string? page_name) {
         page_name = null;
-        return done_list;
+        temp_widget = new Gtk.Label ("Remove me");
+        return temp_widget;
     }
 
+    private Gtk.Widget temp_widget;
+
     public unowned Gtk.Widget? get_menu () {
-        return menu_box;
+        return null;
     }
 
     public void clear_done_list () {
@@ -169,7 +171,9 @@ class GOFI.TXT.TxtList : GOFI.TaskList, Object {
     }
 
     public void add_task_shortcut () {
-        todo_list.entry_focus ();
+        // todo_list.entry_focus ();
+        var new_task = task_manager.add_empty_task ();
+        todo_list.get_row_for_task (new_task).edit ();
     }
 
     /**
@@ -184,32 +188,11 @@ class GOFI.TXT.TxtList : GOFI.TaskList, Object {
             list_settings.add_default_todos = false;
             settings.add_default_todos = false;
         }
-        todo_list = new TaskListWidget (this.task_manager.todo_store, true);
-        done_list = new TaskListWidget (this.task_manager.done_store, false);
-        var clear_done_button = new Gtk.ModelButton ();
-        clear_done_button.text = _("Clear Done List");
-        clear_done_button.clicked.connect (clear_done_list);
+        todo_list = new TaskListWidget (this.task_manager.todo_store);
+        done_list = new TaskListWidget (this.task_manager.done_store);
+        txt_page = new TxtPage (list_settings, todo_list, done_list);
 
-        var sort_tasks_button = new Gtk.ModelButton ();
-        var sort_tasks_text = _("Sort Tasks");
-#if USE_GRANITE
-        sort_tasks_button.get_child ().destroy ();
-        var sc = kbsettings.get_shortcut (KeyBindingSettings.SCK_SORT);
-        if (sc.is_valid) {
-            sort_tasks_button.add (new Granite.AccelLabel (sort_tasks_text, sc.to_string ()));
-        } else {
-            sort_tasks_button.add (new Granite.AccelLabel (sort_tasks_text));
-        }
-#else
-        // Gtk.AccelLabel is too buggy to use
-        sort_tasks_button.text = sort_tasks_text;
-#endif
-        sort_tasks_button.clicked.connect (sort_tasks);
-
-        menu_box = new Gtk.Box (Gtk.Orientation.VERTICAL, 0);
-        menu_box.add (sort_tasks_button);
-        menu_box.add (clear_done_button);
-        menu_box.show_all ();
+        txt_page.add_task_clicked.connect (add_task_shortcut);
 
         /* Action and Signal Handling */
         todo_list.add_new_task.connect (task_manager.add_new_task_from_txt);
@@ -246,6 +229,5 @@ class GOFI.TXT.TxtList : GOFI.TaskList, Object {
         todo_list = null;
         done_list = null;
         task_manager = null;
-        menu_box = null;
     }
 }

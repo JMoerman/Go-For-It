@@ -180,6 +180,15 @@ namespace GOFI {
             return "%u %s".printf (seconds / 60, _("min."));
         }
 
+        internal static string seconds_to_separated_timer_string (uint time_val, bool always_show_hours=false) {
+            uint hours, minutes, seconds;
+            uint_to_time (time_val, out hours, out minutes, out seconds);
+            if (always_show_hours || hours > 0) {
+                return _("%1$02d:%2$02d:%3$02d").printf (hours, minutes, seconds);
+            }
+            return _("%1$02d:%2$02d").printf (minutes, seconds);
+        }
+
         public static string seconds_to_pretty_string (uint seconds) {
             uint hours, minutes;
             uint_to_time (seconds, out hours, out minutes, null);

@@ -61,6 +61,7 @@ vala_precompile (VALA_C ${LIBNAME}
     Widgets/ViewSwitcher.vala
     Widgets/TimerScheduleWidget.vala
     Widgets/TimerView.vala
+    Widgets/TimerBar.vala
     Widgets/FileChooserWidget.vala
     Pages/TaskListPage.vala
     Pages/SelectionPage.vala
@@ -91,6 +92,7 @@ vala_precompile (VALA_C ${LIBNAME}
     Todo.txt/Widgets/TaskListWidget.vala
     Todo.txt/Widgets/TaskRow.vala
     Todo.txt/Widgets/DynOrientationBox.vala
+    Todo.txt/Widgets/TxtPage.vala
     Todo.txt/Dialogs/TxtListEditDialog.vala
 
     MainWindow.vala

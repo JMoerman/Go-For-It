@@ -32,8 +32,10 @@ class GOFI.TaskListPage : Gtk.Grid {
     private ViewSwitcher activity_switcher;
     private Gtk.Stack switcher_stack;
 
+    private Gtk.Grid first_page_layout;
     private Gtk.Widget first_page;
     private TimerView timer_view;
+    private TimerBar timer_bar;
     private Gtk.Widget last_page;
 
     public TaskList? shown_list {
@@ -85,7 +87,7 @@ class GOFI.TaskListPage : Gtk.Grid {
     public void propagate_filter_action () {
         var visible_child = activity_stack.get_visible_child ();
         unowned ObjectClass? oc = null;
-        if (visible_child == first_page) {
+        if (visible_child == first_page_layout) {
             oc = first_page.get_class ();
         } else if (visible_child == last_page) {
             oc = last_page.get_class ();
@@ -99,7 +101,7 @@ class GOFI.TaskListPage : Gtk.Grid {
     [Signal (action = true)]
     public virtual signal void mark_task_done () {
         var visible_child = activity_stack.get_visible_child ();
-        if (visible_child == first_page) {
+        if (visible_child == first_page_layout) {
             var selected_task = _shown_list.selected_task;
             if (selected_task != null) {
                 _shown_list.mark_done (selected_task);
@@ -139,6 +141,7 @@ class GOFI.TaskListPage : Gtk.Grid {
         switcher_stack = new Gtk.Stack ();
         activity_switcher = new ViewSwitcher ();
         timer_view = new TimerView (task_timer);
+        timer_bar = new TimerBar (task_timer);
         var activity_label = new Gtk.Label (_("Lists"));
         activity_label.get_style_context ().add_class ("title");
 
@@ -149,7 +152,7 @@ class GOFI.TaskListPage : Gtk.Grid {
         activity_switcher.append ("timer", _("Timer"), GOFI.ICON_NAME);
         activity_switcher.append ("secondary", _("Done"), "go-to-done");
         activity_stack.set_transition_type (
-            Gtk.StackTransitionType.SLIDE_LEFT_RIGHT
+            Gtk.StackTransitionType.SLIDE_UP_DOWN
         );
         switcher_stack.set_transition_type (
             Gtk.StackTransitionType.SLIDE_UP_DOWN
@@ -167,6 +170,13 @@ class GOFI.TaskListPage : Gtk.Grid {
         switcher_stack.add_named (activity_switcher, "switcher");
         switcher_stack.add_named (activity_label, "label");
         this.add (activity_stack);
+
+        timer_bar.timer_page_btn_clicked.connect (() => {
+            activity_stack.visible_child_name = "timer";
+        });
+        timer_view.close_btn_clicked.connect (() => {
+            activity_stack.visible_child_name = "primary";
+        });
     }
 
     private void on_activity_switcher_selected_item_changed () {
@@ -235,6 +245,10 @@ class GOFI.TaskListPage : Gtk.Grid {
         /* Instantiation of the Widgets */
         first_page = _shown_list.get_primary_page (out first_page_name);
         last_page = _shown_list.get_secondary_page (out second_page_name);
+        first_page_layout = new Gtk.Grid ();
+        first_page_layout.orientation = Gtk.Orientation.VERTICAL;
+        first_page_layout.add (first_page);
+        first_page_layout.add (timer_bar);
 
         if (first_page_name == null) {
            first_page_name = _("To-Do");
@@ -244,7 +258,7 @@ class GOFI.TaskListPage : Gtk.Grid {
         }
 
         // Add widgets to the activity stack
-        activity_stack.add_titled (first_page, "primary", first_page_name);
+        activity_stack.add_titled (first_page_layout, "primary", first_page_name);
         activity_stack.add_titled (timer_view, "timer", _("Timer"));
         activity_stack.add_titled (last_page, "secondary", second_page_name);
 
@@ -262,7 +276,7 @@ class GOFI.TaskListPage : Gtk.Grid {
             first_page.show ();
 
             activity_switcher.selected_item = "primary";
-            activity_stack.visible_child = first_page;
+            activity_stack.visible_child = first_page_layout;
         }
 
         connect_first_page_signals ();
@@ -396,6 +410,12 @@ class GOFI.TaskListPage : Gtk.Grid {
         foreach (Gtk.Widget widget in activity_stack.get_children ()) {
             activity_stack.remove (widget);
         }
+        first_page = null;
+        if (first_page_layout != null) {
+            first_page_layout.remove (timer_bar);
+        }
+        first_page_layout = null;
+        last_page = null;
         if (_shown_list != _active_list) {
             _shown_list.unload ();
         }
@@ -459,6 +479,10 @@ class GOFI.TaskListPage : Gtk.Grid {
 
         disconnect_first_page_signals ();
         first_page = null;
+        if (first_page_layout != null) {
+            first_page_layout.remove (timer_bar);
+        }
+        first_page_layout = null;
         last_page = null;
 
         task_timer.reset ();

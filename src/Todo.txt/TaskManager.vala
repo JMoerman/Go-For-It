@@ -224,6 +224,14 @@ class GOFI.TXT.TaskManager : Object {
         }
     }
 
+    public TxtTask add_empty_task () {
+        GOFI.Date? creation_date = lsettings.add_creation_dates ?
+            new Date (get_date ()) : null;
+        var todo_task = new TxtTask.from_simple_txt ("", false, creation_date);
+        add_new_task (todo_task);
+        return todo_task;
+    }
+
     /**
      * Transfers a task from one TaskStore to another.
      */
@@ -725,8 +733,11 @@ class GOFI.TXT.TaskManager : Object {
     private void write_tasks_to_builder (TaskStore store, StringBuilder str_builder, bool log_timer) {
         uint n_items = store.get_n_items ();
         for (uint i = 0; i < n_items; i++) {
-            store.get_task (i).append_txt_to_builder (str_builder, log_timer);
-            str_builder.append_c ('\n');
+            var task = store.get_task (i);
+            if (task.valid) {
+                store.get_task (i).append_txt_to_builder (str_builder, log_timer);
+                str_builder.append_c ('\n');
+            }
         }
     }
 

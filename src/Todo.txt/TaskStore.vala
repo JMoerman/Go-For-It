@@ -44,7 +44,11 @@ class GOFI.TXT.TaskStore : Object, DragListModel {
         task.notify.connect (on_task_notify);
         task.done_changed.connect (on_task_done);
         items_changed (0, 0, 1);
-        task_data_changed ();
+
+        // The user may still need to write the description
+        if (task.valid) {
+            task_data_changed ();
+        }
     }
 
     public void add_task (TxtTask task) {
@@ -52,7 +56,11 @@ class GOFI.TXT.TaskStore : Object, DragListModel {
         task.done_changed.connect (on_task_done);
         task.notify.connect (on_task_notify);
         items_changed (tasks.length - 1, 0, 1);
-        task_data_changed ();
+
+        // The user may still need to write the description
+        if (task.valid) {
+            task_data_changed ();
+        }
     }
 
     public void clear () {

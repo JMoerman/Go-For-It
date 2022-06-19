@@ -283,6 +283,10 @@ private class GOFI.SettingsManager : Object {
         var key_file_backend = GLib.SettingsBackend.keyfile_settings_backend_new (path, "/", null);
         init_with_backend (key_file_backend);
     }
+
+    public SettingsManager.memory_backend () {
+        init_with_backend (GLib.SettingsBackend.memory_settings_backend_new ());
+    }
 */
 
     private void bind_settings () {

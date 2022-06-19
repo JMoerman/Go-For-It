@@ -44,12 +44,16 @@ class GOFI.MainWindow : Gtk.ApplicationWindow {
     private Gtk.Box menu_container;
     private Gtk.Box list_menu_container;
 
-    private Gtk.Button mute_item;
-    private Gtk.Button filter_item;
+    private Gtk.Button mute_btn;
+    private Gtk.Button search_btn;
+    private Gtk.SearchBar search_bar;
+    private Gtk.SearchEntry filter_entry;
 
     private Gtk.Settings gtk_settings;
 
     private Gtk.Widget? list_menu;
+
+    private Filter filter;
 
     public const string ACTION_PREFIX = "win";
     public const string ACTION_ABOUT = "about";
@@ -136,10 +140,10 @@ class GOFI.MainWindow : Gtk.ApplicationWindow {
         }
         if (task_page.showing_timer) {
             list_menu_container.hide ();
-            filter_item.sensitive = false;
+            search_btn.sensitive = false;
         } else {
             list_menu_container.show ();
-            filter_item.sensitive = true;
+            search_btn.sensitive = true;
         }
     }
 
@@ -206,20 +210,12 @@ class GOFI.MainWindow : Gtk.ApplicationWindow {
 
         settings.use_dark_theme_changed.connect (on_use_dark_theme_changed);
         Gtk.Settings.get_default ().notify["gtk-theme-name"].connect (load_css);
-        settings.toolbar_icon_size_changed.connect (on_icon_size_changed);
     }
 
     private void on_use_dark_theme_changed (bool use_dark_theme) {
         gtk_settings = Gtk.Settings.get_default ();
         gtk_settings.gtk_application_prefer_dark_theme = use_dark_theme;
         load_css ();
-    }
-
-    private void on_icon_size_changed (Gtk.IconSize size) {
-#if USE_GRANITE
-        ((Gtk.Image) menu_btn.image).icon_size = size;
-        switch_img.icon_size = size;
-#endif
     }
 
     /**
@@ -250,6 +246,7 @@ class GOFI.MainWindow : Gtk.ApplicationWindow {
 
         setup_stack ();
         setup_top_bar ();
+        setup_filter ();
 
         main_layout.add (top_stack);
 
@@ -390,10 +387,31 @@ class GOFI.MainWindow : Gtk.ApplicationWindow {
         menu_popover = new Gtk.Popover (menu_btn);
         menu_popover.add (menu_container);
         menu_popover.get_style_context ().add_class ("menu");
-#if !USE_GRANITE
+
+#if USE_GRANITE
+        var style_context = menu_btn.get_style_context ();
+        style_context.add_class ("no-margin");
+#else
         menu_container.margin = 10;
 #endif
         menu_btn.popover = menu_popover;
+
+        // Button to show/hide the search bar
+        search_btn = new Gtk.Button ();
+        var sc = kbsettings.get_shortcut (KeyBindingSettings.SCK_FILTER);
+        search_btn.tooltip_markup = sc.get_accel_markup (_("Filter tasks"));
+        search_btn.image = GOFI.Utils.load_image_fallback (
+            Gtk.IconSize.SMALL_TOOLBAR, "edit-find-symbolic", "edit-find"
+        );
+        search_btn.clicked.connect (on_search_btn_clicked);
+
+        // Button to mute/unmute notification sounds
+        mute_btn = new Gtk.Button ();
+        mute_btn.tooltip_text = _("Mute sounds");
+        mute_btn.action_name =
+            SOUND_ACTION_PREFIX + "." + Notifications.KEY_MUTE_SOUND;
+        mute_btn_update_image ();
+        mute_btn.clicked.connect_after (mute_btn_update_image);
 
         var next_icon = GOFI.Utils.get_image_fallback ("go-next-symbolic", "go-next");
 
@@ -404,11 +422,7 @@ class GOFI.MainWindow : Gtk.ApplicationWindow {
         switch_btn.clicked.connect (toggle_top_stack);
         switch_btn.tooltip_text = SWITCH_BTN_LIST_TEXT;
 
-        if (use_header_bar) {
-            add_headerbar ();
-        } else {
-            add_headerbar_as_toolbar ();
-        }
+        add_headerbar ();
     }
 
     private void toggle_top_stack () {
@@ -416,11 +430,7 @@ class GOFI.MainWindow : Gtk.ApplicationWindow {
     }
 
     private void switch_top_stack (bool show_select) {
-#if USE_GRANITE
-        var icon_size = settings.toolbar_icon_size;
-#else
-        var icon_size = Gtk.IconSize.BUTTON;
-#endif
+        var icon_size = Gtk.IconSize.SMALL_TOOLBAR;
 
         if (show_select) {
             var shown_list = task_page.shown_list;
@@ -436,7 +446,7 @@ class GOFI.MainWindow : Gtk.ApplicationWindow {
             settings.list_last_loaded = null;
             task_page.show_switcher (false);
             list_menu_container.hide ();
-            filter_item.sensitive = false;
+            search_btn.sensitive = false;
         } else if (task_page.ready) {
             var current_list_info = task_page.shown_list.list_info;
             top_stack.set_visible_child (task_page);
@@ -451,30 +461,9 @@ class GOFI.MainWindow : Gtk.ApplicationWindow {
             task_page.show_switcher (true);
             if (!task_page.showing_timer) {
                 list_menu_container.show ();
-                filter_item.sensitive = true;
+                search_btn.sensitive = true;
             }
         }
-    }
-
-    /**
-     * No other suitable toolbar like widget seems to exist.
-     * ToolBar is not suitable due to alignment issues and the "toolbar"
-     * styleclass isn't universally supported.
-     */
-    public void add_headerbar_as_toolbar () {
-        header_bar = new Gtk.HeaderBar ();
-        header_bar.has_subtitle = false;
-        header_bar.get_style_context ().add_class ("toolbar");
-
-        // GTK Header Bar
-        header_bar.set_show_close_button (false);
-
-        // Add headerbar Buttons here
-        header_bar.pack_start (switch_btn);
-        header_bar.set_custom_title (task_page.get_switcher ());
-        header_bar.pack_end (menu_btn);
-
-        main_layout.add (header_bar);
     }
 
     public void add_headerbar () {
@@ -487,8 +476,9 @@ class GOFI.MainWindow : Gtk.ApplicationWindow {
         // Add headerbar Buttons here
         header_bar.pack_start (switch_btn);
         header_bar.title = APP_NAME;
-        header_bar.set_custom_title (task_page.get_switcher ());
         header_bar.pack_end (menu_btn);
+        header_bar.pack_end (mute_btn);
+        header_bar.pack_end (search_btn);
 
         this.set_titlebar (header_bar);
     }
@@ -496,10 +486,6 @@ class GOFI.MainWindow : Gtk.ApplicationWindow {
     private void setup_menu () {
         /* Initialization */
         menu_container = new Gtk.Box (Gtk.Orientation.VERTICAL, 0);
-
-        menu_container.add (create_menu_action_section ());
-
-        menu_container.add (new Gtk.Separator (Gtk.Orientation.HORIZONTAL));
 
         list_menu_container = new Gtk.Box (Gtk.Orientation.VERTICAL, 0);
 
@@ -531,60 +517,38 @@ class GOFI.MainWindow : Gtk.ApplicationWindow {
         menu_container.show_all ();
     }
 
-    /**
-     * This part of the menu might not comply with the elementary or GNOME HIGs.
-     * It at least doesn't look too strange so it will do for now.
-     * If anyone has a better idea I'll be glad to hear it.
-     */
-    private Gtk.Widget create_menu_action_section () {
-        var action_container = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
-
-        // Button to mute/unmute notification sounds
-        mute_item = new Gtk.Button ();
-        mute_item.tooltip_text = _("Mute sounds");
-        mute_item.action_name =
-            SOUND_ACTION_PREFIX + "." + Notifications.KEY_MUTE_SOUND;
-        mute_item_update_image ();
-        mute_item.clicked.connect_after (mute_item_update_image);
-
-        // Button to show/hide the search bar
-        filter_item = new Gtk.Button ();
-        var sc = kbsettings.get_shortcut (KeyBindingSettings.SCK_FILTER);
-        filter_item.tooltip_markup = sc.get_accel_markup (_("Filter tasks"));
-        filter_item.image = GOFI.Utils.load_image_fallback (
-            Gtk.IconSize.MENU, "edit-find-symbolic", "edit-find"
-        );
-        filter_item.clicked.connect (on_filter_item_clicked);
-
-        action_container.add (filter_item);
-        action_container.add (mute_item);
-
-        // Apply linked button styling
-        mute_item.hexpand = true;
-        filter_item.hexpand = true;
-        action_container.get_style_context ().add_class ("linked");
-
-#if USE_GRANITE
-        action_container.margin = 12;
-#else
-        action_container.margin_bottom = 10;
-#endif
-
-        return action_container;
+    private void on_search_btn_clicked () {
+        // filter_fallback_action ();
+        search_bar.set_search_mode (true);
     }
 
-    private void on_filter_item_clicked () {
-        filter_fallback_action ();
+    private void setup_filter () {
+        search_bar = new Gtk.SearchBar ();
+        filter_entry = new Gtk.SearchEntry ();
+        filter = new Filter ();
+
+        filter_entry.search_changed.connect (on_filter_entry_search_changed);
+        // search_bar.notify["search-mode-enabled"].connect (on_search_bar_toggle);
+
+        search_bar.add (filter_entry);
+        search_bar.set_show_close_button (true);
+
+        main_layout.add (search_bar);
     }
 
-    private void mute_item_update_image () {
+    private void on_filter_entry_search_changed () {
+        filter.parse (filter_entry.text);
+        // task_view.invalidate_filter ();
+    }
+
+    private void mute_btn_update_image () {
         if (notification_service.mute_sounds) {
-            mute_item.image = GOFI.Utils.load_image_fallback (
-                Gtk.IconSize.MENU, "audio-volume-muted-symbolic", "audio-volume-muted"
+            mute_btn.image = GOFI.Utils.load_image_fallback (
+                Gtk.IconSize.SMALL_TOOLBAR, "audio-volume-muted-symbolic", "audio-volume-muted"
             );
         } else {
-            mute_item.image = GOFI.Utils.load_image_fallback (
-                Gtk.IconSize.MENU, "audio-volume-high-symbolic", "audio-volume-high"
+            mute_btn.image = GOFI.Utils.load_image_fallback (
+                Gtk.IconSize.SMALL_TOOLBAR, "audio-volume-high-symbolic", "audio-volume-high"
             );
         }
     }
