@@ -181,13 +181,6 @@ class GOFI.MainWindow : Gtk.ApplicationWindow {
         }
     }
 
-    public override void show_all () {
-        base.show_all ();
-        if (top_stack.visible_child != task_page) {
-            task_page.show_switcher (false);
-        }
-    }
-
     public void present_timer () {
         task_page.show_timer ();
         this.present ();
@@ -444,7 +437,6 @@ class GOFI.MainWindow : Gtk.ApplicationWindow {
             switch_img.set_from_icon_name (next_icon, icon_size);
             switch_btn.tooltip_text = SWITCH_BTN_LIST_TEXT;
             settings.list_last_loaded = null;
-            task_page.show_switcher (false);
             list_menu_container.hide ();
             search_btn.sensitive = false;
         } else if (task_page.ready) {
@@ -458,7 +450,6 @@ class GOFI.MainWindow : Gtk.ApplicationWindow {
             } else {
                 settings.list_last_loaded = null;
             }
-            task_page.show_switcher (true);
             if (!task_page.showing_timer) {
                 list_menu_container.show ();
                 search_btn.sensitive = true;

@@ -29,8 +29,6 @@ class GOFI.TaskListPage : Gtk.Grid {
 
     /* Various GTK Widgets */
     private Gtk.Stack activity_stack;
-    private ViewSwitcher activity_switcher;
-    private Gtk.Stack switcher_stack;
 
     private Gtk.Grid first_page_layout;
     private Gtk.Widget first_page;
@@ -138,37 +136,17 @@ class GOFI.TaskListPage : Gtk.Grid {
     private void initial_setup () {
         /* Instantiation of available widgets */
         activity_stack = new Gtk.Stack ();
-        switcher_stack = new Gtk.Stack ();
-        activity_switcher = new ViewSwitcher ();
         timer_view = new TimerView (task_timer);
         timer_bar = new TimerBar (task_timer);
         var activity_label = new Gtk.Label (_("Lists"));
         activity_label.get_style_context ().add_class ("title");
 
         // Activity Stack + Switcher
-        activity_switcher.halign = Gtk.Align.CENTER;
-        activity_switcher.icon_size = Gtk.IconSize.LARGE_TOOLBAR;
-        activity_switcher.append ("primary", _("To-Do"), "go-to-list-symbolic");
-        activity_switcher.append ("timer", _("Timer"), GOFI.ICON_NAME);
-        activity_switcher.append ("secondary", _("Done"), "go-to-done");
         activity_stack.set_transition_type (
             Gtk.StackTransitionType.SLIDE_UP_DOWN
         );
-        switcher_stack.set_transition_type (
-            Gtk.StackTransitionType.SLIDE_UP_DOWN
-        );
-        activity_switcher.icon_size = settings.toolbar_icon_size;
-        activity_switcher.show_icons = settings.switcher_use_icons;
-
-        activity_switcher.notify["selected-item"].connect (
-            on_activity_switcher_selected_item_changed
-        );
-        settings.toolbar_icon_size_changed.connect (on_icon_size_changed);
-        settings.switcher_use_icons_changed.connect (on_switcher_use_icons);
         timer_view.done_btn_clicked.connect (on_task_done);
 
-        switcher_stack.add_named (activity_switcher, "switcher");
-        switcher_stack.add_named (activity_label, "label");
         this.add (activity_stack);
 
         timer_bar.timer_page_btn_clicked.connect (() => {
@@ -179,41 +157,18 @@ class GOFI.TaskListPage : Gtk.Grid {
         });
     }
 
-    private void on_activity_switcher_selected_item_changed () {
-        var selected = activity_switcher.selected_item;
-        activity_stack.set_visible_child_name (selected);
-        if (selected == "timer") {
-            timer_view.set_focus ();
-            showing_timer = true;
-        } else {
-            showing_timer = false;
-        }
-    }
-
-    public Gtk.Widget get_switcher () {
-        return switcher_stack;
-    }
-
-    public void show_switcher (bool show) {
-        if (show) {
-            switcher_stack.set_visible_child_name ("switcher");
-        } else {
-            switcher_stack.set_visible_child_name ("label");
-        }
-    }
-
     public void action_add_task () {
-        activity_switcher.selected_item = "primary";
+        activity_stack.visible_child_name = "primary";
         _shown_list.add_task_shortcut ();
     }
 
     public bool switch_page_left () {
-        switch (activity_switcher.selected_item) {
+        switch (activity_stack.visible_child_name) {
             case "timer":
-                activity_switcher.selected_item = "primary";
+                activity_stack.visible_child_name = "primary";
                 return false;
             case "secondary":
-                activity_switcher.selected_item = "timer";
+                activity_stack.visible_child_name = "timer";
                 return false;
             default:
                 return true;
@@ -221,12 +176,12 @@ class GOFI.TaskListPage : Gtk.Grid {
     }
 
     public bool switch_page_right () {
-        switch (activity_switcher.selected_item) {
+        switch (activity_stack.visible_child_name) {
             case "primary":
-                activity_switcher.selected_item = "timer";
+                activity_stack.visible_child_name = "timer";
                 return false;
             case "timer":
-                activity_switcher.selected_item = "secondary";
+                activity_stack.visible_child_name = "secondary";
                 return false;
             default:
                 return true;
@@ -269,13 +224,13 @@ class GOFI.TaskListPage : Gtk.Grid {
             // Otherwise it won't switch
             timer_view.show ();
 
-            activity_switcher.selected_item = "timer";
+            activity_stack.visible_child_name = "timer";
             activity_stack.visible_child = timer_view;
         }
         else {
             first_page.show ();
 
-            activity_switcher.selected_item = "primary";
+            activity_stack.visible_child_name = "primary";
             activity_stack.visible_child = first_page_layout;
         }
 
@@ -383,16 +338,8 @@ class GOFI.TaskListPage : Gtk.Grid {
         }
     }
 
-    private void on_icon_size_changed (Gtk.IconSize size) {
-        activity_switcher.icon_size = size;
-    }
-
-    private void on_switcher_use_icons (bool show_icons) {
-        activity_switcher.show_icons = show_icons;
-    }
-
     public void show_timer () {
-        activity_switcher.selected_item = "timer";
+        activity_stack.visible_child = timer_view;
     }
 
     /**
