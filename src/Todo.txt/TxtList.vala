@@ -123,10 +123,6 @@ class GOFI.TXT.TxtList : GOFI.TaskList, Object {
         return txt_page;
     }
 
-    public unowned Gtk.Widget? get_menu () {
-        return null;
-    }
-
     public void clear_done_list () {
         task_manager.clear_done_store ();
     }

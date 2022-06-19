@@ -73,8 +73,6 @@ public interface GOFI.TaskList : Object {
      */
     public abstract unowned Gtk.Widget get_primary_page (out string? page_name);
 
-    public abstract unowned Gtk.Widget? get_menu ();
-
     /**
      * Returns the schedule of task and break times specific to this list.
      */

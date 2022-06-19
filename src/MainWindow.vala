@@ -42,7 +42,6 @@ class GOFI.MainWindow : Gtk.ApplicationWindow {
     // Application Menu
     private Gtk.Popover menu_popover;
     private Gtk.Box menu_container;
-    private Gtk.Box list_menu_container;
 
     private Gtk.Button mute_btn;
     private Gtk.Button search_btn;
@@ -50,8 +49,6 @@ class GOFI.MainWindow : Gtk.ApplicationWindow {
     private Gtk.SearchEntry filter_entry;
 
     private Gtk.Settings gtk_settings;
-
-    private Gtk.Widget? list_menu;
 
     private Filter filter;
 
@@ -139,10 +136,8 @@ class GOFI.MainWindow : Gtk.ApplicationWindow {
             return;
         }
         if (task_page.showing_timer) {
-            list_menu_container.hide ();
             search_btn.sensitive = false;
         } else {
-            list_menu_container.show ();
             search_btn.sensitive = true;
         }
     }
@@ -187,9 +182,7 @@ class GOFI.MainWindow : Gtk.ApplicationWindow {
     }
 
     private void load_initial (TodoListInfo? initial_list) {
-        if (initial_list == null) {
-            list_menu_container.hide ();
-        } else {
+        if (initial_list != null) {
             on_list_chosen (initial_list);
         }
     }
@@ -270,13 +263,6 @@ class GOFI.MainWindow : Gtk.ApplicationWindow {
 
     private void load_list (TaskList list) {
         task_page.show_task_list (list);
-        if (list_menu != null) {
-            list_menu_container.remove (list_menu);
-        }
-        list_menu = list.get_menu ();
-        if (list_menu != null) {
-            list_menu_container.pack_start (list_menu);
-        }
     }
 
     private void setup_actions (Gtk.Application app) {
@@ -437,7 +423,6 @@ class GOFI.MainWindow : Gtk.ApplicationWindow {
             switch_img.set_from_icon_name (next_icon, icon_size);
             switch_btn.tooltip_text = SWITCH_BTN_LIST_TEXT;
             settings.list_last_loaded = null;
-            list_menu_container.hide ();
             search_btn.sensitive = false;
         } else if (task_page.ready) {
             var current_list_info = task_page.shown_list.list_info;
@@ -451,7 +436,6 @@ class GOFI.MainWindow : Gtk.ApplicationWindow {
                 settings.list_last_loaded = null;
             }
             if (!task_page.showing_timer) {
-                list_menu_container.show ();
                 search_btn.sensitive = true;
             }
         }
@@ -477,14 +461,6 @@ class GOFI.MainWindow : Gtk.ApplicationWindow {
     private void setup_menu () {
         /* Initialization */
         menu_container = new Gtk.Box (Gtk.Orientation.VERTICAL, 0);
-
-        list_menu_container = new Gtk.Box (Gtk.Orientation.VERTICAL, 0);
-
-        list_menu_container.pack_end (
-            new Gtk.Separator (Gtk.Orientation.HORIZONTAL)
-        );
-
-        menu_container.add (list_menu_container);
 
         var config_item = new Gtk.ModelButton ();
         config_item.text = _("Settings");
