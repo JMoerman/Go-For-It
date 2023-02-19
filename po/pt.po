@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2020-12-17 19:25+0100\n"
-"PO-Revision-Date: 2021-05-05 13:22+0000\n"
+"PO-Revision-Date: 2023-02-20 16:37+0000\n"
 "Last-Translator: ssantos <ssantos@web.de>\n"
 "Language-Team: Portuguese <https://hosted.weblate.org/projects/go-for-it/"
 "go-for-it/pt/>\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n > 1;\n"
-"X-Generator: Weblate 4.7-dev\n"
+"X-Generator: Weblate 4.16-dev\n"
 "X-Launchpad-Export-Date: 2017-11-11 05:37+0000\n"
 
 #: ../src/Constants.vala:72
@@ -595,7 +595,7 @@ msgstr "Ficheiro de registo"
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:215
 msgid "Select file to log timer usage in"
-msgstr "Selecione o ficheiro pra registar o uso to timer"
+msgstr "Selecione o ficheiro para registar o uso do temporizador"
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:277
 msgid "Select file to store to-do tasks in"
