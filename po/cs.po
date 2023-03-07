@@ -3,8 +3,8 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2020-12-17 19:25+0100\n"
-"PO-Revision-Date: 2021-05-23 09:32+0000\n"
-"Last-Translator: Ondřej Baštař <jsembasta@gmail.com>\n"
+"PO-Revision-Date: 2023-03-08 12:40+0000\n"
+"Last-Translator: Salacfrantisek <salacfrantisek@seznam.cz>\n"
 "Language-Team: Czech <https://hosted.weblate.org/projects/go-for-it/"
 "go-for-it/cs/>\n"
 "Language: cs\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
-"X-Generator: Weblate 4.7-dev\n"
+"X-Generator: Weblate 4.16.2-dev\n"
 "X-Launchpad-Export-Date: 2017-11-17 05:54+0000\n"
 
 #: ../src/Constants.vala:72
@@ -157,7 +157,7 @@ msgstr "Jednoduché"
 
 #: ../src/Dialogs/SettingsPages/BehaviorPage.vala:59
 msgid "Pomodoro"
-msgstr ""
+msgstr "Pomodoro"
 
 #: ../src/Dialogs/SettingsPages/BehaviorPage.vala:60
 #: ../src/Dialogs/SettingsPages/NotificationsPage.vala:215
@@ -252,10 +252,8 @@ msgid "seconds"
 msgstr "sekund"
 
 #: ../src/Dialogs/SettingsPages/NotificationsPage.vala:130
-#, fuzzy
-#| msgid "Reminder before task ends"
 msgid "Reminder sound"
-msgstr "Připomínka před koncem úkolu"
+msgstr "Zvukové upozornění před koncem úkolu"
 
 #: ../src/Dialogs/SettingsPages/NotificationsPage.vala:140
 msgid "Start of break sound"
@@ -295,12 +293,12 @@ msgstr "Todo.txt soubory byly nalezeny ve zvoleném adresáři."
 #. / For versions <= 1.8, shown in a dialog when destination folder contains either todo.txt or done.txt
 #: ../src/LegacyStrings.vala:4
 msgid "What should be done with these files?"
-msgstr ""
+msgstr "Co by s těmito soubory mělo být provedeno?"
 
 #. / For versions <= 1.8, shown in a dialog when destination folder contains either todo.txt or done.txt
 #: ../src/LegacyStrings.vala:5
 msgid "Overwrite"
-msgstr ""
+msgstr "Přepsat"
 
 #: ../src/LegacyStrings.vala:6
 msgid "The configured folder is already in use by another list."
@@ -312,7 +310,7 @@ msgstr "složka"
 
 #: ../src/LegacyStrings.vala:8
 msgid "Inherit from GTK theme"
-msgstr ""
+msgstr "Stejné, jako vzhled GTK"
 
 #: ../src/LegacyStrings.vala:9
 msgid "Dark theme"
@@ -335,32 +333,32 @@ msgstr ""
 
 #: ../src/Main.vala:97
 msgid "Not a known list: %s"
-msgstr ""
+msgstr "Neznámý list: %s"
 
 #: ../src/Main.vala:236
 msgid "%1$s: Error: %2$s"
-msgstr ""
+msgstr "%1$s: Chyba: %2$s"
 
 #. / Describes format of printed table (table contains the known lists)
 #. / The order of the segments ($1 : $2 - $3) between the brackets must remain the same!
 #: ../src/Main.vala:251
 msgid "Lists (List type : List ID - List name)"
-msgstr ""
+msgstr "Listy (Typ listu : List ID - Název listu)"
 
 #. / Translators: give translation of FILE in "--logfile=FILE" command line argument
 #: ../src/Main.vala:276
 msgid "FILE"
-msgstr ""
+msgstr "SOUBOR"
 
 #. / Translators: give translation of LIST-TYPE in "--load LIST-TYPE LIST-ID" command line argument
 #: ../src/Main.vala:279
 msgid "LIST-TYPE"
-msgstr ""
+msgstr "TYP-LISTU"
 
 #. / Translators: give translation of LIST-ID in "--load LIST-TYPE LIST-ID" command line argument
 #: ../src/Main.vala:281
 msgid "LIST-ID"
-msgstr ""
+msgstr "ID-LISTU"
 
 #: ../src/Main.vala:284
 msgid "Print version info and exit"
@@ -372,23 +370,23 @@ msgstr "Zobrazit dialog s informacemi o aplikaci"
 
 #: ../src/Main.vala:286
 msgid "CSV file to log activities to."
-msgstr ""
+msgstr "CSV soubor pro záznam aktivit."
 
 #: ../src/Main.vala:287
 msgid "Show configured lists and exit"
-msgstr ""
+msgstr "Zobrazit nastavené listy a odejít"
 
 #: ../src/Main.vala:291
 msgid "Load the list specified by the list type and ID"
-msgstr ""
+msgstr "Načíst list specifikovaný dle typu a ID"
 
 #: ../src/MainWindow.vala:66
 msgid "Go to overview"
-msgstr ""
+msgstr "Zobrazit přehled"
 
 #: ../src/MainWindow.vala:67
 msgid "Go back to the to-do list"
-msgstr ""
+msgstr "Zpět na to-do seznam"
 
 #: ../src/MainWindow.vala:358
 msgid "Menu"
@@ -400,26 +398,28 @@ msgstr "Podílet se na / darovat"
 
 #: ../src/MainWindow.vala:506
 msgid "Mute sounds"
-msgstr ""
+msgstr "Ztlumit zvuky"
 
 #: ../src/MainWindow.vala:515 ../src/Services/Shortcuts.vala:164
 msgid "Filter tasks"
-msgstr ""
+msgstr "Filtrovat aktivity"
 
 #: ../src/Pages/SelectionPage.vala:123
 msgid ""
 "Currently, no lists are configured.\n"
 "Add one below!"
 msgstr ""
+"Momentálně nemáte nastavené žádné listy.\n"
+"Přidejte jeden níže!"
 
 #: ../src/Pages/SelectionPage.vala:137 ../src/Pages/SelectionPage.vala:140
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:87
 msgid "Add list"
-msgstr ""
+msgstr "Přidat seznam"
 
 #: ../src/Pages/TaskListPage.vala:142
 msgid "Lists"
-msgstr ""
+msgstr "Seznamy"
 
 #: ../src/Pages/TaskListPage.vala:148 ../src/Pages/TaskListPage.vala:236
 msgid "To-Do"
@@ -431,7 +431,7 @@ msgstr "Hotovo"
 
 #: ../src/Services/ActivityLog.vala:72
 msgid "Couldn't write to %1$s: %2$s"
-msgstr ""
+msgstr "Nelze zapsat do %1$s: %2$s"
 
 #: ../src/Services/Notifications.vala:100 ../src/Widgets/TimerView.vala:97
 #: ../plugins/appindicator/appindicator.vala:213
@@ -447,10 +447,8 @@ msgid "The Break is Over"
 msgstr "Přestávka skončila"
 
 #: ../src/Services/Notifications.vala:108
-#, fuzzy
-#| msgid "Your next task is"
 msgid "Your current task is"
-msgstr "Váš další úkol je"
+msgstr "Váš momentální úkol je"
 
 #: ../src/Services/Notifications.vala:132
 msgid "Prepare for your break"
@@ -461,94 +459,90 @@ msgid "You have %s seconds left"
 msgstr "Zbývá %s sekund"
 
 #: ../src/Services/Notifications.vala:142
-#, fuzzy
-#| msgid "Task duration"
 msgid "Task duration exceeded"
-msgstr "Trvání úkolu"
+msgstr "Trvání úkolu překročeno"
 
 #: ../src/Services/Notifications.vala:143
 msgid "Consider switching to a different task"
-msgstr ""
+msgstr "Zvažte přechod na jinou aktivitu"
 
 #: ../src/Services/SettingsManager.vala:617
 msgid "Light"
-msgstr ""
+msgstr "Světlý"
 
 #: ../src/Services/SettingsManager.vala:619
 msgid "Dark"
-msgstr ""
+msgstr "Tmavý"
 
 #: ../src/Services/SettingsManager.vala:621
 msgid "Default"
-msgstr ""
+msgstr "Výchozí"
 
 #: ../src/Services/Shortcuts.vala:57
 msgid "disabled"
-msgstr ""
+msgstr "vypnuto"
 
 #: ../src/Services/Shortcuts.vala:165 ../src/Todo.txt/TxtList.vala:188
-#, fuzzy
 msgid "Sort Tasks"
-msgstr "Váš další úkol je"
+msgstr "Seřadit aktivity"
 
 #: ../src/Services/Shortcuts.vala:166
-#, fuzzy
 msgid "Add new task/list"
-msgstr "Přidat nový úkol"
+msgstr "Přidat nový úkol/seznam"
 
 #: ../src/Services/Shortcuts.vala:167
 msgid "Start/Stop the timer"
-msgstr ""
+msgstr "Spustit/Zastavit časovač"
 
 #: ../src/Services/Shortcuts.vala:168
 msgid "Skip the break or skip to the break"
-msgstr ""
+msgstr "Přeskočit pauzu nebo přeskočit k pauze"
 
 #: ../src/Services/Shortcuts.vala:169
 msgid "Edit the properties of a list or task"
-msgstr ""
+msgstr "Změnit vlastnosti seznamu nebo aktivity"
 
 #: ../src/Services/Shortcuts.vala:171 ../src/Todo.txt/Widgets/TaskRow.vala:68
 #: ../src/Widgets/TimerView.vala:291
 #: ../plugins/appindicator/appindicator.vala:101
 msgid "Mark the task as complete"
-msgstr ""
+msgstr "Označit jako dokončené"
 
 #: ../src/Services/Shortcuts.vala:172
 msgid "Move selected row up"
-msgstr ""
+msgstr "Přesunout označený řádek výše"
 
 #: ../src/Services/Shortcuts.vala:173
 msgid "Move selected row down"
-msgstr ""
+msgstr "Přesunout označený řádek níže"
 
 #: ../src/Services/Shortcuts.vala:175
 msgid "Move to next task/row"
-msgstr ""
+msgstr "Přejít na další aktivitu/řádek"
 
 #: ../src/Services/Shortcuts.vala:176
 msgid "Move to previous task/row"
-msgstr ""
+msgstr "Přejít na předchozí aktivitu/řádek"
 
 #: ../src/Services/Shortcuts.vala:177
 msgid "Move to right screen"
-msgstr ""
+msgstr "Posunout vpravo"
 
 #: ../src/Services/Shortcuts.vala:178
 msgid "Move to left screen"
-msgstr ""
+msgstr "Posunout vlevo"
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:66
 msgid "Store to-do tasks in"
-msgstr ""
+msgstr "Uložit to-do aktivity v"
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:67
 msgid "Store completed tasks in"
-msgstr ""
+msgstr "Uložit dokončené aktivity v"
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:68
 msgid "List name"
-msgstr ""
+msgstr "Název seznamu"
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:71
 msgid ""
