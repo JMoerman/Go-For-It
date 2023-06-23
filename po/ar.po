@@ -3,8 +3,8 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2020-12-17 19:25+0100\n"
-"PO-Revision-Date: 2021-05-13 12:33+0000\n"
-"Last-Translator: sameer arb <smeerab@tuta.io>\n"
+"PO-Revision-Date: 2023-06-24 19:49+0000\n"
+"Last-Translator: Wwe Dhdh <alialialaalos2002@gmail.com>\n"
 "Language-Team: Arabic <https://hosted.weblate.org/projects/go-for-it/"
 "go-for-it/ar/>\n"
 "Language: ar\n"
@@ -13,7 +13,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
 "&& n%100<=10 ? 3 : n%100>=11 ? 4 : 5;\n"
-"X-Generator: Weblate 4.7-dev\n"
+"X-Generator: Weblate 4.18.1\n"
 "X-Launchpad-Export-Date: 2017-11-11 05:36+0000\n"
 
 #: ../src/Constants.vala:72
@@ -227,20 +227,23 @@ msgid "Tasks"
 msgstr "المهام"
 
 #: ../src/Dialogs/SettingsPages/NotificationsPage.vala:35
+#, fuzzy
 msgid "Aluminium bowl"
-msgstr ""
+msgstr "وعاء ألومنيوم"
 
 #: ../src/Dialogs/SettingsPages/NotificationsPage.vala:37
+#, fuzzy
 msgid "Singing bowl"
-msgstr ""
+msgstr "وعاء الغناء"
 
 #: ../src/Dialogs/SettingsPages/NotificationsPage.vala:39
+#, fuzzy
 msgid "Bell"
-msgstr ""
+msgstr "جرس"
 
 #: ../src/Dialogs/SettingsPages/NotificationsPage.vala:41
 msgid "Loud bell"
-msgstr ""
+msgstr "بصوت عال الجرس"
 
 #: ../src/Dialogs/SettingsPages/NotificationsPage.vala:111
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:384
@@ -259,31 +262,36 @@ msgid "Reminder sound"
 msgstr "تذكير قبل انتهاء المهمة"
 
 #: ../src/Dialogs/SettingsPages/NotificationsPage.vala:140
+#, fuzzy
 msgid "Start of break sound"
-msgstr ""
+msgstr "بداية كسر الصوت‭"
 
 #: ../src/Dialogs/SettingsPages/NotificationsPage.vala:150
+#, fuzzy
 msgid "End of break sound"
-msgstr ""
+msgstr "نهاية كسر الصوت"
 
 #: ../src/Dialogs/SettingsPages/NotificationsPage.vala:211
+#, fuzzy
 msgid "Notification sounds"
-msgstr ""
+msgstr "أصوات الإخطار"
 
 #: ../src/Dialogs/SettingsPages/NotificationsPage.vala:216
+#, fuzzy
 msgid "Silent"
-msgstr ""
+msgstr "صامتة"
 
 #: ../src/Dialogs/SettingsPages/NotificationsPage.vala:259
 msgid "Select notification sound file"
-msgstr ""
+msgstr "حدد ملف صوت الإخطار"
 
 #: ../src/Dialogs/SettingsPages/NotificationsPage.vala:263
 #: ../src/Dialogs/SettingsPages/NotificationsPage.vala:269
 #: ../src/Widgets/FileChooserWidget.vala:83
 #: ../src/Widgets/FileChooserWidget.vala:89
+#, fuzzy
 msgid "_Select"
-msgstr ""
+msgstr "_يختار"
 
 #: ../src/Dialogs/SettingsPages/ShortcutsPage.vala:40
 msgid "%s needs to be restarted for changes to take effect."
@@ -325,11 +333,14 @@ msgstr "تعذر استيراد الإعدادات بشكل صحيح من%s:%s"
 
 #. / For versions <= 1.8, argument 1: filename, argument 2: error message
 #: ../src/LegacyStrings.vala:11
+#, fuzzy
 msgid ""
 "The path to the todo.txt folder does not point to a folder, but to a file or "
 "mountable location. Please change the path in the settings to a suitable "
 "folder or remove this file."
 msgstr ""
+"لا يشير المسار إلى مجلد todo.txt إلى مجلد ، بل يشير إلى ملف أو موقع قابل "
+"للتركيب.  يرجى تغيير المسار في الإعدادات إلى مجلد مناسب أو إزالة هذا الملف."
 
 #: ../src/Main.vala:97
 msgid "Not a known list: %s"
