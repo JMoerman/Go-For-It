@@ -3,8 +3,8 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2020-12-17 19:25+0100\n"
-"PO-Revision-Date: 2023-04-29 00:48+0000\n"
-"Last-Translator: Tunggul Arif Siswoyo <tas@tasproject.org>\n"
+"PO-Revision-Date: 2023-10-09 01:03+0000\n"
+"Last-Translator: Reza Almanda <rezaalmanda27@gmail.com>\n"
 "Language-Team: Indonesian <https://hosted.weblate.org/projects/go-for-it/"
 "go-for-it/id/>\n"
 "Language: id\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 4.18-dev\n"
+"X-Generator: Weblate 5.1-dev\n"
 "X-Launchpad-Export-Date: 2017-11-11 05:37+0000\n"
 
 #: ../src/Constants.vala:72
@@ -325,75 +325,78 @@ msgid ""
 "mountable location. Please change the path in the settings to a suitable "
 "folder or remove this file."
 msgstr ""
+"Jalur ke folder todo.txt tidak mengarah ke folder, tetapi ke file atau "
+"lokasi yang dapat dipasang. Ubah jalur di pengaturan ke folder yang sesuai "
+"atau hapus file ini."
 
 #: ../src/Main.vala:97
 msgid "Not a known list: %s"
-msgstr ""
+msgstr "Bukan daftar yang diketahui: %s"
 
 #: ../src/Main.vala:236
 msgid "%1$s: Error: %2$s"
-msgstr ""
+msgstr "%1$s: Eror: %2$s"
 
 #. / Describes format of printed table (table contains the known lists)
 #. / The order of the segments ($1 : $2 - $3) between the brackets must remain the same!
 #: ../src/Main.vala:251
 msgid "Lists (List type : List ID - List name)"
-msgstr ""
+msgstr "Daftar (Jenis daftar: ID daftar - Nama daftar)"
 
 #. / Translators: give translation of FILE in "--logfile=FILE" command line argument
 #: ../src/Main.vala:276
 msgid "FILE"
-msgstr ""
+msgstr "FILE"
 
 #. / Translators: give translation of LIST-TYPE in "--load LIST-TYPE LIST-ID" command line argument
 #: ../src/Main.vala:279
 msgid "LIST-TYPE"
-msgstr ""
+msgstr "LIST-TYPE"
 
 #. / Translators: give translation of LIST-ID in "--load LIST-TYPE LIST-ID" command line argument
 #: ../src/Main.vala:281
 msgid "LIST-ID"
-msgstr ""
+msgstr "LIST-ID"
 
 #: ../src/Main.vala:284
 msgid "Print version info and exit"
-msgstr ""
+msgstr "Cetak info versi dan keluar"
 
 #: ../src/Main.vala:285
 msgid "Show about dialog"
-msgstr ""
+msgstr "Tampilkan tentang dialog"
 
 #: ../src/Main.vala:286
 msgid "CSV file to log activities to."
-msgstr ""
+msgstr "File CSV untuk mencatat aktivitas."
 
 #: ../src/Main.vala:287
 msgid "Show configured lists and exit"
-msgstr ""
+msgstr "Tampilkan daftar yang dikonfigurasi dan keluar"
 
 #: ../src/Main.vala:291
 msgid "Load the list specified by the list type and ID"
-msgstr ""
+msgstr "Muat daftar yang ditentukan oleh jenis daftar dan ID"
 
 #: ../src/MainWindow.vala:66
 msgid "Go to overview"
-msgstr ""
+msgstr "Pergi ke ikhtisar"
 
 #: ../src/MainWindow.vala:67
 msgid "Go back to the to-do list"
-msgstr ""
+msgstr "Kembali ke daftar to-do"
 
 #: ../src/MainWindow.vala:358
 msgid "Menu"
-msgstr ""
+msgstr "Menu"
 
 #: ../src/MainWindow.vala:481
 msgid "Contribute / Donate"
-msgstr ""
+msgstr "Berkontribusi / Donasi"
 
 #: ../src/MainWindow.vala:506
 msgid "Mute sounds"
-msgstr ""
+msgstr "Bisukan suara"
 
 #: ../src/MainWindow.vala:515 ../src/Services/Shortcuts.vala:164
 msgid "Filter tasks"
