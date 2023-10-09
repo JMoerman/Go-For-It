@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2020-12-17 19:25+0100\n"
-"PO-Revision-Date: 2023-10-09 01:03+0000\n"
+"PO-Revision-Date: 2023-10-10 01:04+0000\n"
 "Last-Translator: Reza Almanda <rezaalmanda27@gmail.com>\n"
 "Language-Team: Indonesian <https://hosted.weblate.org/projects/go-for-it/"
 "go-for-it/id/>\n"
@@ -400,47 +400,50 @@ msgstr "Bisukan suara"
 
 #: ../src/MainWindow.vala:515 ../src/Services/Shortcuts.vala:164
 msgid "Filter tasks"
-msgstr ""
+msgstr "Saring tugas"
 
 #: ../src/Pages/SelectionPage.vala:123
 msgid ""
 "Currently, no lists are configured.\n"
 "Add one below!"
 msgstr ""
+"Saat ini, tidak ada daftar yang dikonfigurasikan. \n"
+"Tambahkan di bawah ini!"
 
 #: ../src/Pages/SelectionPage.vala:137 ../src/Pages/SelectionPage.vala:140
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:87
 msgid "Add list"
-msgstr ""
+msgstr "Tambahkan daftar"
 
 #: ../src/Pages/TaskListPage.vala:142
 msgid "Lists"
-msgstr ""
+msgstr "Daftar"
 
 #: ../src/Pages/TaskListPage.vala:148 ../src/Pages/TaskListPage.vala:236
 msgid "To-Do"
-msgstr ""
+msgstr "To-Do"
 
 #: ../src/Pages/TaskListPage.vala:150 ../src/Pages/TaskListPage.vala:239
 msgid "Done"
-msgstr ""
+msgstr "Selesai"
 
 #: ../src/Services/ActivityLog.vala:72
 msgid "Couldn't write to %1$s: %2$s"
-msgstr ""
+msgstr "Tidak dapat menulis ke %1$s: %2$s"
 
 #: ../src/Services/Notifications.vala:100 ../src/Widgets/TimerView.vala:97
 #: ../plugins/appindicator/appindicator.vala:213
 msgid "Take a Break"
-msgstr ""
+msgstr "Istirahat"
 
 #: ../src/Services/Notifications.vala:102
 msgid "Relax and stop thinking about your current task for a while"
 msgstr ""
+"Bersantai dan berhenti memikirkan tugas Anda saat ini untuk sementara waktu"
 
 #: ../src/Services/Notifications.vala:106
 msgid "The Break is Over"
-msgstr ""
+msgstr "Istirahat Selesai"
 
 #: ../src/Services/Notifications.vala:108
 msgid "Your current task is"
