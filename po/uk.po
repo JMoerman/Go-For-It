@@ -3,15 +3,18 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2020-12-17 19:25+0100\n"
-"PO-Revision-Date: 2019-08-30 16:14+0200\n"
-"Last-Translator: Mykola <mykaua@gmail.com>\n"
-"Language-Team: \n"
+"PO-Revision-Date: 2023-10-27 09:27+0000\n"
+"Last-Translator: Vitaly Germanov <germanov.vitaly@gmail.com>\n"
+"Language-Team: Ukrainian <https://hosted.weblate.org/projects/go-for-it/"
+"go-for-it/uk/>\n"
 "Language: uk\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
+"X-Generator: Weblate 5.2-dev\n"
 "X-Launchpad-Export-Date: 2017-11-11 05:38+0000\n"
-"X-Generator: Poedit 2.0.6\n"
 
 #: ../src/Constants.vala:72
 msgid "Spread the word about \"%s\""
@@ -53,7 +56,7 @@ msgstr ""
 
 #: ../src/Dialogs/FileConflictDialog.vala:86
 msgid "Replace \"%s\"?"
-msgstr ""
+msgstr "Замінити \"%s\"?"
 
 #: ../src/Dialogs/FileConflictDialog.vala:87
 msgid "Should this file be replaced or should this old file be used?"
@@ -73,7 +76,7 @@ msgstr ""
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:93
 #: ../src/Widgets/FileChooserWidget.vala:88
 msgid "Cancel"
-msgstr ""
+msgstr "Вімінити"
 
 #: ../src/Dialogs/SettingsDialog.vala:47 ../src/MainWindow.vala:475
 msgid "Settings"
@@ -90,23 +93,23 @@ msgstr ""
 
 #: ../src/Dialogs/SettingsDialog.vala:77
 msgid "Notifications"
-msgstr ""
+msgstr "Сповіщення"
 
 #: ../src/Dialogs/SettingsDialog.vala:78
 msgid "Appearance"
-msgstr ""
+msgstr "Вигляд"
 
 #: ../src/Dialogs/SettingsDialog.vala:79
 msgid "Shortcuts"
-msgstr ""
+msgstr "Ярлики"
 
 #: ../src/Dialogs/SettingsDialog.vala:81
 msgid "Plugins"
-msgstr ""
+msgstr "Плагіни"
 
 #: ../src/Dialogs/SettingsPages/AppearancePage.vala:30
 msgid "Use small toolbar icons"
-msgstr ""
+msgstr "Використовувати маленьки іконки"
 
 #: ../src/Dialogs/SettingsPages/AppearancePage.vala:37
 msgid "Appearance of the activity switcher"
@@ -114,11 +117,11 @@ msgstr ""
 
 #: ../src/Dialogs/SettingsPages/AppearancePage.vala:39
 msgid "Icons"
-msgstr ""
+msgstr "Іконки"
 
 #: ../src/Dialogs/SettingsPages/AppearancePage.vala:40
 msgid "Text"
-msgstr ""
+msgstr "Текст"
 
 #: ../src/Dialogs/SettingsPages/AppearancePage.vala:53
 msgid "%s needs to be restarted for this setting to take effect"
@@ -133,7 +136,7 @@ msgstr "Використати заголовок"
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:152
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:246
 msgid "General"
-msgstr ""
+msgstr "Головне"
 
 #: ../src/Dialogs/SettingsPages/AppearancePage.vala:73
 msgid "Color scheme"
@@ -141,15 +144,15 @@ msgstr ""
 
 #: ../src/Dialogs/SettingsPages/AppearancePage.vala:86
 msgid "Theme"
-msgstr ""
+msgstr "Тема"
 
 #: ../src/Dialogs/SettingsPages/BehaviorPage.vala:56
 msgid "Timer mode"
-msgstr ""
+msgstr "Режими таймеру"
 
 #: ../src/Dialogs/SettingsPages/BehaviorPage.vala:58
 msgid "Simple"
-msgstr ""
+msgstr "Простий"
 
 #: ../src/Dialogs/SettingsPages/BehaviorPage.vala:59
 msgid "Pomodoro"
@@ -163,13 +166,13 @@ msgstr ""
 #: ../src/Dialogs/SettingsPages/BehaviorPage.vala:68
 #: ../src/Widgets/TimerScheduleWidget.vala:132
 msgid "Task duration"
-msgstr ""
+msgstr "Час задачі"
 
 #: ../src/Dialogs/SettingsPages/BehaviorPage.vala:69
 #: ../src/Dialogs/SettingsPages/BehaviorPage.vala:77
 #: ../src/Dialogs/SettingsPages/BehaviorPage.vala:85
 msgid "minutes"
-msgstr ""
+msgstr "хвилини"
 
 #: ../src/Dialogs/SettingsPages/BehaviorPage.vala:76
 #: ../src/Widgets/TimerScheduleWidget.vala:133
@@ -178,7 +181,7 @@ msgstr ""
 
 #: ../src/Dialogs/SettingsPages/BehaviorPage.vala:84
 msgid "Long break duration"
-msgstr ""
+msgstr "Час довгої перерви"
 
 #. / Part of "Have a long break after # short breaks"
 #: ../src/Dialogs/SettingsPages/BehaviorPage.vala:93
@@ -188,15 +191,15 @@ msgstr ""
 #. / Part of "Have a long break after # short breaks"
 #: ../src/Dialogs/SettingsPages/BehaviorPage.vala:95
 msgid "short breaks"
-msgstr ""
+msgstr "короткі перерви"
 
 #: ../src/Dialogs/SettingsPages/BehaviorPage.vala:118
 msgid "Resume task after the break"
-msgstr ""
+msgstr "Відновити задачу після перерви"
 
 #: ../src/Dialogs/SettingsPages/BehaviorPage.vala:125
 msgid "Reset timer after switching tasks"
-msgstr ""
+msgstr "Скинути таймер після зміни задачі"
 
 #: ../src/Dialogs/SettingsPages/BehaviorPage.vala:143
 #: ../src/Pages/TaskListPage.vala:149 ../src/Pages/TaskListPage.vala:244
@@ -207,19 +210,19 @@ msgstr "Таймер"
 
 #: ../src/Dialogs/SettingsPages/BehaviorPage.vala:147
 msgid "Placement of new tasks"
-msgstr ""
+msgstr "Розташування нової задачі"
 
 #: ../src/Dialogs/SettingsPages/BehaviorPage.vala:150
 msgid "Top of the list"
-msgstr ""
+msgstr "Верх списку"
 
 #: ../src/Dialogs/SettingsPages/BehaviorPage.vala:151
 msgid "Bottom of the list"
-msgstr ""
+msgstr "Низ списку"
 
 #: ../src/Dialogs/SettingsPages/BehaviorPage.vala:163
 msgid "Tasks"
-msgstr ""
+msgstr "Задачі"
 
 #: ../src/Dialogs/SettingsPages/NotificationsPage.vala:35
 msgid "Aluminium bowl"
@@ -240,28 +243,28 @@ msgstr ""
 #: ../src/Dialogs/SettingsPages/NotificationsPage.vala:111
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:384
 msgid "Reminder before task ends"
-msgstr ""
+msgstr "Нагадування перед завершенням задачі"
 
 #: ../src/Dialogs/SettingsPages/NotificationsPage.vala:112
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:385
 msgid "seconds"
-msgstr ""
+msgstr "секунди"
 
 #: ../src/Dialogs/SettingsPages/NotificationsPage.vala:130
 msgid "Reminder sound"
-msgstr ""
+msgstr "Звук нагадування"
 
 #: ../src/Dialogs/SettingsPages/NotificationsPage.vala:140
 msgid "Start of break sound"
-msgstr ""
+msgstr "Звук початку перерви"
 
 #: ../src/Dialogs/SettingsPages/NotificationsPage.vala:150
 msgid "End of break sound"
-msgstr ""
+msgstr "Звук завершення перерви"
 
 #: ../src/Dialogs/SettingsPages/NotificationsPage.vala:211
 msgid "Notification sounds"
-msgstr ""
+msgstr "Звук сповіщення"
 
 #: ../src/Dialogs/SettingsPages/NotificationsPage.vala:216
 msgid "Silent"
@@ -269,22 +272,22 @@ msgstr ""
 
 #: ../src/Dialogs/SettingsPages/NotificationsPage.vala:259
 msgid "Select notification sound file"
-msgstr ""
+msgstr "Вибрати файл звуку сповіщення"
 
 #: ../src/Dialogs/SettingsPages/NotificationsPage.vala:263
 #: ../src/Dialogs/SettingsPages/NotificationsPage.vala:269
 #: ../src/Widgets/FileChooserWidget.vala:83
 #: ../src/Widgets/FileChooserWidget.vala:89
 msgid "_Select"
-msgstr ""
+msgstr "_Вибрати"
 
 #: ../src/Dialogs/SettingsPages/ShortcutsPage.vala:40
 msgid "%s needs to be restarted for changes to take effect."
-msgstr ""
+msgstr "%s потребує перезапуску для застосування змін."
 
 #: ../src/LegacyStrings.vala:3
 msgid "Todo.txt files were found in the destination folder."
-msgstr ""
+msgstr "Todo.txt файли, знайдені в теці застосунку."
 
 #. / For versions <= 1.8, shown in a dialog when destination folder contains either todo.txt or done.txt
 #: ../src/LegacyStrings.vala:4
@@ -294,11 +297,11 @@ msgstr ""
 #. / For versions <= 1.8, shown in a dialog when destination folder contains either todo.txt or done.txt
 #: ../src/LegacyStrings.vala:5
 msgid "Overwrite"
-msgstr ""
+msgstr "Перезаписати"
 
 #: ../src/LegacyStrings.vala:6
 msgid "The configured folder is already in use by another list."
-msgstr ""
+msgstr "Обрана тека вже використовується в іншому списку."
 
 #: ../src/LegacyStrings.vala:7
 msgid "folder"
@@ -306,15 +309,15 @@ msgstr "директорія"
 
 #: ../src/LegacyStrings.vala:8
 msgid "Inherit from GTK theme"
-msgstr ""
+msgstr "Наслідувати з GTK теми"
 
 #: ../src/LegacyStrings.vala:9
 msgid "Dark theme"
-msgstr ""
+msgstr "Темна тема"
 
 #: ../src/LegacyStrings.vala:10
 msgid "Couldn't properly import settings from %s: %s"
-msgstr ""
+msgstr "Коректний імпорт налаштувань з %s: %s неможливий"
 
 #. / For versions <= 1.8, argument 1: filename, argument 2: error message
 #: ../src/LegacyStrings.vala:11
