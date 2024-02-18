@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2020-12-17 19:25+0100\n"
-"PO-Revision-Date: 2023-04-13 19:48+0000\n"
+"PO-Revision-Date: 2024-02-18 18:17+0000\n"
 "Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
 "Language-Team: Georgian <https://hosted.weblate.org/projects/go-for-it/"
 "go-for-it/ka/>\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 4.17-dev\n"
+"X-Generator: Weblate 5.4\n"
 "X-Launchpad-Export-Date: 2017-11-11 05:37+0000\n"
 
 #: ../src/Constants.vala:72
@@ -775,7 +775,7 @@ msgstr "_მზადაა"
 
 #: ../src/Widgets/TimerView.vala:317
 msgid "Relax"
-msgstr "დასვენება"
+msgstr "მოსვენება"
 
 #: ../src/Widgets/TimerView.vala:318
 msgid "You have nothing to do."
