@@ -3,16 +3,16 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2020-12-17 19:25+0100\n"
-"PO-Revision-Date: 2021-03-26 03:29+0000\n"
-"Last-Translator: J. Lavoie <j.lavoie@net-c.ca>\n"
-"Language-Team: Chinese (Simplified) <https://hosted.weblate.org/projects/"
-"go-for-it/go-for-it/zh_Hans/>\n"
+"PO-Revision-Date: 2024-10-08 01:27+0000\n"
+"Last-Translator: JiangHuDao <w2027075535@outlook.com>\n"
+"Language-Team: Chinese (Simplified Han script) <https://hosted.weblate.org/"
+"projects/go-for-it/go-for-it/zh_Hans/>\n"
 "Language: zh\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 4.5.2-dev\n"
+"X-Generator: Weblate 5.8-dev\n"
 "X-Launchpad-Export-Date: 2017-11-11 05:37+0000\n"
 
 #: ../src/Constants.vala:72
@@ -225,19 +225,19 @@ msgstr "任务"
 
 #: ../src/Dialogs/SettingsPages/NotificationsPage.vala:35
 msgid "Aluminium bowl"
-msgstr "铝碗"
+msgstr "铝钵"
 
 #: ../src/Dialogs/SettingsPages/NotificationsPage.vala:37
 msgid "Singing bowl"
-msgstr ""
+msgstr "颂钵"
 
 #: ../src/Dialogs/SettingsPages/NotificationsPage.vala:39
 msgid "Bell"
-msgstr ""
+msgstr "钟"
 
 #: ../src/Dialogs/SettingsPages/NotificationsPage.vala:41
 msgid "Loud bell"
-msgstr ""
+msgstr "钟鸣"
 
 #: ../src/Dialogs/SettingsPages/NotificationsPage.vala:111
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:384
@@ -255,11 +255,11 @@ msgstr "提醒音"
 
 #: ../src/Dialogs/SettingsPages/NotificationsPage.vala:140
 msgid "Start of break sound"
-msgstr ""
+msgstr "开始休息提示音"
 
 #: ../src/Dialogs/SettingsPages/NotificationsPage.vala:150
 msgid "End of break sound"
-msgstr ""
+msgstr "停止休息提示音"
 
 #: ../src/Dialogs/SettingsPages/NotificationsPage.vala:211
 msgid "Notification sounds"
@@ -267,7 +267,7 @@ msgstr "通知音"
 
 #: ../src/Dialogs/SettingsPages/NotificationsPage.vala:216
 msgid "Silent"
-msgstr ""
+msgstr "安静"
 
 #: ../src/Dialogs/SettingsPages/NotificationsPage.vala:259
 msgid "Select notification sound file"
@@ -357,31 +357,31 @@ msgstr ""
 
 #: ../src/Main.vala:284
 msgid "Print version info and exit"
-msgstr ""
+msgstr "打印版本信息并退出"
 
 #: ../src/Main.vala:285
 msgid "Show about dialog"
-msgstr ""
+msgstr "展示会话信息"
 
 #: ../src/Main.vala:286
 msgid "CSV file to log activities to."
-msgstr ""
+msgstr "记录活动的CSV文件。"
 
 #: ../src/Main.vala:287
 msgid "Show configured lists and exit"
-msgstr ""
+msgstr "展示配置列表并退出"
 
 #: ../src/Main.vala:291
 msgid "Load the list specified by the list type and ID"
-msgstr ""
+msgstr "加载由列表类型和ID指定的列表"
 
 #: ../src/MainWindow.vala:66
 msgid "Go to overview"
-msgstr ""
+msgstr "前往概述"
 
 #: ../src/MainWindow.vala:67
 msgid "Go back to the to-do list"
-msgstr ""
+msgstr "返回to-do列表"
 
 #: ../src/MainWindow.vala:358
 msgid "Menu"
@@ -389,11 +389,11 @@ msgstr "菜单"
 
 #: ../src/MainWindow.vala:481
 msgid "Contribute / Donate"
-msgstr ""
+msgstr "贡献/捐赠"
 
 #: ../src/MainWindow.vala:506
 msgid "Mute sounds"
-msgstr ""
+msgstr "静音"
 
 #: ../src/MainWindow.vala:515 ../src/Services/Shortcuts.vala:164
 msgid "Filter tasks"
@@ -408,7 +408,7 @@ msgstr ""
 #: ../src/Pages/SelectionPage.vala:137 ../src/Pages/SelectionPage.vala:140
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:87
 msgid "Add list"
-msgstr ""
+msgstr "添加列表"
 
 #: ../src/Pages/TaskListPage.vala:142
 msgid "Lists"
@@ -437,7 +437,7 @@ msgstr ""
 
 #: ../src/Services/Notifications.vala:106
 msgid "The Break is Over"
-msgstr ""
+msgstr "休息结束了"
 
 #: ../src/Services/Notifications.vala:108
 msgid "Your current task is"
@@ -461,7 +461,7 @@ msgstr "考虑切换到其他任务"
 
 #: ../src/Services/SettingsManager.vala:617
 msgid "Light"
-msgstr ""
+msgstr "明亮"
 
 #: ../src/Services/SettingsManager.vala:619
 msgid "Dark"
@@ -477,7 +477,7 @@ msgstr ""
 
 #: ../src/Services/Shortcuts.vala:165 ../src/Todo.txt/TxtList.vala:188
 msgid "Sort Tasks"
-msgstr ""
+msgstr "排序任务"
 
 #: ../src/Services/Shortcuts.vala:166
 msgid "Add new task/list"
