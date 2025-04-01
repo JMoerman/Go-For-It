@@ -3,8 +3,8 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2020-12-17 19:25+0100\n"
-"PO-Revision-Date: 2021-03-26 03:29+0000\n"
-"Last-Translator: J. Lavoie <j.lavoie@net-c.ca>\n"
+"PO-Revision-Date: 2025-04-01 13:29+0000\n"
+"Last-Translator: Henry Harris <holy.landowner299@passfwd.com>\n"
 "Language-Team: Bulgarian <https://hosted.weblate.org/projects/go-for-it/"
 "go-for-it/bg/>\n"
 "Language: bg\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 4.5.2-dev\n"
+"X-Generator: Weblate 5.11-dev\n"
 "X-Launchpad-Export-Date: 2017-11-11 05:37+0000\n"
 
 #: ../src/Constants.vala:72
@@ -252,10 +252,8 @@ msgid "seconds"
 msgstr "секунди"
 
 #: ../src/Dialogs/SettingsPages/NotificationsPage.vala:130
-#, fuzzy
-#| msgid "Reminder before task ends"
 msgid "Reminder sound"
-msgstr "Напомняне преди задачата да приключи"
+msgstr "Звук за напомняне"
 
 #: ../src/Dialogs/SettingsPages/NotificationsPage.vala:140
 msgid "Start of break sound"
@@ -312,7 +310,7 @@ msgstr "папка"
 
 #: ../src/LegacyStrings.vala:8
 msgid "Inherit from GTK theme"
-msgstr ""
+msgstr "Наследено от GTK тема"
 
 #: ../src/LegacyStrings.vala:9
 msgid "Dark theme"
@@ -495,7 +493,7 @@ msgstr "Старт / Стоп на таймер"
 
 #: ../src/Services/Shortcuts.vala:168
 msgid "Skip the break or skip to the break"
-msgstr ""
+msgstr "Пропусни почивката или пропусни до почивката"
 
 #: ../src/Services/Shortcuts.vala:169
 msgid "Edit the properties of a list or task"
@@ -532,16 +530,17 @@ msgid "Move to left screen"
 msgstr "Преместване на ляв екран"
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:66
+#, fuzzy
 msgid "Store to-do tasks in"
-msgstr ""
+msgstr "Запази задачите в/във"
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:67
 msgid "Store completed tasks in"
-msgstr ""
+msgstr "Запази завършените задачи в/във"
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:68
 msgid "List name"
-msgstr ""
+msgstr "Име на лист"
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:71
 msgid ""
@@ -565,7 +564,7 @@ msgstr ""
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:94
 msgid "Apply"
-msgstr ""
+msgstr "Приложи"
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:197
 msgid "Log timer usage"
@@ -586,12 +585,14 @@ msgid "Log file"
 msgstr ""
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:215
+#, fuzzy
 msgid "Select file to log timer usage in"
-msgstr ""
+msgstr "Изберете файл за правене на записване на таймера"
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:277
+#, fuzzy
 msgid "Select file to store to-do tasks in"
-msgstr ""
+msgstr "Изберете файл в когото да запазите to-do задачите"
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:284
 msgid "Select file to store completed tasks in"
@@ -607,15 +608,16 @@ msgstr ""
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:291
 msgid "This information will be stored in the todo.txt files."
-msgstr ""
+msgstr "Тази информация ще бъде запазена в todo.txt файловете."
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:295
 msgid "Log the creation date of tasks"
-msgstr ""
+msgstr "Записвайте датите на създаване на задачите"
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:383
+#, fuzzy
 msgid "Use default settings"
-msgstr ""
+msgstr "Използвайте  настройките по подразбиране"
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:453
 msgid "The configured to-do file is already in use by another list."
@@ -628,29 +630,33 @@ msgstr ""
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:489
 msgid "Please assign a name to the list."
-msgstr ""
+msgstr "Моля поставете име на листа."
 
 #: ../src/Todo.txt/Filter.vala:60 ../src/Todo.txt/Widgets/TaskRow.vala:397
 msgid "project"
-msgstr ""
+msgstr "проект"
 
 #: ../src/Todo.txt/Filter.vala:61 ../src/Todo.txt/Widgets/TaskRow.vala:393
 msgid "context"
 msgstr ""
 
 #: ../src/Todo.txt/Filter.vala:62 ../src/Todo.txt/Widgets/TaskRow.vala:354
+#, fuzzy
 msgid "priority"
-msgstr ""
+msgstr "приоритет"
 
 #: ../src/Todo.txt/TaskManager.vala:48
 msgid ""
 "%s won't save or load from the current todo.txt folder until it is either "
 "restarted or another location is chosen."
 msgstr ""
+"%s няма да запази или зареди от сегашната todo.txt папка докато не е "
+"рестартирано или се избере друго място."
 
 #: ../src/Todo.txt/TaskManager.vala:49
+#, fuzzy
 msgid "Couldn't read the todo.txt file (%s):"
-msgstr ""
+msgstr "Не можеше да бъде прочетен todo.txt файлът (%s):"
 
 #: ../src/Todo.txt/TaskManager.vala:50
 msgid "Couldn't save the to-do list (%s):"
@@ -689,58 +695,58 @@ msgstr ""
 #: ../src/Todo.txt/Widgets/TaskListWidget.vala:205
 #: ../src/Todo.txt/Widgets/TaskListWidget.vala:224
 msgid "Add new task"
-msgstr ""
+msgstr "Добави нова задача"
 
 #. / see https://valadoc.org/glib-2.0/GLib.DateTime.format.html for
 #. formatting of DateTime
 #: ../src/Todo.txt/Widgets/TaskRow.vala:325
 msgid "%Y-%m-%d"
-msgstr ""
+msgstr "%Y-%m-%d"
 
 #: ../src/Todo.txt/Widgets/TaskRow.vala:329
 msgid "Task completed at %1$s, created at %2$s"
-msgstr ""
+msgstr "Задачата е завършена на %1$s, създадена на %2$s,"
 
 #: ../src/Todo.txt/Widgets/TaskRow.vala:335
 msgid "Task created at %s"
-msgstr ""
+msgstr "Задачата е създадена на %s"
 
 #: ../src/Utils.vala:180
 msgid "min."
-msgstr ""
+msgstr "мин."
 
 #: ../src/Utils.vala:188
 msgid "%u minutes"
-msgstr ""
+msgstr "%u минути"
 
 #: ../src/Utils.vala:190
 msgid "%1$u hours and %2$u minutes"
-msgstr ""
+msgstr "%1$u часа и %2$u минути"
 
 #. / In a few places a string is turned into an exclamation at runtime. Please translate this if appending '!' is not sufficient to accomplish this.
 #: ../src/Utils.vala:234
 msgid "%s!"
-msgstr ""
+msgstr "%s!"
 
 #: ../src/Widgets/DragList.vala:764
 msgid "Click and drag to reorder rows"
-msgstr ""
+msgstr "Цъкни и плъзни за да пренаредиш редовете"
 
 #: ../src/Widgets/FileChooserWidget.vala:21
 msgid "Choose a file"
-msgstr ""
+msgstr "Изберете файл"
 
 #: ../src/Widgets/TimerView.vala:100
 msgid "Skip the remainder of the break"
-msgstr ""
+msgstr "Пропуснете остатъка от почивката"
 
 #: ../src/Widgets/TimerView.vala:102
 msgid "Active Task"
-msgstr ""
+msgstr "Активна задача"
 
 #: ../src/Widgets/TimerView.vala:106
 msgid "Skip to the break"
-msgstr ""
+msgstr "Пропусни до почивката"
 
 #: ../src/Widgets/TimerView.vala:147
 msgid "Pau_se"
@@ -749,27 +755,27 @@ msgstr ""
 #: ../src/Widgets/TimerView.vala:149
 #: ../plugins/appindicator/appindicator.vala:238
 msgid "Stop the timer"
-msgstr ""
+msgstr "Спри таймерът"
 
 #: ../src/Widgets/TimerView.vala:156
 msgid "_Start"
-msgstr ""
+msgstr "_Започни"
 
 #: ../src/Widgets/TimerView.vala:158
 #: ../plugins/appindicator/appindicator.vala:119
 #: ../plugins/appindicator/appindicator.vala:247
 msgid "Start the timer"
-msgstr ""
+msgstr "Започни таймерът"
 
 #: ../src/Widgets/TimerView.vala:178
 msgid "Inactive"
-msgstr ""
+msgstr "Неактивен"
 
 #: ../src/Widgets/TimerView.vala:179
 #: ../plugins/appindicator/appindicator.vala:92
 #: ../plugins/appindicator/appindicator.vala:201
 msgid "No task has been selected"
-msgstr ""
+msgstr "Няма избрана задача"
 
 #: ../src/Widgets/TimerView.vala:272
 msgid "S_kip"
@@ -777,31 +783,31 @@ msgstr ""
 
 #: ../src/Widgets/TimerView.vala:273
 msgid "_Done"
-msgstr ""
+msgstr "_Готово"
 
 #: ../src/Widgets/TimerView.vala:317
 msgid "Relax"
-msgstr ""
+msgstr "Отпусни се"
 
 #: ../src/Widgets/TimerView.vala:318
 msgid "You have nothing to do."
-msgstr ""
+msgstr "Нямаш нищо да правиш."
 
 #: ../src/Widgets/TodoListInfoRow.vala:99
 msgid "Delete"
-msgstr ""
+msgstr "Изтрии"
 
 #: ../src/Widgets/TodoListInfoRow.vala:100
 msgid "Edit"
-msgstr ""
+msgstr "Промени"
 
 #: ../plugins/appindicator/appindicator.vala:78
 msgid "Open %s"
-msgstr ""
+msgstr "Отвори %s"
 
 #: ../plugins/appindicator/appindicator.vala:107
 msgid "Switch to next task"
-msgstr ""
+msgstr "Промени към следваща задача"
 
 #: ../plugins/appindicator/appindicator.vala:113
 msgid "Switch to the previous task"
