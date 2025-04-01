@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2020-12-17 19:25+0100\n"
-"PO-Revision-Date: 2025-04-01 13:31+0000\n"
+"PO-Revision-Date: 2025-04-01 13:54+0000\n"
 "Last-Translator: Henry Harris <holy.landowner299@passfwd.com>\n"
 "Language-Team: Bulgarian <https://hosted.weblate.org/projects/go-for-it/"
 "go-for-it/bg/>\n"
@@ -561,7 +561,7 @@ msgstr "Нов to-do лист"
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:92
 msgid "Edit to-do list properties"
-msgstr ""
+msgstr "Промени свойствата на to-do листа"
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:94
 msgid "Apply"
