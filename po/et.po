@@ -3,15 +3,17 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2020-12-17 19:25+0100\n"
-"PO-Revision-Date: 2016-11-18 22:38+0000\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
-"Language: \n"
+"PO-Revision-Date: 2025-04-03 11:46+0000\n"
+"Last-Translator: Priit Jõerüüt <hwlate@joeruut.com>\n"
+"Language-Team: Estonian <https://hosted.weblate.org/projects/go-for-it/"
+"go-for-it/et/>\n"
+"Language: et\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 5.11-dev\n"
 "X-Launchpad-Export-Date: 2017-11-11 05:37+0000\n"
-"X-Generator: Launchpad (build 18505)\n"
 
 #: ../src/Constants.vala:72
 msgid "Spread the word about \"%s\""
@@ -27,11 +29,11 @@ msgstr ""
 
 #: ../src/Dialogs/AboutDialog.vala:27 ../src/MainWindow.vala:488
 msgid "About"
-msgstr ""
+msgstr "Rakenduse teave"
 
 #: ../src/Dialogs/AboutDialog.vala:41
 msgid "A stylish to-do list with built-in productivity timer."
-msgstr ""
+msgstr "Lihtne tööde loend koos taimeriga."
 
 #: ../src/Dialogs/ContributeDialog.vala:28
 msgid "Contributions and Donations"
@@ -53,19 +55,20 @@ msgstr ""
 
 #: ../src/Dialogs/FileConflictDialog.vala:86
 msgid "Replace \"%s\"?"
-msgstr ""
+msgstr "Kas asendan „%s“?"
 
 #: ../src/Dialogs/FileConflictDialog.vala:87
 msgid "Should this file be replaced or should this old file be used?"
 msgstr ""
+"Kas peaksime selle faili asendama või peaksime seda vana faili kasutama?"
 
 #: ../src/Dialogs/FileConflictDialog.vala:108
 msgid "Keep old"
-msgstr ""
+msgstr "Jäta vana alles"
 
 #: ../src/Dialogs/FileConflictDialog.vala:109
 msgid "Replace"
-msgstr ""
+msgstr "Asenda"
 
 #: ../src/Dialogs/FileConflictDialog.vala:115
 #: ../src/Dialogs/SettingsPages/NotificationsPage.vala:268
@@ -73,36 +76,36 @@ msgstr ""
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:93
 #: ../src/Widgets/FileChooserWidget.vala:88
 msgid "Cancel"
-msgstr ""
+msgstr "Katkesta"
 
 #: ../src/Dialogs/SettingsDialog.vala:47 ../src/MainWindow.vala:475
 msgid "Settings"
-msgstr ""
+msgstr "Seadistused"
 
 #: ../src/Dialogs/SettingsDialog.vala:49
 #: ../plugins/appindicator/appindicator.vala:83
 msgid "Close"
-msgstr ""
+msgstr "Sulge"
 
 #: ../src/Dialogs/SettingsDialog.vala:76
 msgid "Behavior"
-msgstr ""
+msgstr "Käitumine"
 
 #: ../src/Dialogs/SettingsDialog.vala:77
 msgid "Notifications"
-msgstr ""
+msgstr "Teavitused"
 
 #: ../src/Dialogs/SettingsDialog.vala:78
 msgid "Appearance"
-msgstr ""
+msgstr "Välimus"
 
 #: ../src/Dialogs/SettingsDialog.vala:79
 msgid "Shortcuts"
-msgstr ""
+msgstr "Kiirklahvid"
 
 #: ../src/Dialogs/SettingsDialog.vala:81
 msgid "Plugins"
-msgstr ""
+msgstr "Lisamoodulid"
 
 #: ../src/Dialogs/SettingsPages/AppearancePage.vala:30
 msgid "Use small toolbar icons"
@@ -355,7 +358,7 @@ msgstr ""
 
 #: ../src/Main.vala:284
 msgid "Print version info and exit"
-msgstr ""
+msgstr "Näita versiooniteavet ja välju"
 
 #: ../src/Main.vala:285
 msgid "Show about dialog"
