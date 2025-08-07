@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2020-12-17 19:25+0100\n"
-"PO-Revision-Date: 2025-08-07 09:55+0000\n"
+"PO-Revision-Date: 2025-08-07 09:59+0000\n"
 "Last-Translator: Priit Jõerüüt <jrthwlate@users.noreply.hosted.weblate.org>\n"
 "Language-Team: Estonian <https://hosted.weblate.org/projects/go-for-it/"
 "go-for-it/et/>\n"
@@ -328,6 +328,9 @@ msgid ""
 "mountable location. Please change the path in the settings to a suitable "
 "folder or remove this file."
 msgstr ""
+"todo.txt faili asukoht ei viita kaustale, vaid failile või haagitavale "
+"asukohale. Palun muuda asukohta nii, et ta viitaks õigele kaustale või "
+"eemalda see fail."
 
 #: ../src/Main.vala:97
 msgid "Not a known list: %s"
@@ -341,7 +344,7 @@ msgstr "%1$s: Viga: %2$s"
 #. / The order of the segments ($1 : $2 - $3) between the brackets must remain the same!
 #: ../src/Main.vala:251
 msgid "Lists (List type : List ID - List name)"
-msgstr ""
+msgstr "Loendid (Loendi tüüp : Loendi tunnus - Loendi nimi)"
 
 #. / Translators: give translation of FILE in "--logfile=FILE" command line argument
 #: ../src/Main.vala:276
@@ -547,12 +550,16 @@ msgid ""
 "Task list location has been changed to \"%1$s\" (was \"%2$s\"), but this "
 "file already exists."
 msgstr ""
+"Muutsid ülesannete loendi asukohaks „%1$s“ (varem oli „%2$s“), aga selline "
+"fail on juba olemas."
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:72
 msgid ""
 "The location to store completed tasks in has been changed to \"%1$s\" (was "
 "\"%2$s\"), but this file already exists."
 msgstr ""
+"Muutsid lõpetatud ülesannete salvestamise asukohaks „%1$s“ (varem oli „%2$s“)"
+", aga selline fail on juba olemas."
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:85
 msgid "New to-do list"
@@ -626,6 +633,8 @@ msgstr "Seadistatud ülesannete fail on juba kasutusel muu loendi poolt."
 msgid ""
 "Another todo.txt list archives its completed tasks to the selected file."
 msgstr ""
+"Üks teine todo.txt arhiveerib oma lõpetatud ülesandeid sellesse valitud "
+"faili."
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:489
 msgid "Please assign a name to the list."
