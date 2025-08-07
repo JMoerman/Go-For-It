@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2020-12-17 19:25+0100\n"
-"PO-Revision-Date: 2025-08-07 09:34+0000\n"
+"PO-Revision-Date: 2025-08-07 09:47+0000\n"
 "Last-Translator: Priit Jõerüüt <jrthwlate@users.noreply.hosted.weblate.org>\n"
 "Language-Team: Estonian <https://hosted.weblate.org/projects/go-for-it/"
 "go-for-it/et/>\n"
@@ -228,68 +228,68 @@ msgstr "Ülesanded"
 
 #: ../src/Dialogs/SettingsPages/NotificationsPage.vala:35
 msgid "Aluminium bowl"
-msgstr ""
+msgstr "Alumiiniumkauss"
 
 #: ../src/Dialogs/SettingsPages/NotificationsPage.vala:37
 msgid "Singing bowl"
-msgstr ""
+msgstr "Kumisev kell"
 
 #: ../src/Dialogs/SettingsPages/NotificationsPage.vala:39
 msgid "Bell"
-msgstr ""
+msgstr "Tavaline kellahelin"
 
 #: ../src/Dialogs/SettingsPages/NotificationsPage.vala:41
 msgid "Loud bell"
-msgstr ""
+msgstr "Tavaline vali kellahelin"
 
 #: ../src/Dialogs/SettingsPages/NotificationsPage.vala:111
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:384
 msgid "Reminder before task ends"
-msgstr ""
+msgstr "Meeldetuletus enne ülesande lõppemist"
 
 #: ../src/Dialogs/SettingsPages/NotificationsPage.vala:112
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:385
 msgid "seconds"
-msgstr ""
+msgstr "sekundit"
 
 #: ../src/Dialogs/SettingsPages/NotificationsPage.vala:130
 msgid "Reminder sound"
-msgstr ""
+msgstr "Meeldetuletushelid"
 
 #: ../src/Dialogs/SettingsPages/NotificationsPage.vala:140
 msgid "Start of break sound"
-msgstr ""
+msgstr "Puhkepausi alguse märguanne"
 
 #: ../src/Dialogs/SettingsPages/NotificationsPage.vala:150
 msgid "End of break sound"
-msgstr ""
+msgstr "Puhkepausi lõpu märguanne"
 
 #: ../src/Dialogs/SettingsPages/NotificationsPage.vala:211
 msgid "Notification sounds"
-msgstr ""
+msgstr "Teavitushelid"
 
 #: ../src/Dialogs/SettingsPages/NotificationsPage.vala:216
 msgid "Silent"
-msgstr ""
+msgstr "Vaikne"
 
 #: ../src/Dialogs/SettingsPages/NotificationsPage.vala:259
 msgid "Select notification sound file"
-msgstr ""
+msgstr "Vali teavitusheli fail"
 
 #: ../src/Dialogs/SettingsPages/NotificationsPage.vala:263
 #: ../src/Dialogs/SettingsPages/NotificationsPage.vala:269
 #: ../src/Widgets/FileChooserWidget.vala:83
 #: ../src/Widgets/FileChooserWidget.vala:89
 msgid "_Select"
-msgstr ""
+msgstr "_Vali"
 
 #: ../src/Dialogs/SettingsPages/ShortcutsPage.vala:40
 msgid "%s needs to be restarted for changes to take effect."
-msgstr ""
+msgstr "%s vajab muudetauste jõustamiseks uuesti käivitamist."
 
 #: ../src/LegacyStrings.vala:3
 msgid "Todo.txt files were found in the destination folder."
-msgstr ""
+msgstr "Sihtkaustas leidubTodo.txt faile."
 
 #. / For versions <= 1.8, shown in a dialog when destination folder contains either todo.txt or done.txt
 #: ../src/LegacyStrings.vala:4
@@ -299,15 +299,15 @@ msgstr "Mida peaksime nende failidega tegema?"
 #. / For versions <= 1.8, shown in a dialog when destination folder contains either todo.txt or done.txt
 #: ../src/LegacyStrings.vala:5
 msgid "Overwrite"
-msgstr ""
+msgstr "Kirjuta üle"
 
 #: ../src/LegacyStrings.vala:6
 msgid "The configured folder is already in use by another list."
-msgstr ""
+msgstr "Seadistatud kaust on juba kasutusel teise loendi poolt."
 
 #: ../src/LegacyStrings.vala:7
 msgid "folder"
-msgstr ""
+msgstr "kaust"
 
 #: ../src/LegacyStrings.vala:8
 msgid "Inherit from GTK theme"
@@ -319,7 +319,7 @@ msgstr "Tume kujundus"
 
 #: ../src/LegacyStrings.vala:10
 msgid "Couldn't properly import settings from %s: %s"
-msgstr ""
+msgstr "%s failist ei õnnestunud seadistusi korralikult importida: %s"
 
 #. / For versions <= 1.8, argument 1: filename, argument 2: error message
 #: ../src/LegacyStrings.vala:11
@@ -372,7 +372,7 @@ msgstr "CSV-fail, kuhu logid tegevused."
 
 #: ../src/Main.vala:287
 msgid "Show configured lists and exit"
-msgstr ""
+msgstr "Näita seadistatud loendeid ja lõpeta töö"
 
 #: ../src/Main.vala:291
 msgid "Load the list specified by the list type and ID"
@@ -407,6 +407,8 @@ msgid ""
 "Currently, no lists are configured.\n"
 "Add one below!"
 msgstr ""
+"Hetkel pole sa ühtegi loendit seadistanud.\n"
+"Järgnevalt lisa üks!"
 
 #: ../src/Pages/SelectionPage.vala:137 ../src/Pages/SelectionPage.vala:140
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:87
@@ -496,7 +498,7 @@ msgstr ""
 
 #: ../src/Services/Shortcuts.vala:169
 msgid "Edit the properties of a list or task"
-msgstr ""
+msgstr "Muuda loendi või ülesande andmeid"
 
 #: ../src/Services/Shortcuts.vala:171 ../src/Todo.txt/Widgets/TaskRow.vala:68
 #: ../src/Widgets/TimerView.vala:291
@@ -522,11 +524,11 @@ msgstr ""
 
 #: ../src/Services/Shortcuts.vala:177
 msgid "Move to right screen"
-msgstr ""
+msgstr "Tõsta parempoolsele ekraanile"
 
 #: ../src/Services/Shortcuts.vala:178
 msgid "Move to left screen"
-msgstr ""
+msgstr "Tõsta vasakpoolsele ekraanile"
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:66
 msgid "Store to-do tasks in"
@@ -562,7 +564,7 @@ msgstr "Muuda tegemiste ja ülesannete loendi andmeid"
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:94
 msgid "Apply"
-msgstr ""
+msgstr "Rakenda"
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:197
 msgid "Log timer usage"
@@ -606,11 +608,11 @@ msgstr "Logi ülesandega tegelemiseks taimeri alusel kulunud aeg."
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:291
 msgid "This information will be stored in the todo.txt files."
-msgstr ""
+msgstr "See teave salvestatakse todo.txt failides."
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:295
 msgid "Log the creation date of tasks"
-msgstr ""
+msgstr "Logi ülesande lisamise ajad"
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:383
 msgid "Use default settings"
@@ -627,7 +629,7 @@ msgstr ""
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:489
 msgid "Please assign a name to the list."
-msgstr ""
+msgstr "Palun esmalt lisa loendile nimi."
 
 #: ../src/Todo.txt/Filter.vala:60 ../src/Todo.txt/Widgets/TaskRow.vala:397
 msgid "project"
@@ -696,7 +698,7 @@ msgstr "Lisa uus ülesanne"
 #. formatting of DateTime
 #: ../src/Todo.txt/Widgets/TaskRow.vala:325
 msgid "%Y-%m-%d"
-msgstr ""
+msgstr "%d.%m.%Y"
 
 #: ../src/Todo.txt/Widgets/TaskRow.vala:329
 msgid "Task completed at %1$s, created at %2$s"
@@ -712,11 +714,11 @@ msgstr ""
 
 #: ../src/Utils.vala:188
 msgid "%u minutes"
-msgstr ""
+msgstr "%u minutit"
 
 #: ../src/Utils.vala:190
 msgid "%1$u hours and %2$u minutes"
-msgstr ""
+msgstr "%1$u tundi ja %2$u minutit"
 
 #. / In a few places a string is turned into an exclamation at runtime. Please translate this if appending '!' is not sufficient to accomplish this.
 #: ../src/Utils.vala:234
@@ -725,7 +727,7 @@ msgstr ""
 
 #: ../src/Widgets/DragList.vala:764
 msgid "Click and drag to reorder rows"
-msgstr ""
+msgstr "Ridade järjekorra muutmiseks klõpsi siin ja lohista"
 
 #: ../src/Widgets/FileChooserWidget.vala:21
 msgid "Choose a file"
@@ -764,13 +766,13 @@ msgstr "Käivita taimer"
 
 #: ../src/Widgets/TimerView.vala:178
 msgid "Inactive"
-msgstr ""
+msgstr "Pole aktiivne"
 
 #: ../src/Widgets/TimerView.vala:179
 #: ../plugins/appindicator/appindicator.vala:92
 #: ../plugins/appindicator/appindicator.vala:201
 msgid "No task has been selected"
-msgstr ""
+msgstr "Sa pole ühtegi ülesannet valinud"
 
 #: ../src/Widgets/TimerView.vala:272
 msgid "S_kip"
