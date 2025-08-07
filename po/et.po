@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2020-12-17 19:25+0100\n"
-"PO-Revision-Date: 2025-08-07 08:47+0000\n"
+"PO-Revision-Date: 2025-08-07 09:26+0000\n"
 "Last-Translator: Priit Jõerüüt <jrthwlate@users.noreply.hosted.weblate.org>\n"
 "Language-Team: Estonian <https://hosted.weblate.org/projects/go-for-it/"
 "go-for-it/et/>\n"
@@ -17,15 +17,15 @@ msgstr ""
 
 #: ../src/Constants.vala:72
 msgid "Spread the word about \"%s\""
-msgstr ""
+msgstr "Räägu sellest rakendusest teistele - %s"
 
 #: ../src/Constants.vala:73
 msgid "Consider a donation to help the project"
-msgstr ""
+msgstr "Palun kaalu selle projekti rahalist toetamist"
 
 #: ../src/Constants.vala:74
 msgid "Consider contributing to the project"
-msgstr ""
+msgstr "Palun kaalu selles projektis osalemist"
 
 #: ../src/Dialogs/AboutDialog.vala:27 ../src/MainWindow.vala:488
 msgid "About"
@@ -37,21 +37,23 @@ msgstr "Lihtne tööde loend koos taimeriga."
 
 #: ../src/Dialogs/ContributeDialog.vala:28
 msgid "Contributions and Donations"
-msgstr ""
+msgstr "Kaastöö ja toetused"
 
 #: ../src/Dialogs/ContributeDialog.vala:31
 msgid "Thank you for supporting"
-msgstr ""
+msgstr "Tänud toetamise eest"
 
 #: ../src/Dialogs/ContributeDialog.vala:32
 msgid ""
 "Submitting code, artwork, translations or documentation is a great way of "
 "contributing to the project:"
 msgstr ""
+"Koodi kirjutamine, kujundustööd, tõlkimine või juhendite koostamine on head "
+"näited sellest, mida saad selles projektis teha:"
 
 #: ../src/Dialogs/ContributeDialog.vala:36
 msgid "If you really like this app, you can buy me a drink:"
-msgstr ""
+msgstr "Kui sulle see rakendus tõesti meeldib, siis võid mulle ühe joogi osta:"
 
 #: ../src/Dialogs/FileConflictDialog.vala:86
 msgid "Replace \"%s\"?"
@@ -292,7 +294,7 @@ msgstr ""
 #. / For versions <= 1.8, shown in a dialog when destination folder contains either todo.txt or done.txt
 #: ../src/LegacyStrings.vala:4
 msgid "What should be done with these files?"
-msgstr ""
+msgstr "Mida peaksime nende failidega tegema?"
 
 #. / For versions <= 1.8, shown in a dialog when destination folder contains either todo.txt or done.txt
 #: ../src/LegacyStrings.vala:5
@@ -382,7 +384,7 @@ msgstr ""
 
 #: ../src/MainWindow.vala:67
 msgid "Go back to the to-do list"
-msgstr ""
+msgstr "Mine tagasi ülesannete loendisse"
 
 #: ../src/MainWindow.vala:358
 msgid "Menu"
@@ -409,19 +411,19 @@ msgstr ""
 #: ../src/Pages/SelectionPage.vala:137 ../src/Pages/SelectionPage.vala:140
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:87
 msgid "Add list"
-msgstr ""
+msgstr "Lisa loend"
 
 #: ../src/Pages/TaskListPage.vala:142
 msgid "Lists"
-msgstr ""
+msgstr "Loendid"
 
 #: ../src/Pages/TaskListPage.vala:148 ../src/Pages/TaskListPage.vala:236
 msgid "To-Do"
-msgstr ""
+msgstr "Tegemiste loend"
 
 #: ../src/Pages/TaskListPage.vala:150 ../src/Pages/TaskListPage.vala:239
 msgid "Done"
-msgstr ""
+msgstr "Tehtud"
 
 #: ../src/Services/ActivityLog.vala:72
 msgid "Couldn't write to %1$s: %2$s"
@@ -430,27 +432,27 @@ msgstr ""
 #: ../src/Services/Notifications.vala:100 ../src/Widgets/TimerView.vala:97
 #: ../plugins/appindicator/appindicator.vala:213
 msgid "Take a Break"
-msgstr ""
+msgstr "Tee üks puhekepaus"
 
 #: ../src/Services/Notifications.vala:102
 msgid "Relax and stop thinking about your current task for a while"
-msgstr ""
+msgstr "Lõdvestu ja ära mõtle pooleliolnud tegevusele"
 
 #: ../src/Services/Notifications.vala:106
 msgid "The Break is Over"
-msgstr ""
+msgstr "Puhekepaus lõppes"
 
 #: ../src/Services/Notifications.vala:108
 msgid "Your current task is"
-msgstr ""
+msgstr "Käsilolev ülesanne on"
 
 #: ../src/Services/Notifications.vala:132
 msgid "Prepare for your break"
-msgstr ""
+msgstr "Valmistu oma puhekepausik"
 
 #: ../src/Services/Notifications.vala:134
 msgid "You have %s seconds left"
-msgstr ""
+msgstr "Sul on jäänud %s sekundit"
 
 #: ../src/Services/Notifications.vala:142
 msgid "Task duration exceeded"
@@ -462,15 +464,15 @@ msgstr ""
 
 #: ../src/Services/SettingsManager.vala:617
 msgid "Light"
-msgstr ""
+msgstr "Hele kujundus"
 
 #: ../src/Services/SettingsManager.vala:619
 msgid "Dark"
-msgstr ""
+msgstr "Tume kujundus"
 
 #: ../src/Services/SettingsManager.vala:621
 msgid "Default"
-msgstr ""
+msgstr "Vaikimisi kujundus"
 
 #: ../src/Services/Shortcuts.vala:57
 msgid "disabled"
@@ -478,15 +480,15 @@ msgstr ""
 
 #: ../src/Services/Shortcuts.vala:165 ../src/Todo.txt/TxtList.vala:188
 msgid "Sort Tasks"
-msgstr ""
+msgstr "Järjesta ülesandeid"
 
 #: ../src/Services/Shortcuts.vala:166
 msgid "Add new task/list"
-msgstr ""
+msgstr "Lisa uus ülesanne või loend"
 
 #: ../src/Services/Shortcuts.vala:167
 msgid "Start/Stop the timer"
-msgstr ""
+msgstr "Käivita või peata taimer"
 
 #: ../src/Services/Shortcuts.vala:168
 msgid "Skip the break or skip to the break"
@@ -500,7 +502,7 @@ msgstr ""
 #: ../src/Widgets/TimerView.vala:291
 #: ../plugins/appindicator/appindicator.vala:101
 msgid "Mark the task as complete"
-msgstr ""
+msgstr "Märgi ülesanne lõpetatuks"
 
 #: ../src/Services/Shortcuts.vala:172
 msgid "Move selected row up"
@@ -528,7 +530,7 @@ msgstr ""
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:66
 msgid "Store to-do tasks in"
-msgstr ""
+msgstr "Salvesta ülesanded"
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:67
 msgid "Store completed tasks in"
@@ -536,7 +538,7 @@ msgstr ""
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:68
 msgid "List name"
-msgstr ""
+msgstr "Loendi nimi"
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:71
 msgid ""
@@ -552,11 +554,11 @@ msgstr ""
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:85
 msgid "New to-do list"
-msgstr ""
+msgstr "Uus tegemiste loend"
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:92
 msgid "Edit to-do list properties"
-msgstr ""
+msgstr "Muuda tegemiste loendi andmeid"
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:94
 msgid "Apply"
@@ -564,33 +566,35 @@ msgstr ""
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:197
 msgid "Log timer usage"
-msgstr ""
+msgstr "Logi taimeri kasutust"
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:200
 msgid ""
 "Keep track of when you used the timer and what tasks you worked on while "
 "doing this."
 msgstr ""
+"See võimaldab sul pidada arvet oma taimerikasutuse ning sel ajal käsilolnud "
+"ülesannete üle."
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:202
 msgid "This log will be saved as a CSV file."
-msgstr ""
+msgstr "Logi salvestatakse CSV-faili."
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:205
 msgid "Log file"
-msgstr ""
+msgstr "Logifail"
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:215
 msgid "Select file to log timer usage in"
-msgstr ""
+msgstr "Vali fail, kuhu tahad taimeri andmed logida"
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:277
 msgid "Select file to store to-do tasks in"
-msgstr ""
+msgstr "Vali fail, kuhu soovid ülesanded salvestada"
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:284
 msgid "Select file to store completed tasks in"
-msgstr ""
+msgstr "Vali fail, kuhu tahad lõpetatud ülesanded salvetada"
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:287
 msgid "Log the time spent working on each task"
@@ -614,7 +618,7 @@ msgstr ""
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:453
 msgid "The configured to-do file is already in use by another list."
-msgstr ""
+msgstr "Seadistatud ülesannete fail on juba kasutusel muu loendi poolt."
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:469
 msgid ""
@@ -627,15 +631,15 @@ msgstr ""
 
 #: ../src/Todo.txt/Filter.vala:60 ../src/Todo.txt/Widgets/TaskRow.vala:397
 msgid "project"
-msgstr ""
+msgstr "projekt"
 
 #: ../src/Todo.txt/Filter.vala:61 ../src/Todo.txt/Widgets/TaskRow.vala:393
 msgid "context"
-msgstr ""
+msgstr "kontekst"
 
 #: ../src/Todo.txt/Filter.vala:62 ../src/Todo.txt/Widgets/TaskRow.vala:354
 msgid "priority"
-msgstr ""
+msgstr "olulisus"
 
 #: ../src/Todo.txt/TaskManager.vala:48
 msgid ""
@@ -649,11 +653,11 @@ msgstr ""
 
 #: ../src/Todo.txt/TaskManager.vala:50
 msgid "Couldn't save the to-do list (%s):"
-msgstr ""
+msgstr "Ülesannete faili salvestamine ei õnnestunud: (%s):"
 
 #: ../src/Todo.txt/TxtList.vala:184
 msgid "Clear Done List"
-msgstr ""
+msgstr "Tühjenda lõpetatud ülesannete loend"
 
 #: ../src/Todo.txt/TxtListManager.vala:137
 msgid "An error was encountered while moving a file!"
@@ -661,30 +665,32 @@ msgstr ""
 
 #: ../src/Todo.txt/TxtListManager.vala:138
 msgid "Error information: "
-msgstr ""
+msgstr "Veateave: "
 
 #: ../src/Todo.txt/Widgets/TaskListWidget.vala:35
 msgid ""
 "You currently don't have any tasks.\n"
 "Add some!"
 msgstr ""
+"Sul pole hetkel ühtegi ülesannet.\n"
+"Lisa mõni!"
 
 #: ../src/Todo.txt/Widgets/TaskListWidget.vala:36
 msgid "No tasks found."
-msgstr ""
+msgstr "Ülesandeid ei leidu."
 
 #: ../src/Todo.txt/Widgets/TaskListWidget.vala:37
 msgid "You don't have any completed tasks stored."
-msgstr ""
+msgstr "Sa pole ühtegi lõpetatud ülesannet salvestanud."
 
 #: ../src/Todo.txt/Widgets/TaskListWidget.vala:38
 msgid "You finished all tasks, good job!"
-msgstr ""
+msgstr "Tubli, oled kõik ülesanded lõpetanud!"
 
 #: ../src/Todo.txt/Widgets/TaskListWidget.vala:205
 #: ../src/Todo.txt/Widgets/TaskListWidget.vala:224
 msgid "Add new task"
-msgstr ""
+msgstr "Lisa uus ülesanne"
 
 #. / see https://valadoc.org/glib-2.0/GLib.DateTime.format.html for
 #. formatting of DateTime
@@ -694,11 +700,11 @@ msgstr ""
 
 #: ../src/Todo.txt/Widgets/TaskRow.vala:329
 msgid "Task completed at %1$s, created at %2$s"
-msgstr ""
+msgstr "Ülesanne on lõpetatud %1$s ja loodud %2$s"
 
 #: ../src/Todo.txt/Widgets/TaskRow.vala:335
 msgid "Task created at %s"
-msgstr ""
+msgstr "Ülesanne on loodud %s"
 
 #: ../src/Utils.vala:180
 msgid "min."
@@ -723,38 +729,38 @@ msgstr ""
 
 #: ../src/Widgets/FileChooserWidget.vala:21
 msgid "Choose a file"
-msgstr ""
+msgstr "Vali fail"
 
 #: ../src/Widgets/TimerView.vala:100
 msgid "Skip the remainder of the break"
-msgstr ""
+msgstr "Jäta ülejäänud puhkepaus vahele"
 
 #: ../src/Widgets/TimerView.vala:102
 msgid "Active Task"
-msgstr ""
+msgstr "Käsilolev ülesanne"
 
 #: ../src/Widgets/TimerView.vala:106
 msgid "Skip to the break"
-msgstr ""
+msgstr "Alusta puhkepausiga"
 
 #: ../src/Widgets/TimerView.vala:147
 msgid "Pau_se"
-msgstr ""
+msgstr "Pea_ta"
 
 #: ../src/Widgets/TimerView.vala:149
 #: ../plugins/appindicator/appindicator.vala:238
 msgid "Stop the timer"
-msgstr ""
+msgstr "Lõpeta taimeri töö"
 
 #: ../src/Widgets/TimerView.vala:156
 msgid "_Start"
-msgstr ""
+msgstr "_Käivita"
 
 #: ../src/Widgets/TimerView.vala:158
 #: ../plugins/appindicator/appindicator.vala:119
 #: ../plugins/appindicator/appindicator.vala:247
 msgid "Start the timer"
-msgstr ""
+msgstr "Käivita taimer"
 
 #: ../src/Widgets/TimerView.vala:178
 msgid "Inactive"
@@ -768,36 +774,36 @@ msgstr ""
 
 #: ../src/Widgets/TimerView.vala:272
 msgid "S_kip"
-msgstr ""
+msgstr "Jäta _vahele"
 
 #: ../src/Widgets/TimerView.vala:273
 msgid "_Done"
-msgstr ""
+msgstr "_Tehtud"
 
 #: ../src/Widgets/TimerView.vala:317
 msgid "Relax"
-msgstr ""
+msgstr "Lõdvestu"
 
 #: ../src/Widgets/TimerView.vala:318
 msgid "You have nothing to do."
-msgstr ""
+msgstr "Sul pole midagi tega."
 
 #: ../src/Widgets/TodoListInfoRow.vala:99
 msgid "Delete"
-msgstr ""
+msgstr "Kustuta"
 
 #: ../src/Widgets/TodoListInfoRow.vala:100
 msgid "Edit"
-msgstr ""
+msgstr "Muuda"
 
 #: ../plugins/appindicator/appindicator.vala:78
 msgid "Open %s"
-msgstr ""
+msgstr "Ava %s"
 
 #: ../plugins/appindicator/appindicator.vala:107
 msgid "Switch to next task"
-msgstr ""
+msgstr "Võta ette järgmine ülesanne"
 
 #: ../plugins/appindicator/appindicator.vala:113
 msgid "Switch to the previous task"
-msgstr ""
+msgstr "Võta ette eelmine ülesanne"
