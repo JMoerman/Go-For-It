@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2020-12-17 19:25+0100\n"
-"PO-Revision-Date: 2025-08-07 09:47+0000\n"
+"PO-Revision-Date: 2025-08-07 09:55+0000\n"
 "Last-Translator: Priit Jõerüüt <jrthwlate@users.noreply.hosted.weblate.org>\n"
 "Language-Team: Estonian <https://hosted.weblate.org/projects/go-for-it/"
 "go-for-it/et/>\n"
@@ -346,17 +346,17 @@ msgstr ""
 #. / Translators: give translation of FILE in "--logfile=FILE" command line argument
 #: ../src/Main.vala:276
 msgid "FILE"
-msgstr ""
+msgstr "FAIL"
 
 #. / Translators: give translation of LIST-TYPE in "--load LIST-TYPE LIST-ID" command line argument
 #: ../src/Main.vala:279
 msgid "LIST-TYPE"
-msgstr ""
+msgstr "LOENDI-TÜÜP"
 
 #. / Translators: give translation of LIST-ID in "--load LIST-TYPE LIST-ID" command line argument
 #: ../src/Main.vala:281
 msgid "LIST-ID"
-msgstr ""
+msgstr "LOENDI-TUNNUS"
 
 #: ../src/Main.vala:284
 msgid "Print version info and exit"
@@ -376,7 +376,7 @@ msgstr "Näita seadistatud loendeid ja lõpeta töö"
 
 #: ../src/Main.vala:291
 msgid "Load the list specified by the list type and ID"
-msgstr ""
+msgstr "Laadi tüübi ja tunnuse alusel määratletud loend"
 
 #: ../src/MainWindow.vala:66
 msgid "Go to overview"
@@ -429,7 +429,7 @@ msgstr "Tehtud"
 
 #: ../src/Services/ActivityLog.vala:72
 msgid "Couldn't write to %1$s: %2$s"
-msgstr ""
+msgstr "Asukohta %1$s salvestamine ei õnnestunud: %2$s"
 
 #: ../src/Services/Notifications.vala:100 ../src/Widgets/TimerView.vala:97
 #: ../plugins/appindicator/appindicator.vala:213
@@ -458,11 +458,11 @@ msgstr "Sul on jäänud %s sekundit"
 
 #: ../src/Services/Notifications.vala:142
 msgid "Task duration exceeded"
-msgstr ""
+msgstr "Ülesande kestus on ületatud"
 
 #: ../src/Services/Notifications.vala:143
 msgid "Consider switching to a different task"
-msgstr ""
+msgstr "Kaalu mõne muu ülesandega tegelemist"
 
 #: ../src/Services/SettingsManager.vala:617
 msgid "Light"
@@ -494,7 +494,7 @@ msgstr "Käivita või peata taimer"
 
 #: ../src/Services/Shortcuts.vala:168
 msgid "Skip the break or skip to the break"
-msgstr ""
+msgstr "Alusta puhkepausi või jäta ta vahele"
 
 #: ../src/Services/Shortcuts.vala:169
 msgid "Edit the properties of a list or task"
@@ -516,11 +516,11 @@ msgstr "Liiguta valitud rida allapoole"
 
 #: ../src/Services/Shortcuts.vala:175
 msgid "Move to next task/row"
-msgstr ""
+msgstr "Mine järgmise ülesande/rea juurde"
 
 #: ../src/Services/Shortcuts.vala:176
 msgid "Move to previous task/row"
-msgstr ""
+msgstr "Mine eelmise ülesande/rea juurde"
 
 #: ../src/Services/Shortcuts.vala:177
 msgid "Move to right screen"
@@ -536,7 +536,7 @@ msgstr "Salvesta ülesanded"
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:67
 msgid "Store completed tasks in"
-msgstr ""
+msgstr "Salvesta lõpetatud ülesanded siin"
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:68
 msgid "List name"
@@ -648,10 +648,12 @@ msgid ""
 "%s won't save or load from the current todo.txt folder until it is either "
 "restarted or another location is chosen."
 msgstr ""
+"%s ei salvesta praegusesse todo.txt kausta ega laadi sealt midagi enne, kui "
+"sa rakenduse uuesti käivitad või valid muu asukoha."
 
 #: ../src/Todo.txt/TaskManager.vala:49
 msgid "Couldn't read the todo.txt file (%s):"
-msgstr ""
+msgstr "todo.txt faili lugemine ei õnnestunud (%s):"
 
 #: ../src/Todo.txt/TaskManager.vala:50
 msgid "Couldn't save the to-do list (%s):"
@@ -663,7 +665,7 @@ msgstr "Tühjenda lõpetatud ülesannete loend"
 
 #: ../src/Todo.txt/TxtListManager.vala:137
 msgid "An error was encountered while moving a file!"
-msgstr ""
+msgstr "Faili teisaldamisel tekkis viga!"
 
 #: ../src/Todo.txt/TxtListManager.vala:138
 msgid "Error information: "
@@ -710,7 +712,7 @@ msgstr "Ülesanne on loodud %s"
 
 #: ../src/Utils.vala:180
 msgid "min."
-msgstr ""
+msgstr "min."
 
 #: ../src/Utils.vala:188
 msgid "%u minutes"
@@ -723,7 +725,7 @@ msgstr "%1$u tundi ja %2$u minutit"
 #. / In a few places a string is turned into an exclamation at runtime. Please translate this if appending '!' is not sufficient to accomplish this.
 #: ../src/Utils.vala:234
 msgid "%s!"
-msgstr ""
+msgstr "%s!"
 
 #: ../src/Widgets/DragList.vala:764
 msgid "Click and drag to reorder rows"
