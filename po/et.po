@@ -3,8 +3,8 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2020-12-17 19:25+0100\n"
-"PO-Revision-Date: 2025-04-10 14:40+0000\n"
-"Last-Translator: Priit Jõerüüt <hwlate@joeruut.com>\n"
+"PO-Revision-Date: 2025-08-07 08:47+0000\n"
+"Last-Translator: Priit Jõerüüt <jrthwlate@users.noreply.hosted.weblate.org>\n"
 "Language-Team: Estonian <https://hosted.weblate.org/projects/go-for-it/"
 "go-for-it/et/>\n"
 "Language: et\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.11-dev\n"
+"X-Generator: Weblate 5.13-dev\n"
 "X-Launchpad-Export-Date: 2017-11-11 05:37+0000\n"
 
 #: ../src/Constants.vala:72
@@ -129,100 +129,100 @@ msgstr "Selle seadistuse jõustamiseks palun käivita %s uuesti"
 
 #: ../src/Dialogs/SettingsPages/AppearancePage.vala:54
 msgid "Use a header bar"
-msgstr ""
+msgstr "Kasuta päiseriba"
 
 #: ../src/Dialogs/SettingsPages/AppearancePage.vala:69
 #: ../src/Dialogs/SettingsPages/NotificationsPage.vala:126
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:152
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:246
 msgid "General"
-msgstr ""
+msgstr "Üldine"
 
 #: ../src/Dialogs/SettingsPages/AppearancePage.vala:73
 msgid "Color scheme"
-msgstr ""
+msgstr "Kasutatavad värvid"
 
 #: ../src/Dialogs/SettingsPages/AppearancePage.vala:86
 msgid "Theme"
-msgstr ""
+msgstr "Kujundus"
 
 #: ../src/Dialogs/SettingsPages/BehaviorPage.vala:56
 msgid "Timer mode"
-msgstr ""
+msgstr "Taimeri režiim"
 
 #: ../src/Dialogs/SettingsPages/BehaviorPage.vala:58
 msgid "Simple"
-msgstr ""
+msgstr "Lihtne"
 
 #: ../src/Dialogs/SettingsPages/BehaviorPage.vala:59
 msgid "Pomodoro"
-msgstr ""
+msgstr "Pomodoro"
 
 #: ../src/Dialogs/SettingsPages/BehaviorPage.vala:60
 #: ../src/Dialogs/SettingsPages/NotificationsPage.vala:215
 msgid "Custom"
-msgstr ""
+msgstr "Sinu valitud"
 
 #: ../src/Dialogs/SettingsPages/BehaviorPage.vala:68
 #: ../src/Widgets/TimerScheduleWidget.vala:132
 msgid "Task duration"
-msgstr ""
+msgstr "Ülesande kestus"
 
 #: ../src/Dialogs/SettingsPages/BehaviorPage.vala:69
 #: ../src/Dialogs/SettingsPages/BehaviorPage.vala:77
 #: ../src/Dialogs/SettingsPages/BehaviorPage.vala:85
 msgid "minutes"
-msgstr ""
+msgstr "minutit"
 
 #: ../src/Dialogs/SettingsPages/BehaviorPage.vala:76
 #: ../src/Widgets/TimerScheduleWidget.vala:133
 msgid "Break duration"
-msgstr ""
+msgstr "Puhkehetke kestus"
 
 #: ../src/Dialogs/SettingsPages/BehaviorPage.vala:84
 msgid "Long break duration"
-msgstr ""
+msgstr "Pikema puhkuse kestus"
 
 #. / Part of "Have a long break after # short breaks"
 #: ../src/Dialogs/SettingsPages/BehaviorPage.vala:93
 msgid "Have a long break after"
-msgstr ""
+msgstr "Puhka pikemalt peale"
 
 #. / Part of "Have a long break after # short breaks"
 #: ../src/Dialogs/SettingsPages/BehaviorPage.vala:95
 msgid "short breaks"
-msgstr ""
+msgstr "lühikest puhkehetke"
 
 #: ../src/Dialogs/SettingsPages/BehaviorPage.vala:118
 msgid "Resume task after the break"
-msgstr ""
+msgstr "Jätka ülesande täitmist peale puhkehetke"
 
 #: ../src/Dialogs/SettingsPages/BehaviorPage.vala:125
 msgid "Reset timer after switching tasks"
-msgstr ""
+msgstr "Ülesannete vahetamisel nulli taimer"
 
 #: ../src/Dialogs/SettingsPages/BehaviorPage.vala:143
 #: ../src/Pages/TaskListPage.vala:149 ../src/Pages/TaskListPage.vala:244
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:153
 #: ../src/Todo.txt/Widgets/TaskRow.vala:341
 msgid "Timer"
-msgstr ""
+msgstr "Taimer"
 
 #: ../src/Dialogs/SettingsPages/BehaviorPage.vala:147
 msgid "Placement of new tasks"
-msgstr ""
+msgstr "Uute ülesannete asukoht"
 
 #: ../src/Dialogs/SettingsPages/BehaviorPage.vala:150
 msgid "Top of the list"
-msgstr ""
+msgstr "Loendi alguses"
 
 #: ../src/Dialogs/SettingsPages/BehaviorPage.vala:151
 msgid "Bottom of the list"
-msgstr ""
+msgstr "Loendi lõpus"
 
 #: ../src/Dialogs/SettingsPages/BehaviorPage.vala:163
 msgid "Tasks"
-msgstr ""
+msgstr "Ülesanded"
 
 #: ../src/Dialogs/SettingsPages/NotificationsPage.vala:35
 msgid "Aluminium bowl"
@@ -309,11 +309,11 @@ msgstr ""
 
 #: ../src/LegacyStrings.vala:8
 msgid "Inherit from GTK theme"
-msgstr ""
+msgstr "Võta GTK kujundusest"
 
 #: ../src/LegacyStrings.vala:9
 msgid "Dark theme"
-msgstr ""
+msgstr "Tume kujundus"
 
 #: ../src/LegacyStrings.vala:10
 msgid "Couldn't properly import settings from %s: %s"
