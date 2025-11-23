@@ -3,8 +3,8 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2020-12-17 19:25+0100\n"
-"PO-Revision-Date: 2023-03-08 12:40+0000\n"
-"Last-Translator: Salacfrantisek <salacfrantisek@seznam.cz>\n"
+"PO-Revision-Date: 2025-11-24 23:51+0000\n"
+"Last-Translator: Šimon Větrovec <commonissuedemon@gmail.com>\n"
 "Language-Team: Czech <https://hosted.weblate.org/projects/go-for-it/"
 "go-for-it/cs/>\n"
 "Language: cs\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
-"X-Generator: Weblate 4.16.2-dev\n"
+"X-Generator: Weblate 5.15-dev\n"
 "X-Launchpad-Export-Date: 2017-11-17 05:54+0000\n"
 
 #: ../src/Constants.vala:72
@@ -549,87 +549,93 @@ msgid ""
 "Task list location has been changed to \"%1$s\" (was \"%2$s\"), but this "
 "file already exists."
 msgstr ""
+"Umístění seznamu úkolů bylo změněno na „%1$s“ (původně „%2$s“), ale tento "
+"soubor již existuje."
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:72
 msgid ""
 "The location to store completed tasks in has been changed to \"%1$s\" (was "
 "\"%2$s\"), but this file already exists."
 msgstr ""
+"Umístění pro ukládání dokončených úkolů bylo změněno na „%1$s“ (dříve „%2$s“)"
+", ale tento soubor již existuje."
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:85
 msgid "New to-do list"
-msgstr ""
+msgstr "Nový seznam úkolů"
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:92
 msgid "Edit to-do list properties"
-msgstr ""
+msgstr "Upravit vlastnosti seznamu úkolů"
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:94
 msgid "Apply"
-msgstr ""
+msgstr "Použít"
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:197
 msgid "Log timer usage"
-msgstr ""
+msgstr "Použití časovače protokolu"
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:200
 msgid ""
 "Keep track of when you used the timer and what tasks you worked on while "
 "doing this."
 msgstr ""
+"Sledujte, kdy jste použili časovač a na jakých úkolech jste při tom "
+"pracovali."
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:202
 msgid "This log will be saved as a CSV file."
-msgstr ""
+msgstr "Tento protokol bude uložen jako soubor CSV."
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:205
 msgid "Log file"
-msgstr ""
+msgstr "Soubor protokolu"
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:215
 msgid "Select file to log timer usage in"
-msgstr ""
+msgstr "Vyberte soubor, do kterého se bude zaznamenávat využití časovače"
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:277
 msgid "Select file to store to-do tasks in"
-msgstr ""
+msgstr "Vyberte soubor, do kterého chcete uložit úkoly"
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:284
 msgid "Select file to store completed tasks in"
-msgstr ""
+msgstr "Vyberte soubor, do kterého se mají ukládat dokončené úkoly"
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:287
 msgid "Log the time spent working on each task"
-msgstr ""
+msgstr "Zaznamenejte čas strávený prací na každém úkolu"
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:289
 msgid "Log the total time spent working on a task using the timer."
-msgstr ""
+msgstr "Zaznamenejte celkový čas strávený prací na úkolu pomocí časovače."
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:291
 msgid "This information will be stored in the todo.txt files."
-msgstr ""
+msgstr "Tyto informace budou uloženy v souborech todo.txt."
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:295
 msgid "Log the creation date of tasks"
-msgstr ""
+msgstr "Zaznamená datum vytvoření úkolů"
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:383
 msgid "Use default settings"
-msgstr ""
+msgstr "Použít výchozí nastavení"
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:453
 msgid "The configured to-do file is already in use by another list."
-msgstr ""
+msgstr "Nakonfigurovaný soubor úkolů již používá jiný seznam."
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:469
 msgid ""
 "Another todo.txt list archives its completed tasks to the selected file."
-msgstr ""
+msgstr "Další seznam todo.txt archivuje dokončené úkoly do vybraného souboru."
 
 #: ../src/Todo.txt/Dialogs/TxtListEditDialog.vala:489
 msgid "Please assign a name to the list."
-msgstr ""
+msgstr "Přiřaďte prosím seznamu název."
 
 #: ../src/Todo.txt/Filter.vala:60 ../src/Todo.txt/Widgets/TaskRow.vala:397
 msgid "project"
@@ -641,7 +647,7 @@ msgstr "kontext"
 
 #: ../src/Todo.txt/Filter.vala:62 ../src/Todo.txt/Widgets/TaskRow.vala:354
 msgid "priority"
-msgstr ""
+msgstr "priorita"
 
 #: ../src/Todo.txt/TaskManager.vala:48
 msgid ""
@@ -665,29 +671,31 @@ msgstr "Vyčistit seznam dokončených"
 
 #: ../src/Todo.txt/TxtListManager.vala:137
 msgid "An error was encountered while moving a file!"
-msgstr ""
+msgstr "Při přesouvání souboru došlo k chybě!"
 
 #: ../src/Todo.txt/TxtListManager.vala:138
 msgid "Error information: "
-msgstr ""
+msgstr "Informace o chybě: "
 
 #: ../src/Todo.txt/Widgets/TaskListWidget.vala:35
 msgid ""
 "You currently don't have any tasks.\n"
 "Add some!"
 msgstr ""
+"V současné době nemáte žádné úkoly.\n"
+"Přidejte nějaké!"
 
 #: ../src/Todo.txt/Widgets/TaskListWidget.vala:36
 msgid "No tasks found."
-msgstr ""
+msgstr "Žádné úkoly nalezeny."
 
 #: ../src/Todo.txt/Widgets/TaskListWidget.vala:37
 msgid "You don't have any completed tasks stored."
-msgstr ""
+msgstr "Nemáte uložené žádné dokončené úkoly."
 
 #: ../src/Todo.txt/Widgets/TaskListWidget.vala:38
 msgid "You finished all tasks, good job!"
-msgstr ""
+msgstr "Všechny úkoly jste dokončili, dobrá práce!"
 
 #: ../src/Todo.txt/Widgets/TaskListWidget.vala:205
 #: ../src/Todo.txt/Widgets/TaskListWidget.vala:224
@@ -702,11 +710,11 @@ msgstr ""
 
 #: ../src/Todo.txt/Widgets/TaskRow.vala:329
 msgid "Task completed at %1$s, created at %2$s"
-msgstr ""
+msgstr "Úkol dokončen v %1$s, vytvořen v %2$s"
 
 #: ../src/Todo.txt/Widgets/TaskRow.vala:335
 msgid "Task created at %s"
-msgstr ""
+msgstr "Úkol vytvořen v %s"
 
 #: ../src/Utils.vala:180
 msgid "min."
@@ -718,7 +726,7 @@ msgstr "%u minut"
 
 #: ../src/Utils.vala:190
 msgid "%1$u hours and %2$u minutes"
-msgstr ""
+msgstr "%1$u hodin a %2$u minut"
 
 #. / In a few places a string is turned into an exclamation at runtime. Please translate this if appending '!' is not sufficient to accomplish this.
 #: ../src/Utils.vala:234
@@ -727,15 +735,15 @@ msgstr ""
 
 #: ../src/Widgets/DragList.vala:764
 msgid "Click and drag to reorder rows"
-msgstr ""
+msgstr "Kliknutím a tažením můžete změnit pořadí řádků"
 
 #: ../src/Widgets/FileChooserWidget.vala:21
 msgid "Choose a file"
-msgstr ""
+msgstr "Vyberte soubor"
 
 #: ../src/Widgets/TimerView.vala:100
 msgid "Skip the remainder of the break"
-msgstr ""
+msgstr "Přeskočit zbytek přestávky"
 
 #: ../src/Widgets/TimerView.vala:102
 msgid "Active Task"
