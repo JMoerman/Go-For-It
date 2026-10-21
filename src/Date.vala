@@ -123,7 +123,7 @@ public class GOFI.Date {
         GLib.Date b_date = GLib.Date ();
 
         this.dt.get_ymd (out a_year, out a_month, out a_day);
-        dt.get_ymd (out b_year, out b_month, out b_day);
+        date.dt.get_ymd (out b_year, out b_month, out b_day);
 
         a_date.set_dmy (
             (GLib.DateDay) a_day, (GLib.DateMonth) a_month, (GLib.DateYear) a_year

@@ -342,8 +342,27 @@ class GOFI.TXT.TaskRow: DragListRow {
                   var timer_value_str = Utils.seconds_to_pretty_string (timer_value);
                   new_tooltip_text += "\n%s: %s".printf (_("Timer"), timer_value_str);
                 }
+                if (task.due_date != null) {
+                    var due_str = task.due_date.dt.format (date_format);
+                    var days_left = days_until_due ();
+                    if (days_left < 0) {
+                        due_str = _("%s (overdue)").printf (due_str);
+                    } else if (days_left == 0) {
+                        due_str = _("%s (today)").printf (due_str);
+                    }
+                    new_tooltip_text += "\n%s: %s".printf (_("Due"), due_str);
+                }
                 this.tooltip_text = new_tooltip_text;
             }
+        }
+
+        /**
+         * Number of days until the task is due, negative if it is overdue.
+         * Only call this if the task has a due date.
+         */
+        private int days_until_due () {
+            var today = new GOFI.Date (new GLib.DateTime.now_local ());
+            return today.days_between (task.due_date);
         }
 
         private void gen_markup () {
@@ -379,8 +398,15 @@ class GOFI.TXT.TaskRow: DragListRow {
                 str_builder.append (TxtUtils.dt_to_string (task.threshold_date.dt));
             }
             if (task.due_date != null) {
-                str_builder.append (" due:");
-                str_builder.append (TxtUtils.dt_to_string (task.due_date.dt));
+                var due_str = "due:" + TxtUtils.dt_to_string (task.due_date.dt);
+                var days_left = days_until_due ();
+                if (done || days_left > 0) {
+                    str_builder.append (" " + due_str);
+                } else if (days_left == 0) {
+                    str_builder.append (@" <b>$due_str</b>");
+                } else {
+                    str_builder.append (@" <span foreground=\"#c01c28\"><b>$due_str</b></span>");
+                }
             }
             task.append_recurrence_rule (str_builder);
 
@@ -450,6 +476,7 @@ class GOFI.TXT.TaskRow: DragListRow {
             task.notify["description"].connect (update);
             task.notify["priority"].connect (update);
             task.notify["timer-value"].connect (update);
+            task.notify["due-date"].connect (update);
         }
     }
 }

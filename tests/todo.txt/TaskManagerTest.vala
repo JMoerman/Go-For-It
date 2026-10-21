@@ -16,6 +16,7 @@ class TaskManagerTest : TestCase {
         add_test ("Repeat task 2 days from completion date (due date)", test_reschedule_completion_due_date);
         add_test ("Repeat task 2 days from completion date (threshold date)", test_reschedule_completion_threshold_date);
         add_test ("Repeat weekly task upon completing", test_reschedule_periodically);
+        add_test ("Repeat weekly task upon completing (due and threshold date)", test_reschedule_periodically_threshold);
         add_test ("Repeat task: every 3 months, skipping past dates", test_reschedule_monthly_skip);
         add_test ("Check drift compensation", test_reschedule_monthly_drift_compensation);
         add_test ("Repeat task: yearly reschedule", test_yearly_reschedule);
@@ -297,6 +298,26 @@ class TaskManagerTest : TestCase {
         var generated_task = task_manager.todo_store.get_task (0);
         var due_date = new GOFI.Date.from_ymd (2021, 11, 23);
         var threshold_date = null;
+
+        compare_post_schedule (task_copy, completed_task, generated_task, threshold_date, due_date, test_date, test_date);
+    }
+
+    private void test_reschedule_periodically_threshold () {
+        var task_manager = new TaskManager.test_instance ();
+        var task = build_test_weekly ();
+        task.due_date = new GOFI.Date.from_ymd (2021, 11, 16);
+        task.threshold_date = new GOFI.Date.from_ymd (2021, 11, 14);
+        var task_copy = task.copy ();
+        task_manager.todo_store.add_task (task);
+        var test_date = new GOFI.Date.from_ymd (2021, 11, 15);
+        task_manager.static_date = test_date.dt;
+        task.set_completed (test_date);
+
+        var completed_task = task_manager.done_store.get_task (0);
+        var generated_task = task_manager.todo_store.get_task (0);
+        // The threshold date moves along with the due date
+        var due_date = new GOFI.Date.from_ymd (2021, 11, 23);
+        var threshold_date = new GOFI.Date.from_ymd (2021, 11, 21);
 
         compare_post_schedule (task_copy, completed_task, generated_task, threshold_date, due_date, test_date, test_date);
     }
