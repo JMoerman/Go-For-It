@@ -25,6 +25,7 @@ class GOFI.TXT.TaskListWidget : Gtk.Grid {
     private Gtk.Grid add_new_grid;
     private Gtk.SearchBar search_bar;
     private Gtk.Entry add_new_txt;
+    private TagCompletion tag_completion;
     private Gtk.SearchEntry filter_entry;
     private Filter filter;
     private Gtk.Label placeholder;
@@ -213,6 +214,8 @@ class GOFI.TXT.TaskListWidget : Gtk.Grid {
         add_new_txt.icon_press.connect (on_add_new_txt_icon_press);
         // Handle "activate" signals (Enter Key presses)
         add_new_txt.activate.connect (on_entry_activate);
+        // Suggest existing +projects and @contexts while typing
+        tag_completion = new TagCompletion (add_new_txt, model);
 
         add_new_grid.add (add_new_txt);
 
