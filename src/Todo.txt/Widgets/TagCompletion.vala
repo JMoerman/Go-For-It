@@ -20,17 +20,29 @@
  * types a new task.
  *
  * Only the last word of the entry is completed, and only when it starts with
- * '+' or '@'. Matching is case-insensitive. The common part of all matching
- * tags is filled in inline (selected, so typing on replaces it); Tab or
- * Right accepts it.
+ * '+' or '@'. Matching is case-insensitive. Matching tags are listed in a
+ * popover above the entry; the part all of them share is also filled in
+ * inline (selected, so typing on replaces it).
+ *
+ * Keys: Tab or Right accepts the inline part, Up/Down select a tag in the
+ * list, Enter or Tab inserts the selected tag, Escape closes the list.
+ *
+ * Gtk.EntryCompletion is not used: its popup is a separate window that is
+ * placed with screen coordinates, which ends up in the wrong place on
+ * Wayland. A popover is part of the main window and is always placed right.
  */
 class GOFI.TXT.TagCompletion : Object {
+    private const int MAX_VISIBLE_ROWS = 8;
+
     private unowned Gtk.Entry entry;
     private unowned TaskStore model;
-    private Gtk.EntryCompletion completion;
-    private Gtk.ListStore tags;
+    private Gtk.Popover popover;
+    private Gtk.ScrolledWindow scroll;
+    private Gtk.ListBox list;
+
+    private string[] tags = {};
     private bool tags_outdated = true;
-    private bool inserting_inline = false;
+    private bool inserting = false;
     private int last_length = 0;
     // Shared prefix shown inline, in the spelling of the stored tags.
     private string? inline_prefix = null;
@@ -42,23 +54,30 @@ class GOFI.TXT.TagCompletion : Object {
         this.entry = entry;
         this.model = model;
 
-        tags = new Gtk.ListStore (1, typeof (string));
+        list = new Gtk.ListBox ();
+        list.selection_mode = Gtk.SelectionMode.SINGLE;
+        list.activate_on_single_click = true;
+        list.row_activated.connect ((row) => {
+            accept_tag (((Gtk.Label) row.get_child ()).label);
+        });
 
-        completion = new Gtk.EntryCompletion ();
-        completion.model = tags;
-        completion.text_column = 0;
-        completion.minimum_key_length = 1;
-        completion.popup_single_match = true;
-        // GTK's own inline completion compares against the whole entry text,
-        // so it never fires for a tag at the end of a sentence; see
-        // on_entry_changed for the word based replacement.
-        completion.inline_completion = false;
-        completion.set_match_func (match_func);
-        completion.match_selected.connect (on_match_selected);
+        scroll = new Gtk.ScrolledWindow (null, null);
+        scroll.hscrollbar_policy = Gtk.PolicyType.NEVER;
+        scroll.propagate_natural_height = true;
+        scroll.add (list);
 
-        entry.completion = completion;
+        popover = new Gtk.Popover (entry);
+        popover.modal = false;
+        popover.position = Gtk.PositionType.TOP;
+        popover.add (scroll);
+        scroll.show_all ();
+
         entry.changed.connect_after (on_entry_changed);
         entry.key_press_event.connect (on_key_press);
+        entry.focus_out_event.connect (() => {
+            popover.popdown ();
+            return false;
+        });
 
         model.task_data_changed.connect (() => {
             tags_outdated = true;
@@ -66,8 +85,8 @@ class GOFI.TXT.TagCompletion : Object {
     }
 
     /**
-     * Returns the word that is currently being typed: the part of the entry
-     * text after the last space.
+     * Returns the word that is currently being typed: the part of the text
+     * after the last space.
      */
     private static string last_word (string text) {
         int space = text.last_index_of_char (' ');
@@ -111,59 +130,21 @@ class GOFI.TXT.TagCompletion : Object {
             }
         }
         sorted.sort ((a, b) => a.collate (b));
+        tags = sorted.data;
+    }
 
-        tags.clear ();
-        Gtk.TreeIter iter;
-        foreach (unowned string tag in sorted.data) {
-            tags.append (out iter);
-            tags.set (iter, 0, tag);
+    private string[] get_matches (string word) {
+        string[] matches = {};
+        foreach (unowned string tag in tags) {
+            if (tag_matches (tag, word)) {
+                matches += tag;
+            }
         }
+        return matches;
     }
 
-    private bool match_func (Gtk.EntryCompletion completion, string key,
-                             Gtk.TreeIter iter) {
-        // Filter on what the user typed, not on the inline suggestion,
-        // otherwise a filled-in tag no longer matches and the list closes.
-        string word = last_word (typed_text ?? entry.text);
-        if (!is_tag_word (word)) {
-            return false;
-        }
-        string? tag;
-        tags.get (iter, 0, out tag);
-        return tag != null && tag_matches (tag, word);
-    }
-
-    /**
-     * Replaces the word being typed with the selected tag.
-     */
-    private bool on_match_selected (Gtk.EntryCompletion completion,
-                                    Gtk.TreeModel model, Gtk.TreeIter iter) {
-        string tag;
-        model.get (iter, 0, out tag);
-        replace_last_word (tag + " ");
-        return true;
-    }
-
-    private void replace_last_word (string replacement) {
-        string text = entry.text;
-        int space = text.last_index_of_char (' ');
-        inserting_inline = true;
-        entry.text = text.substring (0, space + 1) + replacement;
-        inserting_inline = false;
-        typed_text = null;
-        inline_prefix = null;
-        last_length = entry.text.length;
-        entry.set_position (-1);
-    }
-
-    /**
-     * Fills in the part that all matching tags have in common, selected,
-     * after the cursor. Only done while typing at the end of the text, never
-     * after deleting, so Backspace removes the suggestion instead of having
-     * it come back.
-     */
     private void on_entry_changed () {
-        if (inserting_inline) {
+        if (inserting) {
             return;
         }
         inline_prefix = null;
@@ -174,27 +155,26 @@ class GOFI.TXT.TagCompletion : Object {
 
         string word = last_word (text);
         if (!is_tag_word (word)) {
+            popover.popdown ();
             return;
         }
         update_tags ();
-        if (!grew) {
+        string[] matches = get_matches (word);
+        show_matches (matches, text.char_count () - word.char_count ());
+
+        // Fill in the part all matches share, but only while typing at the
+        // end of the text, never after deleting: Backspace then removes the
+        // suggestion instead of having it come back.
+        if (!grew || matches.length == 0) {
             return;
         }
-
-        string? prefix = null;
-        tags.foreach ((model, path, iter) => {
-            string tag;
-            model.get (iter, 0, out tag);
-            if (tag_matches (tag, word)) {
-                prefix = (prefix == null) ? tag : common_prefix (prefix, tag);
-            }
-            return false;
-        });
-        if (prefix == null || prefix.length <= word.length) {
+        string prefix = matches[0];
+        foreach (unowned string tag in matches) {
+            prefix = common_prefix (prefix, tag);
+        }
+        if (prefix.length <= word.length) {
             return;
         }
-
-        // Keep what the user typed, add the rest of the shared prefix.
         string addition = prefix.substring (word.length);
         // Let GTK finish handling the key press first, otherwise it moves the
         // cursor after our selection is set.
@@ -202,15 +182,171 @@ class GOFI.TXT.TagCompletion : Object {
             if (entry.text != text) {
                 return Source.REMOVE;
             }
-            inserting_inline = true;
+            inserting = true;
             int pos = entry.text.char_count ();
             entry.insert_text (addition, -1, ref pos);
-            inserting_inline = false;
+            inserting = false;
             entry.select_region (text.char_count (), -1);
             inline_prefix = prefix;
             typed_text = text;
             return Source.REMOVE;
         });
+    }
+
+    /**
+     * Fills the list with the matching tags and shows it, pointing at the
+     * word being completed.
+     */
+    private void show_matches (string[] matches, int word_start) {
+        list.foreach ((child) => child.destroy ());
+        if (matches.length == 0) {
+            popover.popdown ();
+            return;
+        }
+        foreach (unowned string tag in matches) {
+            var label = new Gtk.Label (tag);
+            label.xalign = 0;
+            label.margin_start = label.margin_end = 6;
+            label.margin_top = label.margin_bottom = 2;
+            list.add (label);
+        }
+        list.show_all ();
+
+        int row_height;
+        list.get_row_at_index (0).get_preferred_height (null, out row_height);
+        scroll.max_content_height = row_height * MAX_VISIBLE_ROWS;
+
+        popover.pointing_to = word_rectangle (word_start);
+        if (!popover.visible) {
+            popover.popup ();
+        }
+    }
+
+    /**
+     * The position of the start of the word in entry coordinates, so the
+     * popover points at the tag being typed instead of the entry's middle.
+     */
+    private Gdk.Rectangle word_rectangle (int word_start) {
+        int layout_x, layout_y;
+        entry.get_layout_offsets (out layout_x, out layout_y);
+        var layout = entry.get_layout ();
+        int index = entry.text_index_to_layout_index (
+            entry.text.index_of_nth_char (word_start));
+        Pango.Rectangle pos = layout.index_to_pos (index);
+
+        Gtk.Allocation alloc;
+        entry.get_allocation (out alloc);
+        Gdk.Rectangle rect = { 0, 0, 1, alloc.height };
+        rect.x = int.max (0, layout_x + pos.x / Pango.SCALE);
+        return rect;
+    }
+
+    private void accept_tag (string tag) {
+        string text = typed_text ?? entry.text;
+        int space = text.last_index_of_char (' ');
+        inserting = true;
+        entry.text = text.substring (0, space + 1) + tag + " ";
+        inserting = false;
+        typed_text = null;
+        inline_prefix = null;
+        last_length = entry.text.length;
+        popover.popdown ();
+        entry.grab_focus_without_selecting ();
+        entry.set_position (-1);
+    }
+
+    /**
+     * Replaces the word with the inline suggestion, in the spelling of the
+     * stored tag: "+pro" becomes "+Prowler", not "+prowler". The list stays
+     * open for the tags that still match.
+     */
+    private void accept_inline () {
+        string text = typed_text ?? entry.text;
+        int space = text.last_index_of_char (' ');
+        string new_text = text.substring (0, space + 1) + inline_prefix;
+        inline_prefix = null;
+        typed_text = null;
+        inserting = true;
+        entry.text = new_text;
+        inserting = false;
+        last_length = new_text.length;
+        entry.set_position (-1);
+        string word = last_word (new_text);
+        show_matches (get_matches (word),
+                      new_text.char_count () - word.char_count ());
+    }
+
+    private void move_selection (int step) {
+        var selected = list.get_selected_row ();
+        int n = (int) list.get_children ().length ();
+        int index = (selected == null) ?
+            (step > 0 ? 0 : n - 1) :
+            (selected.get_index () + step + n) % n;
+        var row = list.get_row_at_index (index);
+        list.select_row (row);
+        // Keep the selected row visible.
+        Gtk.Allocation alloc;
+        row.get_allocation (out alloc);
+        var adj = scroll.vadjustment;
+        if (alloc.y < adj.value) {
+            adj.value = alloc.y;
+        } else if (alloc.y + alloc.height > adj.value + adj.page_size) {
+            adj.value = alloc.y + alloc.height - adj.page_size;
+        }
+    }
+
+    private bool on_key_press (Gdk.EventKey event) {
+        bool list_shown = popover.visible;
+        var selected = list_shown ? list.get_selected_row () : null;
+
+        switch (event.keyval) {
+            case Gdk.Key.Down:
+            case Gdk.Key.KP_Down:
+                if (!list_shown) {
+                    return false;
+                }
+                move_selection (1);
+                return true;
+            case Gdk.Key.Up:
+            case Gdk.Key.KP_Up:
+                if (!list_shown) {
+                    return false;
+                }
+                move_selection (-1);
+                return true;
+            case Gdk.Key.Escape:
+                if (!list_shown) {
+                    return false;
+                }
+                popover.popdown ();
+                return true;
+            case Gdk.Key.Return:
+            case Gdk.Key.KP_Enter:
+                // Without a selected tag, Enter adds the task as before.
+                if (selected == null) {
+                    return false;
+                }
+                accept_tag (((Gtk.Label) selected.get_child ()).label);
+                return true;
+            case Gdk.Key.Tab:
+                if (selected != null) {
+                    accept_tag (((Gtk.Label) selected.get_child ()).label);
+                    return true;
+                }
+                if (inline_prefix != null) {
+                    accept_inline ();
+                    return true;
+                }
+                return false;
+            case Gdk.Key.Right:
+                if (inline_prefix != null) {
+                    accept_inline ();
+                    return true;
+                }
+                return false;
+            default:
+                return false;
+        }
     }
 
     private static string common_prefix (string a, string b) {
@@ -223,28 +359,5 @@ class GOFI.TXT.TagCompletion : Object {
             i++;
         }
         return a.substring (0, a.index_of_nth_char (i));
-    }
-
-    /**
-     * Tab or Right accepts an inline suggestion.
-     */
-    private bool on_key_press (Gdk.EventKey event) {
-        if (event.keyval != Gdk.Key.Tab && event.keyval != Gdk.Key.Right) {
-            return false;
-        }
-        int start, end;
-        if (!entry.get_selection_bounds (out start, out end) ||
-            end != entry.text.char_count ()) {
-            return false;
-        }
-        if (inline_prefix != null) {
-            // Also fixes the case: "+pro" becomes "+Prowler", not "+prowler".
-            replace_last_word (inline_prefix);
-            inline_prefix = null;
-        } else {
-            entry.select_region (end, end);
-            entry.set_position (-1);
-        }
-        return true;
     }
 }
