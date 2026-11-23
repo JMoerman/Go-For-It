@@ -17,7 +17,7 @@
 
 /**
  * Shows a calendar while the user types a "due:" or "t:" (threshold) date in
- * the new task entry.
+ * the new task entry or in the entry of a task that is being edited.
  *
  * The calendar opens in a popover above the entry as soon as the last word
  * is "due:" or "t:", and follows a date that is typed in full. Clicking a
@@ -29,7 +29,8 @@
  * moving in the calendar, still adds the task.
  */
 class GOFI.TXT.DateCompletion : Object {
-    private unowned Gtk.Entry entry;
+    private Gtk.Entry entry;
+    private ulong[] entry_handlers = {};
     private Gtk.Popover popover;
     private Gtk.Calendar calendar;
 
@@ -63,12 +64,24 @@ class GOFI.TXT.DateCompletion : Object {
         popover.add (calendar);
         calendar.show ();
 
-        entry.changed.connect_after (on_entry_changed);
-        entry.key_press_event.connect (on_key_press);
-        entry.focus_out_event.connect (() => {
-            popover.popdown ();
-            return false;
-        });
+        entry_handlers += entry.changed.connect_after (on_entry_changed);
+        entry_handlers += entry.key_press_event.connect (on_key_press);
+        entry_handlers += entry.focus_out_event.connect (on_focus_out);
+    }
+
+    ~DateCompletion () {
+        // GTK drops the handlers itself when the entry is destroyed first.
+        foreach (ulong id in entry_handlers) {
+            if (SignalHandler.is_connected (entry, id)) {
+                entry.disconnect (id);
+            }
+        }
+        popover.destroy ();
+    }
+
+    private bool on_focus_out () {
+        popover.popdown ();
+        return false;
     }
 
     private static string last_word (string text) {

@@ -137,7 +137,7 @@ class GOFI.TXT.TaskListWidget : Gtk.Grid {
     }
 
     private Gtk.Widget create_row (Object task) {
-        TaskRow row = new TaskRow (((TxtTask) task));
+        TaskRow row = new TaskRow (((TxtTask) task), model);
         row.link_clicked.connect (on_row_link_clicked);
         row.deletion_requested.connect (on_deletion_requested);
         return row;

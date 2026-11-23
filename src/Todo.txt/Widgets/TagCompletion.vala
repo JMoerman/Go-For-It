@@ -27,6 +27,10 @@
  * Keys: Tab or Right accepts the inline part, Up/Down select a tag in the
  * list, Enter or Tab inserts the selected tag, Escape closes the list.
  *
+ * Used for the new task entry and for the entry of a task that is being
+ * edited. An instance that is dropped disconnects itself from the entry and
+ * the store, so it can live as long as an edit entry.
+ *
  * Gtk.EntryCompletion is not used: its popup is a separate window that is
  * placed with screen coordinates, which ends up in the wrong place on
  * Wayland. A popover is part of the main window and is always placed right.
@@ -34,8 +38,10 @@
 class GOFI.TXT.TagCompletion : Object {
     private const int MAX_VISIBLE_ROWS = 8;
 
-    private unowned Gtk.Entry entry;
+    private Gtk.Entry entry;
     private unowned TaskStore model;
+    private ulong[] entry_handlers = {};
+    private ulong model_handler = 0;
     private Gtk.Popover popover;
     private Gtk.ScrolledWindow scroll;
     private Gtk.ListBox list;
@@ -56,6 +62,8 @@ class GOFI.TXT.TagCompletion : Object {
 
         list = new Gtk.ListBox ();
         list.selection_mode = Gtk.SelectionMode.SINGLE;
+        // Keep the keyboard focus in the entry, also when clicking a tag.
+        list.can_focus = false;
         list.activate_on_single_click = true;
         list.row_activated.connect ((row) => {
             accept_tag (((Gtk.Label) row.get_child ()).label);
@@ -72,16 +80,33 @@ class GOFI.TXT.TagCompletion : Object {
         popover.add (scroll);
         scroll.show_all ();
 
-        entry.changed.connect_after (on_entry_changed);
-        entry.key_press_event.connect (on_key_press);
-        entry.focus_out_event.connect (() => {
-            popover.popdown ();
-            return false;
-        });
+        entry_handlers += entry.changed.connect_after (on_entry_changed);
+        entry_handlers += entry.key_press_event.connect (on_key_press);
+        entry_handlers += entry.focus_out_event.connect (on_focus_out);
 
-        model.task_data_changed.connect (() => {
-            tags_outdated = true;
-        });
+        model_handler = model.task_data_changed.connect (on_task_data_changed);
+    }
+
+    ~TagCompletion () {
+        // GTK drops the handlers itself when the entry is destroyed first.
+        foreach (ulong id in entry_handlers) {
+            if (SignalHandler.is_connected (entry, id)) {
+                entry.disconnect (id);
+            }
+        }
+        if (SignalHandler.is_connected (model, model_handler)) {
+            model.disconnect (model_handler);
+        }
+        popover.destroy ();
+    }
+
+    private bool on_focus_out () {
+        popover.popdown ();
+        return false;
+    }
+
+    private void on_task_data_changed () {
+        tags_outdated = true;
     }
 
     /**
@@ -209,6 +234,7 @@ class GOFI.TXT.TagCompletion : Object {
             label.margin_start = label.margin_end = 6;
             label.margin_top = label.margin_bottom = 2;
             list.add (label);
+            label.get_parent ().can_focus = false;
         }
         list.show_all ();
 

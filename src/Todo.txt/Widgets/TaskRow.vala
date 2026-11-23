@@ -24,7 +24,13 @@ class GOFI.TXT.TaskRow: DragListRow {
     private TaskMarkupLabel markup_label;
     private Gtk.Label status_label;
     private TaskEditEntry edit_entry;
+    private TagCompletion? tag_completion;
+    private DateCompletion? date_completion;
+    private unowned TaskStore? model;
     private bool editing;
+    // Whether the last Escape press reached the row, i.e. was not used to
+    // close a suggestion list in the edit entry.
+    private bool escape_pressed;
     private bool focus_cooldown_active;
     private const string FILTER_PREFIX = "gofi:";
 
@@ -42,8 +48,10 @@ class GOFI.TXT.TaskRow: DragListRow {
     public signal void link_clicked (string uri);
     public signal void deletion_requested ();
 
-    public TaskRow (TxtTask task) {
+    public TaskRow (TxtTask task, TaskStore? model = null) {
         this.task = task;
+        this.model = model;
+        escape_pressed = false;
 
         edit_entry = null;
         editing = false;
@@ -94,6 +102,11 @@ class GOFI.TXT.TaskRow: DragListRow {
 
         edit_entry = new TaskEditEntry (task.to_simple_txt ());
         set_center_widget (edit_entry);
+        // Same suggestions as in the new task entry
+        if (model != null) {
+            tag_completion = new TagCompletion (edit_entry, model);
+        }
+        date_completion = new DateCompletion (edit_entry);
 
         edit_entry.edit ();
         edit_entry.string_changed.connect (on_edit_entry_string_changed);
@@ -167,11 +180,20 @@ class GOFI.TXT.TaskRow: DragListRow {
         set_center_widget (label_box);
         set_start_widget (check_button);
         delete_button = null;
+        tag_completion = null;
+        date_completion = null;
         edit_entry = null;
         editing = false;
         if (had_focus) {
             grab_focus ();
         }
+    }
+
+    private bool on_row_key_press (Gdk.EventKey event) {
+        if (event.keyval == Gdk.Key.Escape) {
+            escape_pressed = true;
+        }
+        return false;
     }
 
     private bool on_row_key_release (Gdk.EventKey event) {
@@ -183,7 +205,9 @@ class GOFI.TXT.TaskRow: DragListRow {
                 }
                 break;
             case Gdk.Key.Escape:
-                if (editing) {
+                bool reached_row = escape_pressed;
+                escape_pressed = false;
+                if (editing && reached_row) {
                     stop_editing ();
                     return true;
                 }
@@ -200,6 +224,7 @@ class GOFI.TXT.TaskRow: DragListRow {
 
         set_focus_child.connect (on_set_focus_child);
         focus_out_event.connect (on_focus_out);
+        key_press_event.connect (on_row_key_press);
         key_release_event.connect (on_row_key_release);
 
         task.done_changed.connect (on_task_done_changed);
