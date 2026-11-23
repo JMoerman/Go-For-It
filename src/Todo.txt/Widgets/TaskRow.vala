@@ -423,6 +423,10 @@ class GOFI.TXT.TaskRow: DragListRow {
                             uri = part.tag_name + ":" + part.content;
                             display_uri = part.tag_name + ":" + val;
                         }
+                        // The link target has to be escaped as well: a raw
+                        // '&' (e.g. "?a=1&b=2") makes the whole label invalid
+                        // markup. GTK unescapes it again before opening it.
+                        uri = GLib.Markup.escape_text (uri);
                         markup_parts[i] =
                             @"<a href=\"$uri\" title=\"$display_uri\">$display_uri</a>";
                         continue;
