@@ -107,6 +107,11 @@
       <summary></summary>
       <description>If set to true new tasks will be placed at the top of a list, otherwise new tasks will be placed at the end.</description>
     </key>
+    <key name="hide-tasks-on-hold" type="b">
+      <default>false</default>
+      <summary></summary>
+      <description>If set to true, tasks with a threshold date (t:) after today are hidden; otherwise they are shown greyed out.</description>
+    </key>
     <key name="add-default-todos" type="b">
       <default>false</default>
       <summary>Whether the example tasks need to be added</summary>

@@ -262,6 +262,29 @@ class GOFI.TXT.TaskListWidget : Gtk.Grid {
         this.add (search_bar);
     }
 
+    /**
+     * Whether tasks that are on hold are hidden (true) or shown greyed out.
+     */
+    public bool hide_on_hold {
+        get {
+            return filter.hide_on_hold;
+        }
+        set {
+            filter.hide_on_hold = value;
+            task_view.invalidate_filter ();
+        }
+    }
+
+    /**
+     * Re-evaluates which tasks are on hold, e.g. after the date changed.
+     */
+    public void refresh_on_hold () {
+        // Rows whose state changes are filtered again by update_on_hold ()
+        foreach (unowned DragListRow row in task_view.get_rows ()) {
+            ((TaskRow) row).update_on_hold ();
+        }
+    }
+
     private void on_filter_entry_search_changed () {
         filter.parse (filter_entry.text);
         task_view.invalidate_filter ();

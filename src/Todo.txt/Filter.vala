@@ -19,6 +19,11 @@ class GOFI.TXT.Filter {
     private List<TxtPart> search_parts;
     private PrioConstraint? priority_constraint;
 
+    /**
+     * Whether tasks that are on hold (threshold date after today) are hidden.
+     */
+    public bool hide_on_hold = false;
+
     public Filter () {
         search_parts = new List<TxtPart> ();
     }
@@ -168,6 +173,10 @@ class GOFI.TXT.Filter {
         assert (this != null);
         var row = _row as TaskRow;
         var task = row.task;
+
+        if (hide_on_hold && task.is_on_hold ()) {
+            return false;
+        }
 
         if (!check_prio (task)) {
             return false;

@@ -20,6 +20,9 @@ class GOFI.TXT.TxtList : GOFI.TaskList, Object {
     private TaskListWidget done_list;
 
     private Gtk.Box menu_box;
+    private Gtk.ModelButton hide_on_hold_button;
+    private DateTime last_check_date;
+    private uint day_check_id = 0;
 
     public ListSettings list_settings {
         public get;
@@ -206,8 +209,19 @@ class GOFI.TXT.TxtList : GOFI.TaskList, Object {
 #endif
         sort_tasks_button.clicked.connect (sort_tasks);
 
+        // Tasks with a t: date after today: hide them or grey them out
+        hide_on_hold_button = new Gtk.ModelButton ();
+        hide_on_hold_button.text = _("Hide Tasks on Hold");
+        hide_on_hold_button.role = Gtk.ButtonRole.CHECK;
+        hide_on_hold_button.active = settings.hide_tasks_on_hold;
+        hide_on_hold_button.clicked.connect (() => {
+            settings.hide_tasks_on_hold = !settings.hide_tasks_on_hold;
+        });
+        todo_list.hide_on_hold = settings.hide_tasks_on_hold;
+
         menu_box = new Gtk.Box (Gtk.Orientation.VERTICAL, 0);
         menu_box.add (sort_tasks_button);
+        menu_box.add (hide_on_hold_button);
         menu_box.add (clear_done_button);
         menu_box.show_all ();
 
@@ -219,12 +233,31 @@ class GOFI.TXT.TxtList : GOFI.TaskList, Object {
 
         selected_task = todo_list.get_selected_task ();
         active_task = selected_task;
+
+        // Tasks on hold become due when the date changes. Checking every
+        // minute, unlike a timeout until midnight, also works after suspend.
+        last_check_date = new DateTime.now_local ();
+        day_check_id = GLib.Timeout.add_seconds (60, check_day_changed);
+    }
+
+    private bool check_day_changed () {
+        var now = new DateTime.now_local ();
+        if (now.get_day_of_year () != last_check_date.get_day_of_year () ||
+            now.get_year () != last_check_date.get_year ()) {
+            last_check_date = now;
+            todo_list.refresh_on_hold ();
+        }
+        return GLib.Source.CONTINUE;
     }
 
     private void on_settings_notify (GLib.ParamSpec pspec) {
         switch (pspec.name) {
             case "new-tasks-on-top":
                 on_new_tasks_on_top_changed ();
+                break;
+            case "hide-tasks-on-hold":
+                todo_list.hide_on_hold = settings.hide_tasks_on_hold;
+                hide_on_hold_button.active = settings.hide_tasks_on_hold;
                 break;
             default:
                 break;
@@ -242,6 +275,11 @@ class GOFI.TXT.TxtList : GOFI.TaskList, Object {
      */
     public void unload () {
         settings.notify.disconnect (on_settings_notify);
+        if (day_check_id != 0) {
+            GLib.Source.remove (day_check_id);
+            day_check_id = 0;
+        }
+        hide_on_hold_button = null;
         task_manager.flush_changes_and_stop_monitoring ();
         todo_list = null;
         done_list = null;
