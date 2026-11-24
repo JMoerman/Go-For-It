@@ -423,8 +423,15 @@ class GOFI.TXT.TaskRow: DragListRow {
                             uri = part.tag_name + ":" + part.content;
                             display_uri = part.tag_name + ":" + val;
                         }
+                        // The link target has to be escaped as well: a raw
+                        // '&' (e.g. "?a=1&b=2") makes the whole label invalid
+                        // markup. GTK unescapes it again before opening it.
+                        uri = GLib.Markup.escape_text (uri);
+                        // GTK shows the title as tooltip markup, after the
+                        // label markup has already been unescaped once.
+                        var title = GLib.Markup.escape_text (display_uri);
                         markup_parts[i] =
-                            @"<a href=\"$uri\" title=\"$display_uri\">$display_uri</a>";
+                            @"<a href=\"$uri\" title=\"$title\">$display_uri</a>";
                         continue;
                     case TxtPartType.TAG:
                         markup_parts[i] = part.tag_name + ":" + val;
@@ -433,7 +440,8 @@ class GOFI.TXT.TaskRow: DragListRow {
                         markup_parts[i] = val;
                         continue;
                 }
-                markup_parts[i] = @" <a href=\"$FILTER_PREFIX$prefix:$val\" title=\"$val\">" +
+                var filter_title = GLib.Markup.escape_text (val);
+                markup_parts[i] = @" <a href=\"$FILTER_PREFIX$prefix:$val\" title=\"$filter_title\">" +
                                   @"$delimiter$val</a>";
             }
 
