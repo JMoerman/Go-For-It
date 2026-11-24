@@ -159,10 +159,64 @@ class GOFI.TXT.TxtListManager {
                 );
             }
         }
+        foreach (var to_move in file_operations.get_move_done_choices ()) {
+            move_tasks (File.new_for_uri (to_move.src_uri), File.new_for_uri (to_move.dst_uri), true);
+        }
+        foreach (var to_move in file_operations.get_move_open_choices ()) {
+            move_tasks (File.new_for_uri (to_move.src_uri), File.new_for_uri (to_move.dst_uri), false);
+        }
         foreach (var to_merge in file_operations.get_merge_choices ()) {
             var src_file = File.new_for_uri (to_merge.src_uri);
             var dst_file = File.new_for_uri (to_merge.dst_uri);
             merge_files (src_file, dst_file);
+        }
+    }
+
+    /**
+     * Moves the done tasks (move_done) or the open tasks (!move_done) from
+     * src to the end of dst, keeping their order. dst is written first; src
+     * is only rewritten without them once that has worked, so a failure
+     * never loses tasks.
+     */
+    private void move_tasks (File src, File dst, bool move_done) {
+        try {
+            if (!src.query_exists ()) {
+                return;
+            }
+            uint8[] src_data;
+            src.load_contents (null, out src_data, null);
+            var moved = new StringBuilder ();
+            var kept = new StringBuilder ();
+            foreach (unowned string line in ((string) src_data).split ("\n")) {
+                if (line.strip () == "") {
+                    continue;
+                }
+                bool done = line.has_prefix ("x ");
+                unowned StringBuilder builder = (done == move_done) ? moved : kept;
+                builder.append (line);
+                builder.append_c ('\n');
+            }
+            if (moved.len == 0) {
+                return;
+            }
+
+            // Start on a new line if dst does not end with one
+            if (dst.query_exists ()) {
+                uint8[] dst_data;
+                dst.load_contents (null, out dst_data, null);
+                if (dst_data.length > 0 && dst_data[dst_data.length - 1] != '\n') {
+                    moved.prepend_c ('\n');
+                }
+            }
+            var out_stream = dst.append_to (FileCreateFlags.NONE);
+            size_t written;
+            out_stream.write_all (moved.str.data, out written);
+            out_stream.close ();
+
+            src.replace_contents (kept.str.data, null, true, FileCreateFlags.NONE, null);
+        } catch (Error e) {
+            warning (e.message);
+            show_error_dialog (e.message);
         }
     }
 
