@@ -33,6 +33,9 @@ class GOFI.TXT.TaskManager : Object {
     private bool read_only;
     private bool io_failed;
     private bool single_file_mode;
+    // Done tasks found in the to-do file by the last load. Only these are
+    // rescheduled, never the history in a separate done file.
+    private TxtTask[] done_in_todo_file = {};
 
     private TimeoutHandler timeout_handler;
 
@@ -356,11 +359,17 @@ class GOFI.TXT.TaskManager : Object {
         }
     }
 
+    /**
+     * Schedules the next occurrence of recurring tasks that were completed
+     * outside of GoForIt!, i.e. done tasks found in the to-do file.
+     *
+     * Tasks in a separate done file are history: rescheduling them would
+     * create a new task for every old recurring task each time the done file
+     * is loaded for the first time, e.g. after changing the done location.
+     */
     private void reschedule_completed_tasks () {
         var now = new DateTime.now_local ();
-        uint n_items = done_store.get_n_items ();
-        for (uint i = 0; i < n_items; i++) {
-            TxtTask task = done_store.get_task (i);
+        foreach (var task in done_in_todo_file) {
             task_schedule_new (task, now);
         }
     }
@@ -369,6 +378,31 @@ class GOFI.TXT.TaskManager : Object {
         load_tasks ();
         reschedule_overdue_tasks ();
         reschedule_completed_tasks ();
+        save_done_tasks_moved_from_todo_file ();
+    }
+
+    /**
+     * With a separate done file, done tasks found in the to-do file (e.g.
+     * marked as done by another program) are moved to the "Done" list, but
+     * only in memory. Save both files right away, the done file first:
+     * otherwise the next save of the to-do file would drop them while the
+     * done file does not have them yet.
+     */
+    private void save_done_tasks_moved_from_todo_file () {
+        if (single_file_mode || done_in_todo_file.length == 0 || io_failed) {
+            return;
+        }
+        save_store_now (done_store);
+        save_store_now (todo_store);
+    }
+
+    private void save_store_now (TaskStore store) {
+        // On the first load, the files are not watched yet
+        if (todo_watcher == null) {
+            write_task_file ({store}, store == todo_store ? todo_txt : done_txt);
+        } else {
+            save_store (store);
+        }
     }
 
     private void watch_files () {
@@ -514,10 +548,14 @@ class GOFI.TXT.TaskManager : Object {
         read_only = true;
         todo_store.clear ();
         done_store.clear ();
+        done_in_todo_file = {};
         active_task_found = active_task == null;
         read_task_file (this.todo_txt, false);
         if (!single_file_mode) {
             read_task_file (this.done_txt, true);
+            foreach (var task in done_in_todo_file) {
+                done_store.add_task (task);
+            }
         }
 
         read_only = false;
@@ -671,7 +709,14 @@ class GOFI.TXT.TaskManager : Object {
                 TxtTask? task = string_to_task (line, done_by_default);
                 if (task != null) {
                     if (task.done) {
-                        done_store.add_task (task);
+                        if (!done_by_default) {
+                            done_in_todo_file += task;
+                        }
+                        // With a separate done file, these are added after
+                        // its tasks, so that done.txt only grows at the end
+                        if (done_by_default || single_file_mode) {
+                            done_store.add_task (task);
+                        }
                     } else {
                         todo_store.add_task (task);
                     }
