@@ -32,6 +32,9 @@ namespace GOFI {
         FileConflict[] replace_choices;
         FileConflict[] swap_choices;
         FileConflict[] merge_choices;
+        // Files that hold both open and done tasks: one kind is moved out
+        FileConflict[] move_done_choices;
+        FileConflict[] move_open_choices;
         int i;
 
         public ConflictChoices () {
@@ -39,6 +42,9 @@ namespace GOFI {
             conflicts = {};
             replace_choices = {};
             swap_choices = {};
+            merge_choices = {};
+            move_done_choices = {};
+            move_open_choices = {};
         }
 
         public void add_conflict (FileConflict conflict) {
@@ -55,6 +61,20 @@ namespace GOFI {
 
         public void add_simple_merge (FileConflict simple_merge) {
             merge_choices += simple_merge;
+        }
+
+        /**
+         * Moves the done tasks from src to the end of dst; open tasks stay.
+         */
+        public void add_move_done (FileConflict move_done) {
+            move_done_choices += move_done;
+        }
+
+        /**
+         * Moves the open tasks from src to the end of dst; done tasks stay.
+         */
+        public void add_move_open (FileConflict move_open) {
+            move_open_choices += move_open;
         }
 
         public unowned FileConflict? get_next_conflict () {
@@ -87,6 +107,14 @@ namespace GOFI {
 
         public unowned FileConflict[] get_merge_choices () {
             return merge_choices;
+        }
+
+        public unowned FileConflict[] get_move_done_choices () {
+            return move_done_choices;
+        }
+
+        public unowned FileConflict[] get_move_open_choices () {
+            return move_open_choices;
         }
     }
 

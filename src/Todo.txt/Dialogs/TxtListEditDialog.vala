@@ -529,6 +529,19 @@ class GOFI.TXT.TxtListEditDialog : Gtk.Dialog {
 
         var conflicts = new ConflictChoices ();
 
+        // The list kept its done tasks in the todo.txt file itself, and only
+        // one of the two locations changes: split that file instead of
+        // merging (which would move the whole file, open tasks included, and
+        // delete it).
+        if (old_todo_uri == old_done_uri && todo_txt_updated != done_txt_updated) {
+            if (done_txt_updated) {
+                conflicts.add_move_done (new FileConflict (null, old_done_uri, new_done_uri));
+            } else {
+                conflicts.add_move_open (new FileConflict (null, old_todo_uri, new_todo_uri));
+            }
+            return conflicts;
+        }
+
         // Have files been swapped or do we need to merge todo.txt files?
         if (old_todo_uri == new_done_uri || old_done_uri == new_todo_uri) {
             if (todo_txt_updated && done_txt_updated) {
