@@ -88,6 +88,7 @@ vala_precompile (VALA_C ${LIBNAME}
     Todo.txt/Filter.vala
     Todo.txt/TxtList.vala
     Todo.txt/TxtListManager.vala
+    Todo.txt/RecentTasksModel.vala
     Todo.txt/Widgets/TaskListWidget.vala
     Todo.txt/Widgets/TaskRow.vala
     Todo.txt/Widgets/DynOrientationBox.vala
