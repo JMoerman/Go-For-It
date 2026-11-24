@@ -136,8 +136,36 @@ class GOFI.TXT.TxtList : GOFI.TaskList, Object {
         return menu_box;
     }
 
+    /**
+     * Asks for confirmation, then deletes all tasks on the "Done" list.
+     * The tasks are removed from the files for good, so this is never done
+     * without asking.
+     */
     public void clear_done_list () {
-        task_manager.clear_done_store ();
+        uint n_done = task_manager.done_store.get_n_items ();
+        if (n_done == 0) {
+            return;
+        }
+        var dialog = new Gtk.MessageDialog (
+            menu_box.get_toplevel () as Gtk.Window,
+            Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT,
+            Gtk.MessageType.WARNING, Gtk.ButtonsType.NONE,
+            ngettext (
+                "Delete %u done task?", "Delete all %u done tasks?", n_done
+            ).printf (n_done)
+        );
+        dialog.secondary_text = _("They are removed from the to-do list's files for good. This cannot be undone.");
+        dialog.add_button (_("Cancel"), Gtk.ResponseType.CANCEL);
+        var delete_button = dialog.add_button (_("Delete"), Gtk.ResponseType.ACCEPT);
+        delete_button.get_style_context ().add_class (Gtk.STYLE_CLASS_DESTRUCTIVE_ACTION);
+        dialog.set_default_response (Gtk.ResponseType.CANCEL);
+        dialog.response.connect ((response_id) => {
+            if (response_id == Gtk.ResponseType.ACCEPT && task_manager != null) {
+                task_manager.clear_done_store ();
+            }
+            dialog.destroy ();
+        });
+        dialog.show ();
     }
 
     public void sort_tasks () {
