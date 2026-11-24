@@ -100,6 +100,15 @@ class GOFI.TXT.TxtTask : TodoTask {
         default = null;
     }
 
+    /**
+     * Whether the task is on hold: it is not done and its threshold date (t:)
+     * is after today.
+     */
+    public bool is_on_hold () {
+        return !done && threshold_date != null &&
+               threshold_date.dt_compare_date (new DateTime.now_local ()) > 0;
+    }
+
     public uint8 priority {
         public get;
         public set;

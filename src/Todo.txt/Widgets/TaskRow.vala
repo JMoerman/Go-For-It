@@ -26,6 +26,7 @@ class GOFI.TXT.TaskRow: DragListRow {
     private TaskEditEntry edit_entry;
     private bool editing;
     private bool focus_cooldown_active;
+    private bool on_hold = false;
     private const string FILTER_PREFIX = "gofi:";
 
     public bool is_editing {
@@ -70,6 +71,7 @@ class GOFI.TXT.TaskRow: DragListRow {
         set_start_widget (check_button);
         set_center_widget (label_box);
 
+        update_on_hold ();
         connect_signals ();
         show_all ();
     }
@@ -203,6 +205,8 @@ class GOFI.TXT.TaskRow: DragListRow {
         key_release_event.connect (on_row_key_release);
 
         task.done_changed.connect (on_task_done_changed);
+        task.notify["threshold-date"].connect (update_on_hold);
+        task.notify["done"].connect (update_on_hold);
         task.notify["status"].connect (update_status_label);
         task.notify["timer-value"].connect (update_status_label);
     }
@@ -229,6 +233,26 @@ class GOFI.TXT.TaskRow: DragListRow {
         if (widget == null && !has_focus) {
             on_focus_out ();
         }
+    }
+
+    /**
+     * Greys out the task while it is on hold, i.e. while its threshold date
+     * (t:) is after today. Called again when the date changes.
+     */
+    public void update_on_hold () {
+        bool now_on_hold = task.is_on_hold ();
+        if (now_on_hold == on_hold) {
+            return;
+        }
+        on_hold = now_on_hold;
+        var context = markup_label.get_style_context ();
+        if (on_hold) {
+            context.add_class (Gtk.STYLE_CLASS_DIM_LABEL);
+        } else {
+            context.remove_class (Gtk.STYLE_CLASS_DIM_LABEL);
+        }
+        // Let the list filter this row again, in case tasks on hold are hidden
+        changed ();
     }
 
     private void update_status_label () {
@@ -450,6 +474,8 @@ class GOFI.TXT.TaskRow: DragListRow {
             task.notify["description"].connect (update);
             task.notify["priority"].connect (update);
             task.notify["timer-value"].connect (update);
+            // t: is not part of the description, but shown in the label
+            task.notify["threshold-date"].connect (update);
         }
     }
 }

@@ -45,6 +45,7 @@ private class GOFI.SettingsManager : Object {
     const string ID_GENERAL = GOFI.APP_ID + ".settings";
     const string KEY_TASKS_ON_TOP = "new-tasks-on-top";
     const string KEY_ADD_DEFAULT_TODOS = "add-default-todos";
+    const string KEY_HIDE_ON_HOLD = "hide-tasks-on-hold";
     const string KEY_LISTS = "lists";
     const string KEY_USE_HEADER_BAR = "use-header-bar";
     const string KEY_COLOR_SCHEME = "color-scheme";
@@ -70,6 +71,14 @@ private class GOFI.SettingsManager : Object {
         public set;
     }
     public bool add_default_todos {
+        public get;
+        public set;
+    }
+    /**
+     * Whether tasks with a threshold date after today are hidden instead of
+     * shown greyed out.
+     */
+    public bool hide_tasks_on_hold {
         public get;
         public set;
     }
@@ -289,6 +298,7 @@ private class GOFI.SettingsManager : Object {
         var sbf = GLib.SettingsBindFlags.DEFAULT;
         _settings.bind (KEY_TASKS_ON_TOP, this, "new_tasks_on_top", sbf);
         _settings.bind (KEY_ADD_DEFAULT_TODOS, this, "add_default_todos", sbf);
+        _settings.bind (KEY_HIDE_ON_HOLD, this, "hide_tasks_on_hold", sbf);
         _settings.bind (KEY_SWITCHER_USE_ICONS, this, "switcher_use_icons", sbf);
         _settings.bind (KEY_SMALL_ICONS, this, "use_small_toolbar_icons", sbf);
         _settings.bind (KEY_COLOR_SCHEME, this, "color_scheme", sbf);
