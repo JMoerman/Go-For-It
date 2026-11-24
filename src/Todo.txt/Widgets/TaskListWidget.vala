@@ -32,6 +32,20 @@ class GOFI.TXT.TaskListWidget : Gtk.Grid {
     /* Data Model */
     private TaskStore model;
 
+    /*
+     * Done list only: newest first; rows are created for the newest tasks
+     * once the list is shown, and for the rest when the user scrolls to the
+     * end of the list or searches.
+     */
+    private RecentTasksModel? recent_model = null;
+    private Gtk.Revealer? recent_bar = null;
+    private Gtk.Label recent_label;
+    private Gtk.Spinner recent_spinner;
+    private Gtk.Button recent_show_all;
+    private uint load_step_id = 0;
+    private const uint INITIAL_DONE_ROWS = 200;
+    private const uint ROWS_PER_STEP = 100;
+
     private const string PLACEHOLDER_TEXT_TODO = _("You currently don't have any tasks.\nAdd some!");
     private const string FILTER_TEXT = _("No tasks found.");
     private const string PLACEHOLDER_TEXT_DONE = _("You don't have any completed tasks stored.");
@@ -81,7 +95,7 @@ class GOFI.TXT.TaskListWidget : Gtk.Grid {
 
         /* Setup the widget's children */
         setup_filter ();
-        setup_task_view ();
+        setup_task_view (!add_new);
         if (add_new) {
             setup_add_new ();
             placeholder_text = PLACEHOLDER_TEXT_TODO;
@@ -101,8 +115,16 @@ class GOFI.TXT.TaskListWidget : Gtk.Grid {
     }
 
     public void select_task (TxtTask task) {
-        var pos = model.get_task_position (task);
-        var row = task_view.get_row_at_index ((int)pos);
+        int pos;
+        if (recent_model != null) {
+            pos = recent_model.get_position (task);
+            if (pos < 0) {
+                return;
+            }
+        } else {
+            pos = (int) model.get_task_position (task);
+        }
+        var row = task_view.get_row_at_index (pos);
         task_view.select_row (row);
     }
 
@@ -164,11 +186,24 @@ class GOFI.TXT.TaskListWidget : Gtk.Grid {
     /**
      * Configures the list to display the task entries.
      */
-    private void setup_task_view () {
+    private void setup_task_view (bool done_list) {
         this.scroll_view = new Gtk.ScrolledWindow (null, null);
         this.task_view = new DragList ();
 
-        task_view.bind_model ((DragListModel)model, create_row);
+        if (done_list) {
+            // No rows until the list is shown for the first time
+            recent_model = new RecentTasksModel (model, 0);
+            task_view.bind_model (recent_model, create_row);
+            map.connect (on_first_map);
+            destroy.connect (() => {
+                if (load_step_id != 0) {
+                    Source.remove (load_step_id);
+                    load_step_id = 0;
+                }
+            });
+        } else {
+            task_view.bind_model ((DragListModel)model, create_row);
+        }
         task_view.vadjustment = scroll_view.vadjustment;
         task_view.row_selected.connect (on_task_view_row_selected);
         task_view.row_activated.connect (on_task_view_row_activated);
@@ -178,6 +213,9 @@ class GOFI.TXT.TaskListWidget : Gtk.Grid {
 
         // Add to the main widget
         scroll_view.add (task_view);
+        if (done_list) {
+            this.add (create_recent_bar ());
+        }
         this.add (scroll_view);
     }
 
@@ -265,5 +303,99 @@ class GOFI.TXT.TaskListWidget : Gtk.Grid {
     private void on_filter_entry_search_changed () {
         filter.parse (filter_entry.text);
         task_view.invalidate_filter ();
+        // Searching has to see all done tasks
+        if (filter_entry.text != "") {
+            load_all_done_rows ();
+        }
+    }
+
+    private Gtk.Widget create_recent_bar () {
+        recent_spinner = new Gtk.Spinner ();
+        recent_label = new Gtk.Label (null);
+        recent_label.wrap = true;
+        recent_label.xalign = 0;
+        recent_label.get_style_context ().add_class (Gtk.STYLE_CLASS_DIM_LABEL);
+        recent_label.hexpand = true;
+        recent_show_all = new Gtk.Button.with_label (_("Show all"));
+        recent_show_all.relief = Gtk.ReliefStyle.NONE;
+        recent_show_all.valign = Gtk.Align.CENTER;
+        recent_show_all.clicked.connect (load_all_done_rows);
+        var box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 6);
+        box.margin = 6;
+        box.add (recent_spinner);
+        box.add (recent_label);
+        box.add (recent_show_all);
+        recent_bar = new Gtk.Revealer ();
+        // Without animation: every frame would lay out all rows again
+        recent_bar.transition_type = Gtk.RevealerTransitionType.NONE;
+        recent_bar.add (box);
+        box.show_all ();
+        recent_spinner.hide ();
+        return recent_bar;
+    }
+
+    private void on_first_map () {
+        map.disconnect (on_first_map);
+        recent_model.changed.connect (update_recent_bar);
+        scroll_view.vadjustment.value_changed.connect (on_scrolled);
+        recent_model.limit = INITIAL_DONE_ROWS;
+        if (filter_entry.text != "") {
+            load_all_done_rows ();
+        }
+    }
+
+    /**
+     * Loads the older done tasks once the list is scrolled to within one
+     * page of its end, whether by mouse wheel, scrollbar or keyboard (End,
+     * Page Down). edge-reached is not emitted for every way of scrolling.
+     */
+    private void on_scrolled () {
+        var adj = scroll_view.vadjustment;
+        if (adj.value + 2 * adj.page_size >= adj.upper) {
+            load_all_done_rows ();
+        }
+    }
+
+    /**
+     * Adds the rows of the older done tasks in small steps, so that the
+     * window stays responsive and the progress can be shown.
+     */
+    private void load_all_done_rows () {
+        if (recent_model == null || load_step_id != 0 ||
+            recent_model.n_hidden == 0 || recent_model.limit == 0) {
+            return;
+        }
+        recent_spinner.show ();
+        recent_spinner.start ();
+        load_step_id = Idle.add (() => {
+            if (recent_model.n_hidden == 0) {
+                recent_model.limit = uint.MAX;
+                load_step_id = 0;
+                recent_spinner.stop ();
+                recent_spinner.hide ();
+                update_recent_bar ();
+                return Source.REMOVE;
+            }
+            recent_model.limit = recent_model.get_n_items () + ROWS_PER_STEP;
+            return Source.CONTINUE;
+        }, Priority.DEFAULT_IDLE);
+        update_recent_bar ();
+    }
+
+    private void update_recent_bar () {
+        uint hidden = recent_model.n_hidden;
+        uint total = hidden + recent_model.get_n_items ();
+        recent_show_all.visible = load_step_id == 0 && hidden > 0;
+        if (load_step_id != 0) {
+            recent_label.label = _("Loading done tasks… %u of %u").printf (
+                recent_model.get_n_items (), total);
+            recent_bar.reveal_child = true;
+        } else if (hidden > 0) {
+            recent_label.label = _("Showing the newest %u of %u done tasks. Scroll to the end or search to show all.").printf (
+                recent_model.get_n_items (), total);
+            recent_bar.reveal_child = true;
+        } else {
+            recent_bar.reveal_child = false;
+        }
     }
 }
